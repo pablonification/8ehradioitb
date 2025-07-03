@@ -1,5 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans, Arimo, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,8 +15,19 @@ const geistMono = Geist_Mono({
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-plus-jakarta-sans",
-  weight: ["700"],
-  style: ["italic"],
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const arimo = Arimo({
+  subsets: ["latin"],
+  variable: "--font-arimo",
+  weight: ["400", "500", "600", "700"],
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  variable: "--font-instrument-serif",
+  weight: ["400"],
 });
 
 export const metadata = {
@@ -28,7 +39,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} ${arimo.variable} ${instrumentSerif.variable} antialiased`}
       >
         {children}
       </body>

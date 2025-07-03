@@ -8,6 +8,9 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
+        'heading': ['var(--font-plus-jakarta-sans)'],
+        'body': ['var(--font-arimo)'],
+        'accent': ['var(--font-instrument-serif)'],
         'plus-jakarta-sans': ['var(--font-plus-jakarta-sans)'],
       },
     },
