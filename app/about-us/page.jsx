@@ -1,7 +1,19 @@
+"use client";
 import Image from "next/image";
 import Navbar from "@/app/components/Navbar";
+import ButtonPrimary from "@/app/components/ButtonPrimary";
+import { useState } from "react";
 
-export default function Home() {
+export default function AboutUs() {
+  const [selectedYear, setSelectedYear] = useState('1963');
+  
+  const timelineContent = {
+    '1963': "8EH Radio ITB was founded to create a vibrant platform for students to express their creativity and connect with the campus community. Our mission is to deliver engaging content that informs, entertains, and resonates with the voices of ITB.",
+    '1978': "Placeholder untuk sejarah tahun 1978.", 
+    '1980': "Placeholder untuk sejarah tahun 1980.",
+    '1982': "Placeholder untuk sejarah tahun 1982."
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navbar Component */}
@@ -72,20 +84,9 @@ export default function Home() {
               Connecting the ITB community through engaging content, creativity,
               and collaboration in media.
             </p>
-            <button
-              className="bg-[#D83232] hover:bg-[#B72929] text-white px-4 py-2 rounded-full font-body font-medium transition-colors cursor-pointer items-center gap-2"
-              style={{
-                boxShadow: `
-                0 1px 2px rgba(2, 8, 11, 0.05),
-                inset 0 32px 24px rgba(255, 255, 255, 0.05),
-                inset 0 2px 1px rgba(255, 255, 255, 0.25),
-                inset 0 0px 0px rgba(2, 8, 11, 0.15),
-                inset 0 -2px 1px rgba(0, 0, 0, 0.20)
-              `,
-              }}
-            >
+            <ButtonPrimary>
               Learn More
-            </button>
+            </ButtonPrimary>
           </div>
         </div>
 
@@ -139,70 +140,35 @@ export default function Home() {
 
               {/* Timeline */}
               <div className="flex space-x-6 mb-8">
-                <button
-                  className="bg-[#D83232] hover:bg-[#B72929] text-white px-4 py-2 rounded-full font-body font-medium transition-colors cursor-pointer items-center gap-2"
-                  style={{
-                    boxShadow: `
-                      0 1px 2px rgba(2, 8, 11, 0.05),
-                      inset 0 32px 24px rgba(255, 255, 255, 0.05),
-                      inset 0 2px 1px rgba(255, 255, 255, 0.25),
-                      inset 0 0px 0px rgba(2, 8, 11, 0.15),
-                      inset 0 -2px 1px rgba(0, 0, 0, 0.20)
-                    `
-                  }}
+                <ButtonPrimary 
+                  onClick={() => setSelectedYear('1963')}
+                  className={selectedYear === '1963' ? 'ring-2 ring-white ring-opacity-50' : ''}
                 >
                   1963
-                </button>
-                <button
-                  className="bg-[#D83232] hover:bg-[#B72929] text-white px-4 py-2 rounded-full font-body font-medium transition-colors cursor-pointer items-center gap-2"
-                  style={{
-                    boxShadow: `
-                      0 1px 2px rgba(2, 8, 11, 0.05),
-                      inset 0 32px 24px rgba(255, 255, 255, 0.05),
-                      inset 0 2px 1px rgba(255, 255, 255, 0.25),
-                      inset 0 0px 0px rgba(2, 8, 11, 0.15),
-                      inset 0 -2px 1px rgba(0, 0, 0, 0.20)
-                    `
-                  }}
+                </ButtonPrimary>
+                <ButtonPrimary 
+                  onClick={() => setSelectedYear('1978')}
+                  className={selectedYear === '1978' ? 'ring-2 ring-white ring-opacity-50' : ''}
                 >
                   1978
-                </button>
-                <button
-                  className="bg-[#D83232] hover:bg-[#B72929] text-white px-4 py-2 rounded-full font-body font-medium transition-colors cursor-pointer items-center gap-2"
-                  style={{
-                    boxShadow: `
-                      0 1px 2px rgba(2, 8, 11, 0.05),
-                      inset 0 32px 24px rgba(255, 255, 255, 0.05),
-                      inset 0 2px 1px rgba(255, 255, 255, 0.25),
-                      inset 0 0px 0px rgba(2, 8, 11, 0.15),
-                      inset 0 -2px 1px rgba(0, 0, 0, 0.20)
-                    `
-                  }}
+                </ButtonPrimary>
+                <ButtonPrimary 
+                  onClick={() => setSelectedYear('1980')}
+                  className={selectedYear === '1980' ? 'ring-2 ring-white ring-opacity-50' : ''}
                 >
                   1980
-                </button>
-                <button
-                  className="bg-[#D83232] hover:bg-[#B72929] text-white px-4 py-2 rounded-full font-body font-medium transition-colors cursor-pointer items-center gap-2"
-                  style={{
-                    boxShadow: `
-                      0 1px 2px rgba(2, 8, 11, 0.05),
-                      inset 0 32px 24px rgba(255, 255, 255, 0.05),
-                      inset 0 2px 1px rgba(255, 255, 255, 0.25),
-                      inset 0 0px 0px rgba(2, 8, 11, 0.15),
-                      inset 0 -2px 1px rgba(0, 0, 0, 0.20)
-                    `
-                  }}
+                </ButtonPrimary>
+                <ButtonPrimary 
+                  onClick={() => setSelectedYear('1982')}
+                  className={selectedYear === '1982' ? 'ring-2 ring-white ring-opacity-50' : ''}
                 >
                   1982
-                </button>
+                </ButtonPrimary>
               </div>
 
               {/* Description */}
               <p className="text-gray-700 font-body text-lg leading-relaxed">
-                8EH Radio ITB was founded to create a vibrant platform for
-                students to express their creativity and connect with the campus
-                community. Our mission is to deliver engaging content that
-                informs, entertains, and resonates with the voices of ITB.
+                {timelineContent[selectedYear]}
               </p>
             </div>
           </div>
