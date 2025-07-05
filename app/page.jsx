@@ -85,7 +85,7 @@ export default function AboutUs() {
               Connecting the ITB community through engaging content, creativity,
               and collaboration in media.
             </p>
-            <div className="flex justify-center mt-4">
+            <div className="flex justify-center mt-4 hidden">
               <RadioPlayer 
                 className="w-full max-w-md"
                 showTitle={false}

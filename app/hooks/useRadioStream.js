@@ -30,11 +30,14 @@ export const useRadioStream = () => {
     return `${STREAM_CONFIG.baseUrl}?${params.toString()}`;
   }, []);
 
+  // Detect if running on an iOS device (iPhone, iPod, iPad)
+  const isIOS = typeof window !== 'undefined' && /iP(hone|od|ad)/i.test(window.navigator.userAgent);
+
   // Initialize stream URL
   useEffect(() => {
-    const url = generateStreamUrl();
+    const url = isIOS ? '/api/stream' : generateStreamUrl();
     setStreamUrl(url);
-  }, [generateStreamUrl]);
+  }, [generateStreamUrl, isIOS]);
 
   // Refresh stream URL
   const refreshStream = useCallback(() => {
@@ -48,7 +51,15 @@ export const useRadioStream = () => {
   // Handle stream errors with fallback logic
   const handleStreamError = useCallback(() => {
     setIsLoading(false);
-    
+
+    // Try the fallback URL once on the very first failure (helps with Safari / CORS issues)
+    if (retryCount === 0) {
+      setError('Primary connection failed. Switching to fallback stream...');
+      setRetryCount(prev => prev + 1);
+      setStreamUrl(STREAM_CONFIG.fallbackUrl);
+      return;
+    }
+
     if (retryCount < STREAM_CONFIG.maxRetries) {
       setError(`Connection failed. Retrying... (${retryCount + 1}/${STREAM_CONFIG.maxRetries})`);
       
@@ -62,10 +73,10 @@ export const useRadioStream = () => {
     }
   }, [retryCount, generateStreamUrl]);
 
-  // Get stream URL with fresh session
+  // Get stream URL with fresh session (use fallback for iOS)
   const getStreamUrl = useCallback(() => {
-    return generateStreamUrl();
-  }, [generateStreamUrl]);
+    return isIOS ? '/api/stream' : generateStreamUrl();
+  }, [isIOS, generateStreamUrl]);
 
   return {
     streamUrl,
