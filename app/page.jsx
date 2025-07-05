@@ -2,69 +2,11 @@
 import Image from "next/image";
 import Navbar from "@/app/components/Navbar";
 import ButtonPrimary from "@/app/components/ButtonPrimary";
-import { useState, useEffect, useRef } from "react";
+import RadioPlayer from "@/app/components/RadioPlayer";
+import { useState } from "react";
 
 export default function AboutUs() {
   const [selectedYear, setSelectedYear] = useState('1963');
-  const audioRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  
-  useEffect(() => {
-    // Add custom event listener for player control from navbar
-    const handlePlayerControl = (event) => {
-      if (audioRef.current) {
-        if (isPlaying) {
-          audioRef.current.pause();
-        } else {
-          audioRef.current.play();
-        }
-      }
-    };
-
-    // Listen for custom events from navbar
-    window.addEventListener('triggerPlayerControl', handlePlayerControl);
-    
-    // Listen to audio events to update state
-    const audio = audioRef.current;
-    if (audio) {
-      const handlePlay = () => {
-        setIsPlaying(true);
-        // Notify navbar about state change
-        window.dispatchEvent(new CustomEvent('audioStateChanged', { 
-          detail: { isPlaying: true } 
-        }));
-      };
-      const handlePause = () => {
-        setIsPlaying(false);
-        // Notify navbar about state change
-        window.dispatchEvent(new CustomEvent('audioStateChanged', { 
-          detail: { isPlaying: false } 
-        }));
-      };
-      const handleEnded = () => {
-        setIsPlaying(false);
-        // Notify navbar about state change
-        window.dispatchEvent(new CustomEvent('audioStateChanged', { 
-          detail: { isPlaying: false } 
-        }));
-      };
-      
-      audio.addEventListener('play', handlePlay);
-      audio.addEventListener('pause', handlePause);
-      audio.addEventListener('ended', handleEnded);
-      
-      return () => {
-        window.removeEventListener('triggerPlayerControl', handlePlayerControl);
-        audio.removeEventListener('play', handlePlay);
-        audio.removeEventListener('pause', handlePause);
-        audio.removeEventListener('ended', handleEnded);
-      };
-    }
-    
-    return () => {
-      window.removeEventListener('triggerPlayerControl', handlePlayerControl);
-    };
-  }, [isPlaying]);
 
   const timelineContent = {
     '1963': "8EH Radio ITB was founded to create a vibrant platform for students to express their creativity and connect with the campus community. Our mission is to deliver engaging content that informs, entertains, and resonates with the voices of ITB.",
@@ -144,20 +86,11 @@ export default function AboutUs() {
               and collaboration in media.
             </p>
             <div className="flex justify-center mt-4">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                <audio
-                  ref={audioRef}
-                  controls
-                  className="w-full max-w-md"
-                  preload="none"
-                >
-                  <source src="https://uk25freenew.listen2myradio.com/listen.pls" type="audio/mpeg" />
-                  Your browser does not support the audio element.
-                </audio>
-                <p className="text-white/80 text-sm mt-2 text-center font-body">
-                  🔴 Live Stream - 8EH Radio ITB
-                </p>
-              </div>
+              <RadioPlayer 
+                className="w-full max-w-md"
+                showTitle={false}
+                compact={true}
+              />
             </div>
             <ButtonPrimary>
               Learn More
