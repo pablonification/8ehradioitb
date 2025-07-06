@@ -54,15 +54,23 @@ export const useRadioStream = () => {
   }, [getCandidateUrl]);
 
   // Refresh stream URL
-  const refreshStream = useCallback(() => {
-    setError("");
-    setRetryCount(0);
-    setAttempt(0);
-    const newUrl = getCandidateUrl(0);
-    console.log("[RadioStream] Refreshing stream URL (attempt 0):", newUrl);
-    setStreamUrl(newUrl);
-    return newUrl;
-  }, [getCandidateUrl]);
+  const refreshStream = useCallback(
+    (advance = false) => {
+      setError("");
+      setRetryCount(0);
+      setAttempt((prev) => {
+        const next = advance ? Math.min(prev + 1, 2) : prev;
+        const newUrl = getCandidateUrl(next);
+        console.log(
+          `[RadioStream] Refreshing stream URL (attempt ${next}):`,
+          newUrl,
+        );
+        setStreamUrl(newUrl);
+        return next;
+      });
+    },
+    [getCandidateUrl],
+  );
 
   // Handle stream errors with fallback logic
   const handleStreamError = useCallback(() => {
@@ -73,11 +81,7 @@ export const useRadioStream = () => {
     if (retryCount === 0) {
       setError("Primary connection failed. Switching to fallback stream...");
       setRetryCount((prev) => prev + 1);
-      const nextAttempt = attempt + 1;
-      setAttempt(nextAttempt);
-      const newUrl = getCandidateUrl(nextAttempt);
-      console.log(`[RadioStream] Fallback attempt ${nextAttempt}:`, newUrl);
-      setStreamUrl(newUrl);
+      refreshStream(true);
       return;
     }
 
@@ -99,7 +103,7 @@ export const useRadioStream = () => {
       setError("Unable to connect to the radio stream. Please try refreshing.");
       console.error("[RadioStream] All retries exhausted.");
     }
-  }, [retryCount, attempt, getCandidateUrl, generateStreamUrl]);
+  }, [retryCount, attempt, getCandidateUrl, generateStreamUrl, refreshStream]);
 
   // Get fresh direct stream URL
   const getStreamUrl = useCallback(() => {
