@@ -8,16 +8,14 @@ export default function Home() {
           src="/8eh.png"
           alt="8EH Logo"
           fill
-          style={{ objectFit: 'contain' }}
+          style={{ objectFit: "contain" }}
           priority
         />
       </div>
       <h1 className="mt-8 text-[#E36F6F] text-4xl tracking-tighter font-bold italic font-['Plus_Jakarta_Sans']">
         #Meresonansi&Berkarya
       </h1>
-      <p className="text-center text-gray-600 mt-4">
-        On developing...
-      </p>
+      <p className="text-center text-gray-600 mt-4">On development...</p>
     </main>
   );
 }
