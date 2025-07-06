@@ -19,6 +19,7 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
     getStreamUrl,
     setIsLoading,
     setError,
+    attempt,
   } = useRadioStream();
 
   // Audio event handlers
@@ -280,6 +281,10 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
             >
               {getStatusText()}
             </div>
+            {/* Debug info */}
+            <div className="text-[10px] text-white/50 mt-1 break-all">
+              Attempt: {attempt} | URL: {streamUrl}
+            </div>
           </div>
 
           <button
@@ -359,7 +364,10 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
         <div className={`text-sm ${error ? "text-red-200" : "text-white/80"}`}>
           {getStatusText()}
         </div>
-
+        {/* Debug info */}
+        <div className="text-[10px] text-white/50 mt-1 break-all">
+          Attempt: {attempt} | URL: {streamUrl}
+        </div>
         {retryCount > 0 && (
           <div className="text-white/60 text-xs mt-1">
             Retry attempt: {retryCount}

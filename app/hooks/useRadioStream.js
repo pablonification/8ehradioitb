@@ -118,5 +118,6 @@ export const useRadioStream = () => {
     getStreamUrl,
     setIsLoading,
     setError,
+    attempt,
   };
 };
