@@ -3,11 +3,11 @@ module.exports = {
     {
       name: "8ehradioitb", // Name shown in pm2 list
       script: "node_modules/.bin/next", // Executes Next.js
-      args: "start -p 3000", // Start command with port, adjust if needed
+      args: "start -p 8000", // Start command with port, adjust if needed
       cwd: __dirname, // Current working directory = project root
       env: {
         NODE_ENV: "production",
-        PORT: 3000,
+        PORT: 8000,
       },
       // Log files
       error_file: "./logs/pm2/error.log",
