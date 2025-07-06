@@ -190,7 +190,7 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
         );
       } else {
         setError("Failed to start playback. Refreshing stream...");
-        setTimeout(() => refreshStream(), 1000);
+        handleStreamError();
       }
     } finally {
       playPromiseRef.current = null;
@@ -232,11 +232,14 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
   };
 
   const handleRefresh = () => {
+    console.log("[RadioPlayer] Manual refresh triggered");
     setIsPlaying(false);
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current.src = ""; // Clear source
     }
-    refreshStream();
+    // Reset attempts to start fresh
+    refreshStream(false);
   };
 
   const getPlayButtonText = () => {
@@ -283,7 +286,9 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
             </div>
             {/* Debug info */}
             <div className="text-[10px] text-white/50 mt-1 break-all">
-              Attempt: {attempt} | URL: {streamUrl}
+              Attempt: {attempt} (
+              {["Dynamic HTTPS", "Static HTTPS", "Proxy"][attempt]}) | Retry:{" "}
+              {retryCount}
             </div>
           </div>
 
@@ -366,7 +371,11 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
         </div>
         {/* Debug info */}
         <div className="text-[10px] text-white/50 mt-1 break-all">
-          Attempt: {attempt} | URL: {streamUrl}
+          Attempt: {attempt} (
+          {["Dynamic HTTPS", "Static HTTPS", "Proxy"][attempt]}) | Retry:{" "}
+          {retryCount}
+          <br />
+          URL: {streamUrl}
         </div>
         {retryCount > 0 && (
           <div className="text-white/60 text-xs mt-1">

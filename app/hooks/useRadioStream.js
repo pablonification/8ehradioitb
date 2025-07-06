@@ -58,16 +58,21 @@ export const useRadioStream = () => {
     (advance = false) => {
       setError("");
       setRetryCount(0);
-      setAttempt((prev) => {
-        const next = advance ? Math.min(prev + 1, 2) : prev;
-        const newUrl = getCandidateUrl(next);
-        console.log(
-          `[RadioStream] Refreshing stream URL (attempt ${next}):`,
-          newUrl,
-        );
+      if (advance) {
+        setAttempt((prev) => {
+          const next = Math.min(prev + 1, 2);
+          const newUrl = getCandidateUrl(next);
+          console.log(`[RadioStream] Advancing to attempt ${next}:`, newUrl);
+          setStreamUrl(newUrl);
+          return next;
+        });
+      } else {
+        // Reset to first attempt
+        setAttempt(0);
+        const newUrl = getCandidateUrl(0);
+        console.log(`[RadioStream] Resetting to attempt 0:`, newUrl);
         setStreamUrl(newUrl);
-        return next;
-      });
+      }
     },
     [getCandidateUrl],
   );
@@ -75,35 +80,54 @@ export const useRadioStream = () => {
   // Handle stream errors with fallback logic
   const handleStreamError = useCallback(() => {
     console.error("[RadioStream] Stream error encountered");
+    console.log(
+      "[RadioStream] Current attempt:",
+      attempt,
+      "Retry count:",
+      retryCount,
+    );
     setIsLoading(false);
 
-    // Try the fallback URL once on the very first failure (helps with Safari / CORS issues)
-    if (retryCount === 0) {
-      setError("Primary connection failed. Switching to fallback stream...");
-      setRetryCount((prev) => prev + 1);
-      refreshStream(true);
-      return;
-    }
+    // If we haven't tried all attempts yet, advance to next
+    if (attempt < 2) {
+      const attemptNames = ["dynamic HTTPS", "static HTTPS", "proxy server"];
+      setError(
+        `${attemptNames[attempt]} failed. Trying ${attemptNames[attempt + 1]}...`,
+      );
+      setRetryCount(0); // Reset retry count for new attempt
 
-    if (retryCount < STREAM_CONFIG.maxRetries) {
+      setTimeout(() => {
+        setAttempt((prev) => {
+          const next = prev + 1;
+          const newUrl = getCandidateUrl(next);
+          console.log(`[RadioStream] Advancing to attempt ${next}:`, newUrl);
+          setStreamUrl(newUrl);
+          return next;
+        });
+      }, 1000);
+    } else if (retryCount < STREAM_CONFIG.maxRetries) {
+      // All attempts exhausted, retry current attempt
       setError(
         `Connection failed. Retrying... (${retryCount + 1}/${STREAM_CONFIG.maxRetries})`,
       );
+      setRetryCount((prev) => prev + 1);
 
       setTimeout(() => {
-        const newUrl = generateStreamUrl();
+        // For proxy attempt, just retry same URL
+        const newUrl = attempt === 2 ? streamUrl : generateStreamUrl();
         console.log(
-          "[RadioStream] Retry same attempt with new dynamic URL:",
+          `[RadioStream] Retrying attempt ${attempt} with URL:`,
           newUrl,
         );
-        setRetryCount((prev) => prev + 1);
         setStreamUrl(newUrl);
       }, STREAM_CONFIG.retryDelay);
     } else {
-      setError("Unable to connect to the radio stream. Please try refreshing.");
-      console.error("[RadioStream] All retries exhausted.");
+      setError(
+        "Unable to connect. Try manual refresh or check your connection.",
+      );
+      console.error("[RadioStream] All attempts and retries exhausted.");
     }
-  }, [retryCount, attempt, getCandidateUrl, generateStreamUrl, refreshStream]);
+  }, [retryCount, attempt, getCandidateUrl, generateStreamUrl, streamUrl]);
 
   // Get fresh direct stream URL
   const getStreamUrl = useCallback(() => {
