@@ -2,16 +2,19 @@
 import Image from "next/image";
 import Navbar from "@/app/components/Navbar";
 import ButtonPrimary from "@/app/components/ButtonPrimary";
-import { useState } from "react";
+import RadioPlayer from "@/app/components/RadioPlayer";
+import { useState, useRef } from "react";
+import BoardSlider from "@/app/components/BoardSlider";
 
 export default function AboutUs() {
-  const [selectedYear, setSelectedYear] = useState('1963');
-  
+  const [selectedYear, setSelectedYear] = useState("1963");
+  const journeyRef = useRef(null);
+
   const timelineContent = {
-    '1963': "8EH Radio ITB was founded to create a vibrant platform for students to express their creativity and connect with the campus community. Our mission is to deliver engaging content that informs, entertains, and resonates with the voices of ITB.",
-    '1978': "Placeholder untuk sejarah tahun 1978.", 
-    '1980': "Placeholder untuk sejarah tahun 1980.",
-    '1982': "Placeholder untuk sejarah tahun 1982."
+    1963: '20 Mei 1963: 8EH resmi didirikan oleh mahasiswa Teknik Elektro ITB sebagai radio komunitas eksperimental. Menggunakan pemancar bekas Angkatan Laut Jepang, mereka mendapatkan call sign "8EH" dari ITU dan menjadi radio FM kedua di Indonesia setelah RRI.',
+    1978: "Pada 21 Januari 1978, setelah menjadi corong utama pergerakan mahasiswa, terutama siaran Buku Putih Perjuangan Mahasiswa. Stasiun ini disegel oleh Kopkamtib Jawa Barat, terkait aktivitas kritis terhadap pemerintah Orde Baru. Siaran dihentikan sejak awal 1980-an, di saat 8EH dianggap berbahaya sebagai medium perjuangan mahasiswa.",
+    1999: 'Setelah vakum selama hampir dua dekade, 8EH kembali mengudara pada 31 Desember 1999. Mulai saat itu, formatnya berkembang menjadi radio komunitas "edutainment", mengudara di 107.9 FM dan streaming online.',
+    2025: "Placeholder untuk sejarah tahun 2025.",
   };
 
   return (
@@ -84,7 +87,18 @@ export default function AboutUs() {
               Connecting the ITB community through engaging content, creativity,
               and collaboration in media.
             </p>
-            <ButtonPrimary>
+            <div className="flex justify-center mt-4 hidden">
+              <RadioPlayer
+                className="w-full max-w-md"
+                showTitle={false}
+                compact={true}
+              />
+            </div>
+            <ButtonPrimary
+              onClick={() =>
+                journeyRef.current?.scrollIntoView({ behavior: "smooth" })
+              }
+            >
               Learn More
             </ButtonPrimary>
           </div>
@@ -102,7 +116,10 @@ export default function AboutUs() {
       </section>
 
       {/* Our Journey Section */}
-      <section className="relative py-20 overflow-hidden -mt-40">
+      <section
+        ref={journeyRef}
+        className="relative py-20 overflow-hidden -mt-40"
+      >
         {/* Background Gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-white via-red-50 to-yellow-100"></div>
 
@@ -121,8 +138,8 @@ export default function AboutUs() {
             </div>
 
             {/* Right side - Content */}
-            <div>
-            <div className="absolute w-full max-w-lg mx-auto -top-20 -right-40 -z-10">
+            <div className="flex flex-col items-left justify-center">
+              <div className="absolute w-full max-w-lg mx-auto -top-20 -right-40 -z-10">
                 <Image
                   src="/vstock-3.png"
                   alt="About Us"
@@ -131,45 +148,63 @@ export default function AboutUs() {
                   className="object-contain"
                 />
               </div>
-              <h2 className="text-5xl md:text-6xl font-heading font-bold text-gray-900 mb-4">
-                Our Journey
-              </h2>
-              <h3 className="text-2xl md:text-3xl font-accent text-red-600 mb-8">
-                Passion for Campus Broadcasting
-              </h3>
+              <div className="flex flex-col items-left justify-center">
+                <h2 className="text-5xl md:text-6xl font-heading font-bold text-gray-900 mb-4">
+                  Our Journey
+                </h2>
+                <h3 className="text-2xl md:text-3xl font-accent text-red-600 mb-6">
+                  Passion for Campus Broadcasting
+                </h3>
 
-              {/* Timeline */}
-              <div className="flex space-x-6 mb-8">
-                <ButtonPrimary 
-                  onClick={() => setSelectedYear('1963')}
-                  className={selectedYear === '1963' ? 'ring-2 ring-white ring-opacity-50' : ''}
-                >
-                  1963
-                </ButtonPrimary>
-                <ButtonPrimary 
-                  onClick={() => setSelectedYear('1978')}
-                  className={selectedYear === '1978' ? 'ring-2 ring-white ring-opacity-50' : ''}
-                >
-                  1978
-                </ButtonPrimary>
-                <ButtonPrimary 
-                  onClick={() => setSelectedYear('1980')}
-                  className={selectedYear === '1980' ? 'ring-2 ring-white ring-opacity-50' : ''}
-                >
-                  1980
-                </ButtonPrimary>
-                <ButtonPrimary 
-                  onClick={() => setSelectedYear('1982')}
-                  className={selectedYear === '1982' ? 'ring-2 ring-white ring-opacity-50' : ''}
-                >
-                  1982
-                </ButtonPrimary>
+                {/* Timeline */}
+                <div className="flex space-x-6 mb-6">
+                  <ButtonPrimary
+                    onClick={() => setSelectedYear("1963")}
+                    className={
+                      selectedYear === "1963"
+                        ? "ring-2 ring-white ring-opacity-50"
+                        : ""
+                    }
+                  >
+                    1963
+                  </ButtonPrimary>
+                  <ButtonPrimary
+                    onClick={() => setSelectedYear("1978")}
+                    className={
+                      selectedYear === "1978"
+                        ? "ring-2 ring-white ring-opacity-50"
+                        : ""
+                    }
+                  >
+                    1978
+                  </ButtonPrimary>
+                  <ButtonPrimary
+                    onClick={() => setSelectedYear("1999")}
+                    className={
+                      selectedYear === "1999"
+                        ? "ring-2 ring-white ring-opacity-50"
+                        : ""
+                    }
+                  >
+                    1999
+                  </ButtonPrimary>
+                  <ButtonPrimary
+                    onClick={() => setSelectedYear("2025")}
+                    className={
+                      selectedYear === "2025"
+                        ? "ring-2 ring-white ring-opacity-50"
+                        : ""
+                    }
+                  >
+                    2025
+                  </ButtonPrimary>
+                </div>
+                <div className="h-[200px] overflow-y-auto">
+                  <p className="text-gray-700 font-body text-lg leading-relaxed">
+                    {timelineContent[selectedYear]}
+                  </p>
+                </div>
               </div>
-
-              {/* Description */}
-              <p className="text-gray-700 font-body text-lg leading-relaxed">
-                {timelineContent[selectedYear]}
-              </p>
             </div>
           </div>
         </div>
@@ -178,114 +213,219 @@ export default function AboutUs() {
       {/* Management Board Section */}
       <section className="relative py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-center text-5xl md:text-6xl font-accent font-bold text-gray-900 mb-12 uppercase tracking-wide">
+          <h2 className="text-center text-5xl md:text-6xl font-accent font-bold text-gray-900 mb-2 uppercase tracking-wide">
             Management Board
           </h2>
 
-          <p className="text-center max-w-2xl mx-auto mb-16 text-gray-600 font-body">
+          <p className="text-center font-semibold max-w-2xl mx-auto mb-16 text-gray-600 font-body">
             Meet the passionate individuals behind 8EH Radio ITB.
           </p>
 
           {/* Board Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-            {[...Array(8)].map((_, idx) => (
-              <div key={idx} className="flex flex-col items-center text-center space-y-4">
-                {/* Avatar placeholder */}
-                <div className="w-36 h-36 rounded-lg bg-gray-200 flex items-center justify-center">
-                  <span className="text-gray-400 font-body">Photo</span>
-                </div>
-                <div>
-                  <h3 className="font-heading font-semibold text-lg text-gray-900">Alex Johnson</h3>
-                  <p className="font-body text-sm text-gray-500">Lead Announcer</p>
-                </div>
-                <p className="font-body text-sm text-gray-600 px-4">
-                  With a great passion for radio, Alex is dedicated to engaging with the audience and sharing compelling stories.
-                </p>
-                {/* Social Icons */}
-                <div className="flex space-x-4">
-                  {/* Using placeholder SVGs so they can be replaced later */}
-                  {['/globe.svg', '/file.svg', '/next.svg'].map((icon, i) => (
-                    <a key={i} href="#" className="w-4 h-4 text-gray-500 hover:text-gray-800 transition-colors">
-                      <Image src={icon} alt="icon" width={16} height={16} />
-                    </a>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+          <BoardSlider />
         </div>
       </section>
 
       {/* Discover Section */}
-      <section className="relative py-24 bg-gradient-to-b from-white via-yellow-50 to-orange-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-heading font-semibold text-gray-900 mb-4 text-center">
-            Discover the vibrant world of 8EH Radio ITB and its offerings
-          </h2>
+      <section className="relative py-32 bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 opacity-20">
+          <div className="w-full h-full bg-gradient-to-bl from-orange-400 to-red-400 rounded-full blur-3xl"></div>
+        </div>
+        <div className="absolute bottom-0 left-0 w-72 h-72 opacity-15">
+          <div className="w-full h-full bg-gradient-to-tr from-yellow-400 to-orange-400 rounded-full blur-3xl"></div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-            {[
-              {
-                title: 'Creating engaging content for the ITB community and beyond',
-                cta: 'Learn More',
-              },
-              {
-                title: 'Our broadcasting process: From concept to airwaves, we make it happen',
-                cta: 'Join Us',
-              },
-              {
-                title: 'Engage with our community through live shows and interactive content',
-                cta: 'Listen',
-              },
-            ].map((item, idx) => (
-              <div key={idx} className="relative rounded-2xl bg-[#FBEAEA] p-8 min-h-[250px] flex flex-col justify-between shadow">
-                {/* Placeholder for card image */}
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-14 h-14 bg-gray-200 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-400">Img</span>
+        {/* Floating shapes */}
+        <div className="absolute top-16 right-20 w-24 h-24 opacity-60 animate-pulse">
+          <Image
+            src="/vstock-2.png"
+            alt="Decorative shape"
+            width={96}
+            height={96}
+            className="object-contain"
+          />
+        </div>
+        <div className="absolute bottom-32 left-16 w-20 h-20 opacity-40">
+          <Image
+            src="/vstock-3.png"
+            alt="Decorative shape"
+            width={80}
+            height={80}
+            className="object-contain"
+          />
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <h2 className="text-5xl md:text-6xl font-accent text-gray-900 mb-6 leading-tight">
+              Discover the vibrant world of{" "}
+              <span className="bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+                8EH Radio ITB
+              </span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Dari konten kreatif hingga siaran interaktif, temukan berbagai
+              program menarik yang kami tawarkan
+            </p>
+          </div>
+
+          {/* Content Cards Grid */}
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Card 1 - Content Creation */}
+            <div className="group relative bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-orange-100 h-115">
+              {/* Icon/Image */}
+              <div className="relative mb-6">
+                <div className="w-full h-48 bg-gradient-to-br from-orange-100 to-red-100 rounded-xl overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&h=300&fit=crop&crop=center"
+                    alt="Content Creation"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
                 </div>
-
-                <p className="mt-10 font-body text-sm text-gray-700 leading-relaxed">
-                  {item.title}
-                </p>
-
-                <div className="mt-6">
-                  <ButtonPrimary className="px-6 py-2 text-sm">
-                    {item.cta} &rarr;
-                  </ButtonPrimary>
+                <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                    />
+                  </svg>
                 </div>
               </div>
-            ))}
+
+              <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-red-600 transition-colors">
+                Creative Content Hub
+              </h3>
+              <p className="text-gray-600 leading-relaxed mb-6">
+                Sebagai radio mahasiswa pertama di ITB, 8EH Radio hadir untuk
+                menghadirkan konten yang tidak hanya menghibur, tapi juga
+                menggugah pikiran dan menyuarakan aspirasi kampus.
+              </p>
+            </div>
+
+            {/* Card 2 - Broadcasting Process */}
+            <div className="group relative bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-orange-100 h-115">
+              {/* Icon/Image */}
+              <div className="relative mb-6">
+                <div className="w-full h-48 bg-gradient-to-br from-red-100 to-orange-100 rounded-xl overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=400&h=300&fit=crop&crop=center"
+                    alt="Broadcasting Process"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+                <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-red-600 transition-colors">
+                Production Excellence
+              </h3>
+              <p className="text-gray-600 leading-relaxed mb-6">
+                Di balik setiap program siaran kami, ada proses panjang dan seru
+                yang dijalani oleh para Kru. Mulai dari konsep hingga on-air
+                yang profesional.
+              </p>
+            </div>
+
+            {/* Card 3 - Community Engagement */}
+            <div className="group relative bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-orange-100 h-115">
+              {/* Icon/Image */}
+              <div className="relative mb-4">
+                <div className="w-full h-48 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-xl overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=400&h=300&fit=crop&crop=center"
+                    alt="Community Engagement"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+                <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-red-600 transition-colors">
+                Interactive Community
+              </h3>
+              <p className="text-gray-600 leading-relaxed mb-6">
+                Salah satu kekuatan utama 8EH Radio ITB adalah kedekatannya
+                dengan pendengar. Kami membuka ruang interaksi yang hangat dan
+                bermakna.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Student Voices Section */}
       <section className="relative py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-heading font-semibold text-gray-900 mb-12 text-center">
+        <div className="absolute w-full max-w-lg mx-auto -top-20 left-60 top-1 z-0">
+          <Image
+            src="/vstock-4.png"
+            alt="About Us"
+            width={300}
+            height={300}
+            className="object-contain"
+          />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-5xl md:text-6xl font-heading text-gray-900 mb-4">
             Student Voices
           </h2>
 
-          <p className="text-center font-body text-gray-600 max-w-xl mx-auto mb-16">
-            8EH Radio ITB has transformed our campus experience.
+          <p className="font-body text-gray-600 mb-16">
+            8EH Radio has transformed our campus experience.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             {[
               {
                 quote:
-                  '“8EH Radio is a vibrant platform that connects students and alumni, fostering creativity and collaboration.”',
-                name: 'Fina Hermawan',
-                role: 'Alumnus',
+                  '"8EH Radio is a vibrant platform that connects students and alumni, fostering creativity and collaboration."',
+                name: "Rina Hartono",
+                role: "Alumnus, ITB",
               },
               {
                 quote:
-                  '“The programs offered by 8EH Radio have enriched our campus culture and provided invaluable experiences for students.”',
-                name: 'Andi Prasetyo',
-                role: 'Student',
+                  '"The programs offered by 8EH Radio have enriched our campus culture and provided invaluable experiences for students."',
+                name: "Andi Prasetyo",
+                role: "Faculty, ITB",
               },
             ].map((t, idx) => (
-              <div key={idx} className="bg-[#FBEAEA] p-8 rounded-2xl shadow">
+              <div key={idx} className="bg-white p-0">
                 {/* Stars */}
                 <div className="flex space-x-1 mb-4">
                   {[...Array(5)].map((_, starIdx) => (
@@ -293,19 +433,38 @@ export default function AboutUs() {
                       key={starIdx}
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 20 20"
-                      fill="#F59E0B"
-                      className="w-5 h-5"
+                      fill="currentColor"
+                      className="w-5 h-5 text-black"
                     >
                       <path d="M9.049 2.927C9.348 2.021 10.652 2.021 10.951 2.927l1.286 3.971a1 1 0 00.95.69h4.18c.969 0 1.371 1.24.588 1.81l-3.39 2.463a1 1 0 00-.364 1.118l1.288 3.972c.3.906-.755 1.657-1.54 1.118l-3.39-2.463a1 1 0 00-1.175 0l-3.39 2.463c-.784.539-1.838-.212-1.539-1.118l1.288-3.972a1 1 0 00-.364-1.118L2.045 9.398c-.783-.57-.38-1.81.588-1.81h4.18a1 1 0 00.951-.69l1.285-3.971z" />
                     </svg>
                   ))}
                 </div>
 
-                <p className="font-body text-gray-700 italic mb-6">{t.quote}</p>
-                <div className="font-heading font-semibold text-gray-900">
-                  {t.name}
+                <p className="font-body text-gray-900 mb-6 text-lg leading-relaxed">
+                  {t.quote}
+                </p>
+
+                <div className="flex items-center space-x-3">
+                  {/* Avatar */}
+                  <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
+                    <span className="text-gray-600 text-sm font-medium">
+                      {t.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                    </span>
+                  </div>
+
+                  <div>
+                    <div className="font-body font-semibold text-gray-900">
+                      {t.name}
+                    </div>
+                    <div className="font-body text-sm text-gray-500">
+                      {t.role}
+                    </div>
+                  </div>
                 </div>
-                <div className="font-body text-sm text-gray-500">{t.role}</div>
               </div>
             ))}
           </div>
@@ -315,35 +474,117 @@ export default function AboutUs() {
       {/* Get in Touch Section */}
       <section className="relative py-24 bg-gradient-to-b from-white via-yellow-100 to-orange-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-heading font-semibold text-gray-900 mb-12 text-center">
+          <h2 className="text-5xl md:text-6xl font-heading text-gray-900 mb-4">
             Get in Touch
           </h2>
 
-          <p className="text-center font-body text-gray-600 max-w-xl mx-auto mb-16">
-            We'd love to hear from you! Reach out for inquiries or collaborations.
+          <p className="font-body text-gray-600 mb-16">
+            We'd love to hear from you! Reach out for inquiries or
+            collaborations.
           </p>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             {/* Contact details */}
-            <div className="space-y-6">
-              <div>
-                <h3 className="font-heading font-semibold text-lg text-gray-900 mb-2">Email</h3>
-                <p className="font-body text-gray-700">hello@8ehradioitb.com</p>
+            <div className="space-y-8">
+              <div className="flex items-start space-x-4">
+                <div className="w-6 h-6 mt-1 flex-shrink-0 text-gray-600">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    className="w-6 h-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-body font-bold text-lg text-gray-900 mb-1">
+                    Email
+                  </h3>
+                  <p className="font-body text-gray-700">
+                    info@8ehradioitb.com
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-heading font-semibold text-lg text-gray-900 mb-2">Phone</h3>
-                <p className="font-body text-gray-700">+62 877 1234 5678</p>
-              </div>
-              <div>
-                <h3 className="font-heading font-semibold text-lg text-gray-900 mb-2">Office</h3>
-                <p className="font-body text-gray-700">Jl. Ganesa No. 11, Bandung, Indonesia</p>
-              </div>
-            </div>
 
-            {/* Map placeholder */}
-            <div className="lg:col-span-2 rounded-3xl overflow-hidden bg-gray-200 h-96 flex items-center justify-center">
-              <span className="font-body text-gray-500">Map Placeholder</span>
+              <div className="flex items-start space-x-4">
+                <div className="w-6 h-6 mt-1 flex-shrink-0 text-gray-600">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    className="w-6 h-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-body font-bold text-lg text-gray-900 mb-1">
+                    Phone
+                  </h3>
+                  <p className="font-body text-gray-700">+62 812 3456 7890</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-4">
+                <div className="w-6 h-6 mt-1 flex-shrink-0 text-gray-600">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    className="w-6 h-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-body font-bold text-lg text-gray-900 mb-1">
+                    Office
+                  </h3>
+                  <p className="font-body text-gray-700">
+                    Jl. Ganesha No. 10, Bandung, Indonesia
+                  </p>
+                </div>
+              </div>
             </div>
+          </div>
+
+          {/* Google Maps iframe */}
+          <div className="relative rounded-3xl overflow-hidden h-150 w-full mt-10">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63374.86072097309!2d107.53145050717926!3d-6.89911962316508!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e6578d4253e7%3A0x136b7b51bcb1002d!2sSunken%20Court%2C%20ITB!5e0!3m2!1sid!2sid!4v1751814179388!5m2!1sid!2sid"
+              width="600"
+              height="450"
+              style={{ border: 0 }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              className="absolute inset-0 w-full h-full"
+            ></iframe>
           </div>
         </div>
       </section>
