@@ -287,8 +287,17 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
             {/* Debug info */}
             <div className="text-[10px] text-white/50 mt-1 break-all">
               Attempt: {attempt} (
-              {["Dynamic HTTPS", "Static HTTPS", "Proxy"][attempt]}) | Retry:{" "}
-              {retryCount}
+              {
+                [
+                  "Dynamic HTTPS",
+                  "Static HTTPS",
+                  "HTTP Fallback",
+                  "HTTPS Alt Port",
+                  "HTTP Alt Port",
+                  "Proxy",
+                ][attempt]
+              }
+              ) | Retry: {retryCount}
             </div>
           </div>
 
@@ -372,8 +381,17 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
         {/* Debug info */}
         <div className="text-[10px] text-white/50 mt-1 break-all">
           Attempt: {attempt} (
-          {["Dynamic HTTPS", "Static HTTPS", "Proxy"][attempt]}) | Retry:{" "}
-          {retryCount}
+          {
+            [
+              "Dynamic HTTPS",
+              "Static HTTPS",
+              "HTTP Fallback",
+              "HTTPS Alt Port",
+              "HTTP Alt Port",
+              "Proxy",
+            ][attempt]
+          }
+          ) | Retry: {retryCount}
           <br />
           URL: {streamUrl}
         </div>

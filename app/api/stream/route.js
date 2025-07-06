@@ -14,7 +14,12 @@ function buildPrimaryUrl() {
   return `https://uk25freenew.listen2myradio.com/live.mp3?${params.toString()}`;
 }
 
-const FALLBACK_URL = "http://uk25freenew.listen2myradio.com:32559/";
+const FALLBACK_URLS = [
+  "http://uk25freenew.listen2myradio.com:32559/",
+  "http://uk25freenew.listen2myradio.com:8000/",
+  "https://uk25freenew.listen2myradio.com:8000/",
+  "http://uk25freenew.listen2myradio.com/live.mp3",
+];
 
 export async function GET() {
   console.log("[API/stream] Incoming request");
@@ -40,14 +45,22 @@ export async function GET() {
     return await proxy(buildPrimaryUrl());
   } catch (err) {
     console.error("Primary upstream failed:", err.message);
-    console.log("[API/stream] Primary failed, trying fallback");
-    try {
-      // Fallback to shoutcast port
-      return await proxy(FALLBACK_URL);
-    } catch (err2) {
-      console.error("Fallback upstream failed:", err2.message);
-      console.log("[API/stream] All upstream attempts failed");
-      return new Response("Upstream error", { status: 502 });
+
+    // Try all fallback URLs
+    for (let i = 0; i < FALLBACK_URLS.length; i++) {
+      const fallbackUrl = FALLBACK_URLS[i];
+      console.log(
+        `[API/stream] Trying fallback ${i + 1}/${FALLBACK_URLS.length}:`,
+        fallbackUrl,
+      );
+      try {
+        return await proxy(fallbackUrl);
+      } catch (fallbackErr) {
+        console.error(`Fallback ${i + 1} failed:`, fallbackErr.message);
+      }
     }
+
+    console.log("[API/stream] All upstream attempts failed");
+    return new Response("All upstream sources unavailable", { status: 502 });
   }
 }

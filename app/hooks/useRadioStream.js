@@ -39,8 +39,16 @@ export const useRadioStream = () => {
           return generateStreamUrl();
         case 1:
           return "https://uk25freenew.listen2myradio.com/live.mp3";
-        default:
+        case 2:
+          return "http://uk25freenew.listen2myradio.com/live.mp3"; // HTTP fallback
+        case 3:
+          return "https://uk25freenew.listen2myradio.com:8000/"; // Alternative port
+        case 4:
+          return "http://uk25freenew.listen2myradio.com:8000/"; // HTTP alternative port
+        case 5:
           return "/api/stream";
+        default:
+          return "/api/stream"; // Final fallback
       }
     },
     [generateStreamUrl],
@@ -60,7 +68,7 @@ export const useRadioStream = () => {
       setRetryCount(0);
       if (advance) {
         setAttempt((prev) => {
-          const next = Math.min(prev + 1, 2);
+          const next = Math.min(prev + 1, 5);
           const newUrl = getCandidateUrl(next);
           console.log(`[RadioStream] Advancing to attempt ${next}:`, newUrl);
           setStreamUrl(newUrl);
@@ -89,8 +97,15 @@ export const useRadioStream = () => {
     setIsLoading(false);
 
     // If we haven't tried all attempts yet, advance to next
-    if (attempt < 2) {
-      const attemptNames = ["dynamic HTTPS", "static HTTPS", "proxy server"];
+    if (attempt < 5) {
+      const attemptNames = [
+        "dynamic HTTPS",
+        "static HTTPS",
+        "HTTP fallback",
+        "HTTPS alt port",
+        "HTTP alt port",
+        "proxy server",
+      ];
       setError(
         `${attemptNames[attempt]} failed. Trying ${attemptNames[attempt + 1]}...`,
       );
@@ -114,7 +129,7 @@ export const useRadioStream = () => {
 
       setTimeout(() => {
         // For proxy attempt, just retry same URL
-        const newUrl = attempt === 2 ? streamUrl : generateStreamUrl();
+        const newUrl = attempt >= 5 ? streamUrl : generateStreamUrl();
         console.log(
           `[RadioStream] Retrying attempt ${attempt} with URL:`,
           newUrl,
