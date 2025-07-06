@@ -7,7 +7,7 @@ module.exports = {
       cwd: __dirname, // Current working directory = project root
       env: {
         NODE_ENV: "production",
-        PORT: 8000,
+        PORT: 3000,
       },
       // Log files
       error_file: "./logs/pm2/error.log",
