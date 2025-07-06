@@ -294,6 +294,8 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
                   "HTTP Fallback",
                   "HTTPS Alt Port",
                   "HTTP Alt Port",
+                  "Radio12345 Path 1",
+                  "Radio12345 Path 2",
                   "Proxy",
                 ][attempt]
               }
@@ -388,6 +390,8 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
               "HTTP Fallback",
               "HTTPS Alt Port",
               "HTTP Alt Port",
+              "Radio12345 Path 1",
+              "Radio12345 Path 2",
               "Proxy",
             ][attempt]
           }

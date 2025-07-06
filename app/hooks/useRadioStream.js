@@ -46,6 +46,10 @@ export const useRadioStream = () => {
         case 4:
           return "http://uk25freenew.listen2myradio.com:8000/"; // HTTP alternative port
         case 5:
+          return "https://8ehradioitb.radio12345.com/radio/8000/radio.mp3"; // Mimic working site
+        case 6:
+          return "https://8ehradioitb.radio12345.com/listen/8ehradioitb/radio.mp3"; // Alternative path
+        case 7:
           return "/api/stream";
         default:
           return "/api/stream"; // Final fallback
@@ -68,7 +72,7 @@ export const useRadioStream = () => {
       setRetryCount(0);
       if (advance) {
         setAttempt((prev) => {
-          const next = Math.min(prev + 1, 5);
+          const next = Math.min(prev + 1, 7);
           const newUrl = getCandidateUrl(next);
           console.log(`[RadioStream] Advancing to attempt ${next}:`, newUrl);
           setStreamUrl(newUrl);
@@ -97,13 +101,15 @@ export const useRadioStream = () => {
     setIsLoading(false);
 
     // If we haven't tried all attempts yet, advance to next
-    if (attempt < 5) {
+    if (attempt < 7) {
       const attemptNames = [
         "dynamic HTTPS",
         "static HTTPS",
         "HTTP fallback",
         "HTTPS alt port",
         "HTTP alt port",
+        "radio12345 path 1",
+        "radio12345 path 2",
         "proxy server",
       ];
       setError(
@@ -129,7 +135,7 @@ export const useRadioStream = () => {
 
       setTimeout(() => {
         // For proxy attempt, just retry same URL
-        const newUrl = attempt >= 5 ? streamUrl : generateStreamUrl();
+        const newUrl = attempt >= 7 ? streamUrl : generateStreamUrl();
         console.log(
           `[RadioStream] Retrying attempt ${attempt} with URL:`,
           newUrl,

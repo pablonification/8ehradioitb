@@ -26,7 +26,27 @@ export async function GET() {
   // Helper to proxy a remote stream URL
   async function proxy(url) {
     console.log("[API/stream] Proxying to", url);
-    const upstream = await fetch(url, { cache: "no-store" });
+
+    // Mimic browser headers to bypass ISP/CDN blocks
+    const headers = {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      Accept:
+        "audio/webm,audio/ogg,audio/wav,audio/*;q=0.9,application/ogg;q=0.7,video/*;q=0.6,*/*;q=0.5",
+      "Accept-Language": "en-US,en;q=0.5",
+      "Accept-Encoding": "identity",
+      Range: "bytes=0-",
+      Referer: "https://8ehradioitb.radio12345.com/",
+      Origin: "https://8ehradioitb.radio12345.com",
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+    };
+
+    const upstream = await fetch(url, {
+      cache: "no-store",
+      headers,
+      redirect: "follow",
+    });
     if (!upstream.ok || !upstream.body) {
       throw new Error(`Upstream responded with ${upstream.status}`);
     }
