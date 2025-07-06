@@ -1,10 +1,29 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
 export default function Navbar() {
   const [isDiscoverOpen, setIsDiscoverOpen] = useState(false);
   const [isPartnershipOpen, setIsPartnershipOpen] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    // Listen for audio state changes from the main page
+    const handleAudioStateChange = (event) => {
+      setIsPlaying(event.detail.isPlaying);
+    };
+
+    window.addEventListener('audioStateChanged', handleAudioStateChange);
+    
+    return () => {
+      window.removeEventListener('audioStateChanged', handleAudioStateChange);
+    };
+  }, []);
+
+  const handlePlayClick = () => {
+    // Dispatch custom event to trigger player control
+    window.dispatchEvent(new CustomEvent('triggerPlayerControl'));
+  };
 
   return (
     <header className="bg-[#FBEAEA] border-b border-gray-100">
@@ -106,6 +125,7 @@ export default function Navbar() {
 
           {/* Custom Play Button */}
           <button 
+            onClick={handlePlayClick}
             className="bg-[#D83232] hover:bg-[#B72929] text-white px-4 py-2 rounded-full font-body font-medium transition-colors cursor-pointer flex items-center gap-2"
             style={{
               boxShadow: `
@@ -117,7 +137,7 @@ export default function Navbar() {
               `
             }}
           >
-            ▶ Play
+            {isPlaying ? '⏸ Pause' : '▶ Play'}
           </button>
 
           {/* Mobile menu button */}
