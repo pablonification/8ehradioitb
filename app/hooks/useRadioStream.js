@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 
 export const useRadioStream = () => {
   const [streamUrl, setStreamUrl] = useState("");
+  const [attempt, setAttempt] = useState(0); // 0: dynamic https, 1: static https, 2: proxy API
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [retryCount, setRetryCount] = useState(0);
@@ -30,29 +31,53 @@ export const useRadioStream = () => {
     return `${STREAM_CONFIG.baseUrl}?${params.toString()}`;
   }, []);
 
+  // Generate candidate URLs based on attempt index
+  const getCandidateUrl = useCallback(
+    (idx) => {
+      switch (idx) {
+        case 0:
+          return generateStreamUrl();
+        case 1:
+          return "https://uk25freenew.listen2myradio.com/live.mp3";
+        default:
+          return "/api/stream";
+      }
+    },
+    [generateStreamUrl],
+  );
+
   // Initialize stream URL (use direct URL for all devices)
   useEffect(() => {
-    setStreamUrl(generateStreamUrl());
-  }, [generateStreamUrl]);
+    const initialUrl = getCandidateUrl(0);
+    console.log("[RadioStream] Initial stream URL (attempt 0):", initialUrl);
+    setStreamUrl(initialUrl);
+  }, [getCandidateUrl]);
 
   // Refresh stream URL
   const refreshStream = useCallback(() => {
     setError("");
     setRetryCount(0);
-    const newUrl = generateStreamUrl();
+    setAttempt(0);
+    const newUrl = getCandidateUrl(0);
+    console.log("[RadioStream] Refreshing stream URL (attempt 0):", newUrl);
     setStreamUrl(newUrl);
     return newUrl;
-  }, [generateStreamUrl]);
+  }, [getCandidateUrl]);
 
   // Handle stream errors with fallback logic
   const handleStreamError = useCallback(() => {
+    console.error("[RadioStream] Stream error encountered");
     setIsLoading(false);
 
     // Try the fallback URL once on the very first failure (helps with Safari / CORS issues)
     if (retryCount === 0) {
       setError("Primary connection failed. Switching to fallback stream...");
       setRetryCount((prev) => prev + 1);
-      setStreamUrl(STREAM_CONFIG.fallbackUrl);
+      const nextAttempt = attempt + 1;
+      setAttempt(nextAttempt);
+      const newUrl = getCandidateUrl(nextAttempt);
+      console.log(`[RadioStream] Fallback attempt ${nextAttempt}:`, newUrl);
+      setStreamUrl(newUrl);
       return;
     }
 
@@ -62,19 +87,26 @@ export const useRadioStream = () => {
       );
 
       setTimeout(() => {
-        setRetryCount((prev) => prev + 1);
         const newUrl = generateStreamUrl();
+        console.log(
+          "[RadioStream] Retry same attempt with new dynamic URL:",
+          newUrl,
+        );
+        setRetryCount((prev) => prev + 1);
         setStreamUrl(newUrl);
       }, STREAM_CONFIG.retryDelay);
     } else {
       setError("Unable to connect to the radio stream. Please try refreshing.");
+      console.error("[RadioStream] All retries exhausted.");
     }
-  }, [retryCount, generateStreamUrl]);
+  }, [retryCount, attempt, getCandidateUrl, generateStreamUrl]);
 
   // Get fresh direct stream URL
   const getStreamUrl = useCallback(() => {
-    return generateStreamUrl();
-  }, [generateStreamUrl]);
+    const nextAttempt = attempt;
+    const url = getCandidateUrl(nextAttempt === 0 ? 0 : nextAttempt); // current attempt
+    return url;
+  }, [attempt, getCandidateUrl]);
 
   return {
     streamUrl,

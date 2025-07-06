@@ -68,7 +68,8 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
     };
 
     const handleError = (e) => {
-      console.error("Audio error:", e);
+      console.error("Audio error event", e);
+      console.info("Current audio.src:", audio.src);
       setIsPlaying(false);
       setIsBuffering(false);
       handleStreamError();
@@ -99,6 +100,11 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
       );
     };
 
+    // Additional debug on loadedmetadata to confirm stream metadata
+    const handleLoadedMetadata = () => {
+      console.log("Audio loaded metadata. ReadyState:", audio.readyState);
+    };
+
     // Add event listeners
     audio.addEventListener("loadstart", handleLoadStart);
     audio.addEventListener("canplay", handleCanPlay);
@@ -110,6 +116,7 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
     audio.addEventListener("abort", handleAbort);
     audio.addEventListener("stalled", handleStalled);
     audio.addEventListener("ended", handleEnded);
+    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
 
     return () => {
       audio.removeEventListener("loadstart", handleLoadStart);
@@ -122,6 +129,7 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
       audio.removeEventListener("abort", handleAbort);
       audio.removeEventListener("stalled", handleStalled);
       audio.removeEventListener("ended", handleEnded);
+      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
     };
   }, [handleStreamError]);
 

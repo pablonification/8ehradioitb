@@ -17,8 +17,10 @@ function buildPrimaryUrl() {
 const FALLBACK_URL = "http://uk25freenew.listen2myradio.com:32559/";
 
 export async function GET() {
+  console.log("[API/stream] Incoming request");
   // Helper to proxy a remote stream URL
   async function proxy(url) {
+    console.log("[API/stream] Proxying to", url);
     const upstream = await fetch(url, { cache: "no-store" });
     if (!upstream.ok || !upstream.body) {
       throw new Error(`Upstream responded with ${upstream.status}`);
@@ -38,11 +40,13 @@ export async function GET() {
     return await proxy(buildPrimaryUrl());
   } catch (err) {
     console.error("Primary upstream failed:", err.message);
+    console.log("[API/stream] Primary failed, trying fallback");
     try {
       // Fallback to shoutcast port
       return await proxy(FALLBACK_URL);
     } catch (err2) {
       console.error("Fallback upstream failed:", err2.message);
+      console.log("[API/stream] All upstream attempts failed");
       return new Response("Upstream error", { status: 502 });
     }
   }
