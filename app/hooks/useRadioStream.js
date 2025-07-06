@@ -30,16 +30,11 @@ export const useRadioStream = () => {
     return `${STREAM_CONFIG.baseUrl}?${params.toString()}`;
   }, []);
 
-  // Detect if running on an iOS device (iPhone, iPod, iPad)
-  const isIOS =
-    typeof window !== "undefined" &&
-    /iP(hone|od|ad)/i.test(window.navigator.userAgent);
-
   // Initialize stream URL
   useEffect(() => {
-    const url = isIOS ? "/api/stream" : generateStreamUrl();
+    const url = generateStreamUrl();
     setStreamUrl(url);
-  }, [generateStreamUrl, isIOS]);
+  }, [generateStreamUrl]);
 
   // Refresh stream URL
   const refreshStream = useCallback(() => {
@@ -77,10 +72,10 @@ export const useRadioStream = () => {
     }
   }, [retryCount, generateStreamUrl]);
 
-  // Get stream URL with fresh session (use fallback for iOS)
+  // Get stream URL with fresh session
   const getStreamUrl = useCallback(() => {
-    return isIOS ? "/api/stream" : generateStreamUrl();
-  }, [isIOS, generateStreamUrl]);
+    return generateStreamUrl();
+  }, [generateStreamUrl]);
 
   return {
     streamUrl,
