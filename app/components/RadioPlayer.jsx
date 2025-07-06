@@ -296,6 +296,7 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
                   "HTTP Alt Port",
                   "Radio12345 Path 1",
                   "Radio12345 Path 2",
+                  "Iframe Embed",
                   "Proxy",
                 ][attempt]
               }
@@ -392,6 +393,7 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
               "HTTP Alt Port",
               "Radio12345 Path 1",
               "Radio12345 Path 2",
+              "Iframe Embed",
               "Proxy",
             ][attempt]
           }
@@ -405,6 +407,20 @@ const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
           </div>
         )}
       </div>
+
+      {/* Show iframe when in embed mode */}
+      {streamUrl.includes("mode=embed") && (
+        <div className="mt-2">
+          <iframe
+            src={streamUrl}
+            width="100%"
+            height="120"
+            style={{ border: "none", borderRadius: "8px" }}
+            allow="autoplay"
+            title="Radio Stream Embed"
+          />
+        </div>
+      )}
 
       <audio
         ref={audioRef}

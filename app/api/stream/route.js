@@ -21,7 +21,97 @@ const FALLBACK_URLS = [
   "http://uk25freenew.listen2myradio.com/live.mp3",
 ];
 
-export async function GET() {
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const mode = searchParams.get("mode");
+
+  // If mode=embed, return iframe HTML instead of stream
+  if (mode === "embed") {
+    const embedHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>8EH Radio Stream</title>
+  <style>
+    body { margin: 0; padding: 20px; font-family: Arial; background: #000; color: #fff; }
+    audio { width: 100%; max-width: 400px; }
+    .status { margin-top: 10px; font-size: 12px; color: #ccc; }
+  </style>
+</head>
+<body>
+  <h3>8EH Radio ITB - Live Stream</h3>
+  <audio id="player" controls autoplay preload="none">
+    <source src="https://uk25freenew.listen2myradio.com/live.mp3" type="audio/mpeg">
+    <source src="http://uk25freenew.listen2myradio.com:32559/" type="audio/mpeg">
+    <source src="https://uk25freenew.listen2myradio.com:8000/" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+  <div class="status">
+    <p>Status: <span id="status">Loading...</span></p>
+    <p>Current Source: <span id="current-src">None</span></p>
+  </div>
+  
+  <script>
+    const audio = document.getElementById('player');
+    const status = document.getElementById('status');
+    const currentSrc = document.getElementById('current-src');
+    
+    const sources = [
+      'https://uk25freenew.listen2myradio.com/live.mp3?' + Date.now(),
+      'http://uk25freenew.listen2myradio.com:32559/?' + Date.now(),
+      'https://uk25freenew.listen2myradio.com:8000/?' + Date.now()
+    ];
+    let currentIndex = 0;
+    
+    function tryNextSource() {
+      if (currentIndex < sources.length) {
+        const src = sources[currentIndex];
+        audio.src = src;
+        currentSrc.textContent = src;
+        status.textContent = 'Trying source ' + (currentIndex + 1) + '...';
+        currentIndex++;
+        audio.load();
+        audio.play().catch(() => {
+          setTimeout(tryNextSource, 2000);
+        });
+      } else {
+        status.textContent = 'All sources failed';
+      }
+    }
+    
+    audio.addEventListener('error', () => {
+      status.textContent = 'Error on current source, trying next...';
+      setTimeout(tryNextSource, 1000);
+    });
+    
+    audio.addEventListener('loadstart', () => {
+      status.textContent = 'Loading...';
+    });
+    
+    audio.addEventListener('canplay', () => {
+      status.textContent = 'Ready to play';
+    });
+    
+    audio.addEventListener('playing', () => {
+      status.textContent = 'Playing';
+    });
+    
+    // Start with first source
+    tryNextSource();
+  </script>
+</body>
+</html>`;
+
+    return new Response(embedHtml, {
+      headers: {
+        "Content-Type": "text/html",
+        "Cache-Control": "no-cache",
+      },
+    });
+  }
+
   console.log("[API/stream] Incoming request");
   // Helper to proxy a remote stream URL
   async function proxy(url) {

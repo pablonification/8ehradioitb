@@ -50,6 +50,8 @@ export const useRadioStream = () => {
         case 6:
           return "https://8ehradioitb.radio12345.com/listen/8ehradioitb/radio.mp3"; // Alternative path
         case 7:
+          return "/api/stream?mode=embed";
+        case 8:
           return "/api/stream";
         default:
           return "/api/stream"; // Final fallback
@@ -72,7 +74,7 @@ export const useRadioStream = () => {
       setRetryCount(0);
       if (advance) {
         setAttempt((prev) => {
-          const next = Math.min(prev + 1, 7);
+          const next = Math.min(prev + 1, 8);
           const newUrl = getCandidateUrl(next);
           console.log(`[RadioStream] Advancing to attempt ${next}:`, newUrl);
           setStreamUrl(newUrl);
@@ -101,7 +103,7 @@ export const useRadioStream = () => {
     setIsLoading(false);
 
     // If we haven't tried all attempts yet, advance to next
-    if (attempt < 7) {
+    if (attempt < 8) {
       const attemptNames = [
         "dynamic HTTPS",
         "static HTTPS",
@@ -110,6 +112,7 @@ export const useRadioStream = () => {
         "HTTP alt port",
         "radio12345 path 1",
         "radio12345 path 2",
+        "iframe embed",
         "proxy server",
       ];
       setError(
@@ -135,7 +138,7 @@ export const useRadioStream = () => {
 
       setTimeout(() => {
         // For proxy attempt, just retry same URL
-        const newUrl = attempt >= 7 ? streamUrl : generateStreamUrl();
+        const newUrl = attempt >= 8 ? streamUrl : generateStreamUrl();
         console.log(
           `[RadioStream] Retrying attempt ${attempt} with URL:`,
           newUrl,
