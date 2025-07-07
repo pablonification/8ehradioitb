@@ -83,7 +83,7 @@ export default function Navbar() {
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <a
-              href="#"
+              href="/"
               className="text-gray-900 hover:text-gray-600 font-body font-normal text-base"
             >
               Home
@@ -142,7 +142,7 @@ export default function Navbar() {
                     </div>
                   </a>
                   <a
-                    href="#"
+                    href="/about-us"
                     className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
                   >
                     <div className="flex items-center gap-3">

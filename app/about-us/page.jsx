@@ -5,6 +5,7 @@ import ButtonPrimary from "@/app/components/ButtonPrimary";
 import RadioPlayer from "@/app/components/RadioPlayer";
 import { useState, useRef } from "react";
 import BoardSlider from "@/app/components/BoardSlider";
+import FooterSection from "@/app/components/FooterSection";
 
 export default function AboutUs() {
   const [selectedYear, setSelectedYear] = useState("1963");
@@ -87,7 +88,7 @@ export default function AboutUs() {
               Connecting the ITB community through engaging content, creativity,
               and collaboration in media.
             </p>
-            <div className="flex justify-center mt-4">
+            <div className="flex justify-center mt-4 hidden">
               <RadioPlayer
                 className="w-full max-w-md"
                 showTitle={false}
@@ -588,6 +589,7 @@ export default function AboutUs() {
           </div>
         </div>
       </section>
+      <FooterSection />
     </div>
   );
 }
