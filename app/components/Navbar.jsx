@@ -1,11 +1,28 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 
 export default function Navbar() {
-  const [isDiscoverOpen, setIsDiscoverOpen] = useState(false);
-  const [isPartnershipOpen, setIsPartnershipOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const navbarRef = useRef(null);
+
+  const handleDropdown = (dropdownName) => {
+    setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (navbarRef.current && !navbarRef.current.contains(event.target)) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     // Listen for audio state changes from the main page
@@ -26,7 +43,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="bg-[#FBEAEA] border-b border-gray-100">
+    <header className="bg-[#FBEAEA] border-b border-gray-100" ref={navbarRef}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo + Mobile Play Button */}
@@ -83,7 +100,7 @@ export default function Navbar() {
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <a
-              href="#"
+              href="/"
               className="text-gray-900 hover:text-gray-600 font-body font-normal text-base"
             >
               Home
@@ -104,12 +121,14 @@ export default function Navbar() {
             {/* Discover Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setIsDiscoverOpen(!isDiscoverOpen)}
+                onClick={() => handleDropdown("discover")}
                 className="flex items-center text-gray-900 hover:text-gray-600 font-body font-normal text-base"
               >
                 Discover
                 <svg
-                  className="ml-1 h-4 w-4"
+                  className={`ml-1 h-4 w-4 transition-transform ${
+                    openDropdown === "discover" ? "rotate-180" : ""
+                  }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -122,7 +141,7 @@ export default function Navbar() {
                   />
                 </svg>
               </button>
-              {isDiscoverOpen && (
+              {openDropdown === "discover" && (
                 <div className="absolute top-full left-0 mt-2 w-48 bg-[#FBEAEA] rounded-lg shadow-lg py-2 z-50">
                   <a
                     href="#"
@@ -142,7 +161,7 @@ export default function Navbar() {
                     </div>
                   </a>
                   <a
-                    href="#"
+                    href="/about-us"
                     className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
                   >
                     <div className="flex items-center gap-3">
@@ -182,12 +201,14 @@ export default function Navbar() {
             {/* Partnership Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setIsPartnershipOpen(!isPartnershipOpen)}
+                onClick={() => handleDropdown("partnership")}
                 className="flex items-center text-gray-900 hover:text-gray-600 font-body font-normal text-base"
               >
                 Partnership
                 <svg
-                  className="ml-1 h-4 w-4"
+                  className={`ml-1 h-4 w-4 transition-transform ${
+                    openDropdown === "partnership" ? "rotate-180" : ""
+                  }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -200,7 +221,7 @@ export default function Navbar() {
                   />
                 </svg>
               </button>
-              {isPartnershipOpen && (
+              {openDropdown === "partnership" && (
                 <div className="absolute top-full left-0 mt-2 w-48 bg-[#FBEAEA] rounded-lg shadow-lg py-2 z-50">
                   <a
                     href="#"

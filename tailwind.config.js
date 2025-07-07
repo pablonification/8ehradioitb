@@ -8,12 +8,15 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        'heading': ['var(--font-plus-jakarta-sans)'],
-        'body': ['var(--font-arimo)'],
-        'accent': ['var(--font-instrument-serif)'],
-        'plus-jakarta-sans': ['var(--font-plus-jakarta-sans)'],
+        heading: ["var(--font-plus-jakarta-sans)"],
+        body: ["var(--font-arimo)"],
+        accent: ["var(--font-instrument-serif)"],
+        "plus-jakarta-sans": ["var(--font-plus-jakarta-sans)"],
+      },
+      animation: {
+        "spin-slow": "spin 8s linear infinite",
       },
     },
   },
   plugins: [],
-}; 
+};
