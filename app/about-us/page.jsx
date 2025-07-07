@@ -5,6 +5,69 @@ import ButtonPrimary from "@/app/components/ButtonPrimary";
 import RadioPlayer from "@/app/components/RadioPlayer";
 import { useState, useRef } from "react";
 import BoardSlider from "@/app/components/BoardSlider";
+import FooterSection from "@/app/components/FooterSection";
+
+const discoverCards = [
+  {
+    title: "Creative Content Hub",
+    description:
+      "Sebagai radio mahasiswa pertama di ITB, 8EH Radio hadir untuk menghadirkan konten yang tidak hanya menghibur, tapi juga menggugah pikiran dan menyuarakan aspirasi kampus.",
+    icon: (
+      <svg
+        className="w-8 h-8 text-white"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+        />
+      </svg>
+    ),
+  },
+  {
+    title: "Production Excellence",
+    description:
+      "Di balik setiap program siaran kami, ada proses panjang dan seru yang dijalani oleh para Kru. Mulai dari konsep hingga on-air yang profesional.",
+    icon: (
+      <svg
+        className="w-8 h-8 text-white"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+        />
+      </svg>
+    ),
+  },
+  {
+    title: "Interactive Community",
+    description:
+      "Salah satu kekuatan utama 8EH Radio ITB adalah kedekatannya dengan pendengar. Kami membuka ruang interaksi yang hangat dan bermakna.",
+    icon: (
+      <svg
+        className="w-8 h-8 text-white"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+        />
+      </svg>
+    ),
+  },
+];
 
 export default function AboutUs() {
   const [selectedYear, setSelectedYear] = useState("1963");
@@ -236,26 +299,6 @@ export default function AboutUs() {
           <div className="w-full h-full bg-gradient-to-tr from-yellow-400 to-orange-400 rounded-full blur-3xl"></div>
         </div>
 
-        {/* Floating shapes */}
-        <div className="absolute top-16 right-20 w-24 h-24 opacity-60 animate-pulse">
-          <Image
-            src="/vstock-2.png"
-            alt="Decorative shape"
-            width={96}
-            height={96}
-            className="object-contain"
-          />
-        </div>
-        <div className="absolute bottom-32 left-16 w-20 h-20 opacity-40">
-          <Image
-            src="/vstock-3.png"
-            alt="Decorative shape"
-            width={80}
-            height={80}
-            className="object-contain"
-          />
-        </div>
-
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
           <div className="text-center mb-16">
@@ -273,119 +316,25 @@ export default function AboutUs() {
 
           {/* Content Cards Grid */}
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Card 1 - Content Creation */}
-            <div className="group relative bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-orange-100 h-115">
-              {/* Icon/Image */}
-              <div className="relative mb-6">
-                <div className="w-full h-48 bg-gradient-to-br from-orange-100 to-red-100 rounded-xl overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&h=300&fit=crop&crop=center"
-                    alt="Content Creation"
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
+            {discoverCards.map((card, idx) => (
+              <div
+                key={idx}
+                className="group relative bg-white/60 backdrop-blur-md rounded-2xl p-8 transition-all duration-300 hover:-translate-y-2 border border-gray-200/80 shadow-lg hover:shadow-xl"
+              >
+                <div className="mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center shadow-md">
+                    {card.icon}
+                  </div>
                 </div>
-                <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg">
-                  <svg
-                    className="w-6 h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                    />
-                  </svg>
-                </div>
+
+                <h3 className="text-2xl font-heading font-bold text-gray-900 mb-4 group-hover:text-red-600 transition-colors">
+                  {card.title}
+                </h3>
+                <p className="text-gray-600 font-body leading-relaxed">
+                  {card.description}
+                </p>
               </div>
-
-              <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-red-600 transition-colors">
-                Creative Content Hub
-              </h3>
-              <p className="text-gray-600 leading-relaxed mb-6">
-                Sebagai radio mahasiswa pertama di ITB, 8EH Radio hadir untuk
-                menghadirkan konten yang tidak hanya menghibur, tapi juga
-                menggugah pikiran dan menyuarakan aspirasi kampus.
-              </p>
-            </div>
-
-            {/* Card 2 - Broadcasting Process */}
-            <div className="group relative bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-orange-100 h-115">
-              {/* Icon/Image */}
-              <div className="relative mb-6">
-                <div className="w-full h-48 bg-gradient-to-br from-red-100 to-orange-100 rounded-xl overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=400&h=300&fit=crop&crop=center"
-                    alt="Broadcasting Process"
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                </div>
-                <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
-                  <svg
-                    className="w-6 h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                    />
-                  </svg>
-                </div>
-              </div>
-
-              <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-red-600 transition-colors">
-                Production Excellence
-              </h3>
-              <p className="text-gray-600 leading-relaxed mb-6">
-                Di balik setiap program siaran kami, ada proses panjang dan seru
-                yang dijalani oleh para Kru. Mulai dari konsep hingga on-air
-                yang profesional.
-              </p>
-            </div>
-
-            {/* Card 3 - Community Engagement */}
-            <div className="group relative bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-orange-100 h-115">
-              {/* Icon/Image */}
-              <div className="relative mb-4">
-                <div className="w-full h-48 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-xl overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=400&h=300&fit=crop&crop=center"
-                    alt="Community Engagement"
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                </div>
-                <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
-                  <svg
-                    className="w-6 h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                </div>
-              </div>
-
-              <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-red-600 transition-colors">
-                Interactive Community
-              </h3>
-              <p className="text-gray-600 leading-relaxed mb-6">
-                Salah satu kekuatan utama 8EH Radio ITB adalah kedekatannya
-                dengan pendengar. Kami membuka ruang interaksi yang hangat dan
-                bermakna.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -588,6 +537,7 @@ export default function AboutUs() {
           </div>
         </div>
       </section>
+      <FooterSection />
     </div>
   );
 }
