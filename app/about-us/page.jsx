@@ -327,10 +327,10 @@ export default function AboutUs() {
                   </div>
                 </div>
 
-                <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-red-600 transition-colors">
+                <h3 className="text-2xl font-heading font-bold text-gray-900 mb-4 group-hover:text-red-600 transition-colors">
                   {card.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-600 font-body leading-relaxed">
                   {card.description}
                 </p>
               </div>
