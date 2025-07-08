@@ -1,8 +1,10 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
+  const router = useRouter();
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -151,7 +153,14 @@ export default function Navbar() {
           {/* Logo + Mobile Play Button */}
           <div className="flex items-center space-x-3">
             {/* Logo */}
-            <Image src="/8eh.png" alt="8EH Logo" width={61} height={61} />
+            <Image
+              src="/8eh.png"
+              alt="8EH Logo"
+              width={61}
+              height={61}
+              className="cursor-pointer"
+              onClick={() => router.push("/")}
+            />
 
             {/* Play button (mobile only) */}
             <button

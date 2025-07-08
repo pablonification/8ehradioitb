@@ -592,7 +592,7 @@ function AnnouncersSection() {
             Meet our talented radio announcers and their stories.
           </p>
         </div>
-
+        {/* To do: ganti announcer jadi data beneran */}
         {/* BoardSlider uses its own dummy data if none provided */}
         <BoardSlider />
 
