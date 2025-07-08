@@ -191,7 +191,8 @@ export const HeroSection = () => (
           8EH Agency Services
         </h1>
         <p className="mt-6 text-base font-body md:text-xl text-gray-700 max-w-lg">
-          Discover professional talent to elevate your events with engaging and dynamic presentations.
+          Discover professional talent to elevate your events with engaging and
+          dynamic presentations.
         </p>
       </div>
       <div className="absolute right-0 bottom-[-60%] justify-center lg:justify-end">
@@ -245,7 +246,8 @@ export const AnnouncerServicesSection = () => (
                 Why Choose Us
               </h3>
               <p className="text-gray-700 font-body text-sm">
-                Our announcers are experienced, engaging, and tailored to fit your event's theme.
+                Our announcers are experienced, engaging, and tailored to fit
+                your event's theme.
               </p>
             </div>
           </div>
@@ -262,7 +264,8 @@ export const AnnouncerServicesSection = () => (
                 Our Talent
               </h3>
               <p className="text-gray-700 font-body text-sm">
-                Meet our diverse team of talented announcers ready to make your event unforgettable.
+                Meet our diverse team of talented announcers ready to make your
+                event unforgettable.
               </p>
             </div>
           </div>
@@ -372,14 +375,16 @@ export const ContactSection = () => (
           Get in Touch
         </h2>
         <p className="mt-4 text-lg text-gray-600 max-w-md mx-auto md:mx-0">
-          We're here to answer your questions and discuss partnership opportunities. Reach out today!
+          We're here to answer your questions and discuss partnership
+          opportunities. Reach out today!
         </p>
       </div>
 
       {/* Kolom Kanan: Kartu Kontak */}
       <div className="w-full max-w-md mx-auto">
-        <div className="bg-linear-to-b from-[#ffeebb] to-[#ffbf00b7] backdrop-blur-sm rounded-3xl p-8 shadow-subtle">
-        <div className="bg-gradient-to-b from-[#ffeebb] to-[#ffbf00b7] backdrop-blur-sm rounded-3xl p-8 shadow-subtle">            <MailIcon className="w-6 h-6 text-gray-700 mt-1 flex-shrink-0" />
+        <div className="bg-gradient-to-b from-[#ffeebb] to-[#ffbf00b7] backdrop-blur-sm rounded-3xl p-8 shadow-subtle">
+          <div className="flex items-start gap-5">
+            <MailIcon className="w-6 h-6 text-gray-700 mt-1 flex-shrink-0" />
             <div>
               <h3 className="font-bold text-lg text-gray-800">Email</h3>
               <a
@@ -390,7 +395,6 @@ export const ContactSection = () => (
               </a>
             </div>
           </div>
-
           <div className="mt-8 flex items-start gap-5">
             <MapPinIcon className="w-6 h-6 text-gray-700 mt-1 flex-shrink-0" />
             <div>
@@ -405,8 +409,6 @@ export const ContactSection = () => (
     </div>
   </section>
 );
-
-
 
 export default function AgencyServicesPage() {
   return (
