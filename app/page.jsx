@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import Navbar from "@/app/components/Navbar";
 import ButtonPrimary from "@/app/components/ButtonPrimary";
-import BoardSlider from "@/app/components/BoardSlider";
+import BoardSliderAnnouncer from "@/app/components/BoardSliderAnnouncer";
 import RadioPlayer from "@/app/components/RadioPlayer";
 import FooterSection from "@/app/components/FooterSection";
 
@@ -592,15 +592,7 @@ function AnnouncersSection() {
             Meet our talented radio announcers and their stories.
           </p>
         </div>
-        {/* To do: ganti announcer jadi data beneran */}
-        {/* BoardSlider uses its own dummy data if none provided */}
-        <BoardSlider />
-
-        <div className="mt-12 text-center">
-          <ButtonPrimary className="!bg-white/80 !text-gray-700 hover:!bg-white !shadow-md !font-medium !px-8 !py-3">
-            View All
-          </ButtonPrimary>
-        </div>
+        <BoardSliderAnnouncer />
       </div>
     </section>
   );

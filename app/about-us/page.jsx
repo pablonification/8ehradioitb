@@ -4,7 +4,7 @@ import Navbar from "@/app/components/Navbar";
 import ButtonPrimary from "@/app/components/ButtonPrimary";
 import RadioPlayer from "@/app/components/RadioPlayer";
 import { useState, useRef } from "react";
-import BoardSlider from "@/app/components/BoardSlider";
+import BoardSliderMB from "@/app/components/BoardSliderMB";
 import FooterSection from "@/app/components/FooterSection";
 
 const discoverCards = [
@@ -285,7 +285,7 @@ export default function AboutUs() {
           </p>
 
           {/* Board Grid */}
-          <BoardSlider />
+          <BoardSliderMB />
         </div>
       </section>
 
