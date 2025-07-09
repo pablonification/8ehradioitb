@@ -1,14 +1,134 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useRadioStream } from "@/app/hooks/useRadioStream";
 
 export default function Navbar() {
   const router = useRouter();
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(0.7);
+  const audioRef = useRef(null);
   const navbarRef = useRef(null);
+
+  /* ------------------------------------------------------------- */
+  /* Radio stream (moved from GlobalAudioPlayer)                   */
+  /* ------------------------------------------------------------- */
+  const {
+    streamUrl,
+    isLoading,
+    error,
+    refreshStream,
+    handleStreamError,
+    getStreamUrl,
+    setIsLoading,
+    setError,
+  } = useRadioStream();
+
+  /* ------------------------------------------------------------- */
+  /* Helper to emit play state to other components                 */
+  /* ------------------------------------------------------------- */
+  const emitAudioStateChanged = useCallback((playing) => {
+    window.dispatchEvent(
+      new CustomEvent("audioStateChanged", {
+        detail: { isPlaying: playing },
+      }),
+    );
+  }, []);
+
+  /* ------------------------------------------------------------- */
+  /* Core playback actions                                         */
+  /* ------------------------------------------------------------- */
+  const playStream = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    try {
+      // Ensure any current playback is halted before changing source
+      // audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+
+      const freshUrl = getStreamUrl();
+      audio.src = freshUrl;
+      audio.load();
+      setIsLoading(true);
+      await audio.play();
+      audio.volume = volume;
+      setIsPlaying(true);
+      setIsLoading(false);
+      emitAudioStateChanged(true);
+    } catch (err) {
+      console.error("Navbar play error", err);
+      setIsPlaying(false);
+      setIsLoading(false);
+      handleStreamError();
+    }
+  }, [
+    getStreamUrl,
+    volume,
+    emitAudioStateChanged,
+    handleStreamError,
+    setIsLoading,
+  ]);
+
+  const pauseStream = useCallback(() => {
+    console.log("pauseStream");
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.pause();
+    // Reset source to fully stop streaming and avoid overlapping audio
+    audio.removeAttribute("src");
+    audio.load();
+    setIsPlaying(false);
+    emitAudioStateChanged(false);
+  }, [emitAudioStateChanged]);
+
+  const togglePlay = useCallback(() => {
+    if (isPlaying) {
+      pauseStream();
+      console.log("Paused");
+    } else {
+      playStream();
+      console.log("Played");
+    }
+  }, [isPlaying, playStream, pauseStream]);
+
+  /* ------------------------------------------------------------- */
+  /* External events from GlobalAudioPlayer                        */
+  /* ------------------------------------------------------------- */
+  useEffect(() => {
+    const handlePlayReq = () => {
+      if (!isPlaying) playStream();
+    };
+
+    const handlePauseReq = () => {
+      if (isPlaying) pauseStream();
+    };
+
+    const handleVolumeChanged = (e) => {
+      const newVol = e.detail.volume;
+      setVolume(newVol);
+      if (audioRef.current) audioRef.current.volume = newVol;
+    };
+
+    window.addEventListener("playRequested", handlePlayReq);
+    window.addEventListener("pauseRequested", handlePauseReq);
+    window.addEventListener("volumeChanged", handleVolumeChanged);
+
+    return () => {
+      window.removeEventListener("playRequested", handlePlayReq);
+      window.removeEventListener("pauseRequested", handlePauseReq);
+      window.removeEventListener("volumeChanged", handleVolumeChanged);
+    };
+  }, [isPlaying, playStream, pauseStream]);
+
+  /* ------------------------------------------------------------- */
+  /* Sync internal audio element events (optional future)          */
+  /* ------------------------------------------------------------- */
+  // could add listeners for ended/stalled etc if needed
 
   const handleDropdown = (dropdownName) => {
     setOpenDropdown((prev) => (prev === dropdownName ? null : dropdownName));
@@ -33,22 +153,8 @@ export default function Navbar() {
     };
   }, []);
 
-  useEffect(() => {
-    // Listen for audio state changes from the main page
-    const handleAudioStateChange = (event) => {
-      setIsPlaying(event.detail.isPlaying);
-    };
-
-    window.addEventListener("audioStateChanged", handleAudioStateChange);
-
-    return () => {
-      window.removeEventListener("audioStateChanged", handleAudioStateChange);
-    };
-  }, []);
-
   const handlePlayClick = () => {
-    // Dispatch custom event to trigger player control
-    window.dispatchEvent(new CustomEvent("triggerPlayerControl"));
+    togglePlay();
   };
 
   const discoverLinks = (
@@ -217,7 +323,7 @@ export default function Navbar() {
               Home
             </a>
             <a
-              href="#"
+              href="/podcast"
               className="text-gray-900 hover:text-gray-600 font-body font-normal text-base"
             >
               Podcast
@@ -455,6 +561,14 @@ export default function Navbar() {
           </nav>
         </div>
       )}
+
+      {/* Hidden audio element */}
+      <audio
+        ref={audioRef}
+        src={streamUrl || undefined}
+        preload="none"
+        playsInline
+      />
     </header>
   );
 }
