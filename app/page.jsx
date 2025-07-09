@@ -463,7 +463,7 @@ function ProgramsSection() {
         {/* Horizontal scroll container */}
         <div
           ref={scrollContainerRef}
-          className="flex overflow-x-auto scroll-smooth space-x-6 pb-4 -mx-4 px-4 snap-x snap-mandatory hide-scrollbar"
+          className="flex overflow-x-auto scroll-smooth space-x-6 pb-4 -mx-4 px-4 -my-4 py-4 snap-x snap-mandatory hide-scrollbar"
         >
           {programs.map((prog, idx) => (
             <div
