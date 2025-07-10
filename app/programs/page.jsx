@@ -48,7 +48,7 @@ const YoutubeCTA = () => {
         />
       </div>
       {/* Container utama yang mengatur layout dan styling */}
-      <div className="flex flex-col md:flex-row items-center justify-between mx-8 md:mx-24 rounded-4xl bg-gradient-to-br from-white/70 to-yellow-300/30 backdrop-blur-sm py-8 px-8">
+      <div className="flex flex-col md:flex-row items-center justify-between mx-8 md:mx-24 rounded-4xl bg-gradient-to-br from-white/70 to-yellow-300/30 backdrop-blur-sm py-8 px-8 transition-all duration-300 border hover:border-gray-300 border-gray-200/50">
         {/* Sisi Kiri: Teks Ajakan */}
         <div className="text-center md:text-left mb-6 md:mb-0">
           <h2 className="text-4xl md:text-6xl font-semibold md:font-normal font-accent text-gray-800 mb-1">

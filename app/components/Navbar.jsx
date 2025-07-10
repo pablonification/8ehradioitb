@@ -54,7 +54,7 @@ export default function Navbar() {
   const discoverLinks = (
     <>
       <a
-        href="#"
+        href="/programs"
         className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
       >
         <div className="flex items-center gap-3">
@@ -127,7 +127,7 @@ export default function Navbar() {
         </div>
       </a>
       <a
-        href="#"
+        href="/agency"
         className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
       >
         <div className="flex items-center gap-3">

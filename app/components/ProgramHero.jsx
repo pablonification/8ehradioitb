@@ -108,7 +108,7 @@ const ProgramHero = () => {
         >
           {programs.map((program, index) => (
             <SwiperSlide key={index}>
-              <div className="bg-gradient-to-br backdrop-blur-xs from-orange-600/70 via-yellow-200/50 to-yellow-100/30 rounded-3xl px-8 lg:px-20 pt-8 md:pt-16 pb-8 shadow-xl h-80 flex flex-col justify-between overflow-hidden">
+              <div className="bg-gradient-to-br backdrop-blur-xs from-orange-600/80 via-yellow-500/50 to-yellow-100/30 rounded-3xl px-8 lg:px-20 pt-8 md:pt-16 pb-8 shadow-xl h-80 flex flex-col justify-between overflow-hidden transition-all duration-300 border hover:border-gray-400 border-gray-200/80">
                 <div className="flex flex-wrap md:flex-nowrap items-center justify-center space-x-4 md:space-x-16">
                   <div className="flex-shrink-0 mb-4 w-40 md:w-65 lg:w-75">
                     <Image

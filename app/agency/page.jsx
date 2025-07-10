@@ -195,7 +195,7 @@ export const AnnouncerServicesSection = () => (
 
     {/* ▼ Wadah HANYA untuk teks, agar tetap di tengah & rapi ▼ */}
     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-20">
-      <div className="md:bg-gradient-to-b from-[#FEF9E7] to-[#F5E6A3] rounded-3xl md:shadow-md px-10 py-6 md:px-16 grid md:grid-cols-2 gap-8 items-center backdrop-blur-xs">
+      <div className="md:bg-gradient-to-b from-orange-200 to-orange-400/70 transition-all duration-300 border hover:border-gray-300 border-gray-200/80 rounded-3xl md:shadow-lg px-10 py-6 md:px-16 grid md:grid-cols-2 gap-8 items-center backdrop-blur-xs">
         <div>
           <h2 className="align-middle text-5xl md:text-6xl font-accent text-black leading-tight">
             Professional <br /> Announcer Services
@@ -288,10 +288,10 @@ export const AnnouncersSection = () => (
       /> */}
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
       <div className="text-center max-w-2xl mb-12 mx-auto">
-        <h2 className="font-accent text-5xl sm:text-7xl text-white font-bold mb-4">
+        <h2 className="font-accent text-5xl sm:text-7xl text-white font-bold mb-4 drop-shadow-md">
           Our Announcers
         </h2>
-        <p className="font-body text-lg text-white/90">
+        <p className="font-body text-lg text-white/90 drop-shadow-md">
           Meet our talented radio announcers and their stories.
         </p>
       </div>
@@ -341,7 +341,7 @@ export const ContactSection = () => (
 
       {/* Kolom Kanan: Kartu Kontak */}
       <div className="w-full max-w-md mx-auto">
-        <div className="bg-gradient-to-b from-[#ffeebb] to-[#ffbf00b7] backdrop-blur-sm rounded-3xl p-8 shadow-subtle">
+        <div className="bg-gradient-to-b from-[#ffeebb] to-[#ffbf00b7] backdrop-blur-sm rounded-3xl p-8 shadow-subtle transition-all duration-300 border hover:border-gray-300 border-gray-200/60 drop-shadow-md">
           <div className="flex items-start gap-5">
             <MailIcon className="w-6 h-6 text-gray-700 mt-1 flex-shrink-0" />
             <div>

@@ -48,7 +48,7 @@ const HighlightsSection = () => {
                 alt={highlight.altText}
                 width={500}
                 height={500}
-                className="w-50 md:w-70 h-60 md:h-90 object-cover rounded-2xl shadow-lg group-hover:shadow-yellow-400/30 group-hover:shadow-2xl drop-shadow-xl/30"
+                className="w-50 md:w-70 h-60 md:h-90 object-cover rounded-2xl shadow-lg group-hover:shadow-yellow-400/30 group-hover:shadow-2xl drop-shadow-xl/30 transition-all"
               />
             </a>
           ))}
