@@ -12,12 +12,18 @@
   "dependencies": {
     "icy": "^2.1.0",
     "next": "15.3.2",
+    "radix-ui": "^1.4.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "swiper": "^11.0.0"
   },
   "devDependencies": {
+    "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/postcss": "^4",
+    "@tailwindcss/typography": "^0.5.16",
     "prettier": "^3.6.2",
     "tailwindcss": "^4"
   }

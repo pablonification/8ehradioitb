@@ -19,7 +19,7 @@ import Image from "next/image";
  */
 const GlobalAudioPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.7);
+  const [volume, setVolume] = useState(1);
   const [showPlayer, setShowPlayer] = useState(false);
   const [error, setError] = useState("");
 
@@ -92,9 +92,11 @@ const GlobalAudioPlayer = () => {
                 </div>
                 <div className="text-sm min-w-0">
                   <p className="font-bold text-gray-800 truncate">
-                  Kelam Di Balik Cecil Hotel 
+                    Kelam Di Balik Cecil Hotel
                   </p>
-                  <p className="text-gray-500">SAMAR: Skema Misterius di Antara Rahasia</p>
+                  <p className="text-gray-500">
+                    SAMAR: Skema Misterius di Antara Rahasia
+                  </p>
                 </div>
               </div>
 
@@ -105,7 +107,13 @@ const GlobalAudioPlayer = () => {
                     className="text-gray-500 hover:text-black disabled:opacity-40 text-xl"
                     disabled
                   >
-                    ⏮
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="w-5 h-5"
+                    >
+                      <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"></path>
+                    </svg>
                   </button>
                   <button
                     onClick={togglePlay}
@@ -133,7 +141,13 @@ const GlobalAudioPlayer = () => {
                     className="text-gray-500 hover:text-black disabled:opacity-40 text-xl"
                     disabled
                   >
-                    ⏭
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="w-5 h-5"
+                    >
+                      <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"></path>
+                    </svg>
                   </button>
                 </div>
                 {/* Fake progress bar */}
