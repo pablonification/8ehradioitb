@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { Plus_Jakarta_Sans, Arimo, Instrument_Serif } from "next/font/google";
 import "./globals.css";
+import GlobalAudioPlayer from "@/app/components/GlobalAudioPlayer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +43,9 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} ${arimo.variable} ${instrumentSerif.variable} antialiased`}
       >
         {children}
+        <div>
+          <GlobalAudioPlayer />
+        </div>
       </body>
     </html>
   );
