@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -50,7 +51,8 @@ const BlogCard = ({ article }) => (
   </Link>
 );
 
-export default function AllBlogsPage() {
+// Separate component for the paginated content
+function PaginatedBlogContent() {
   const searchParams = useSearchParams();
   const currentPage = Number(searchParams.get("page")) || 1;
 
@@ -59,6 +61,40 @@ export default function AllBlogsPage() {
   const endIndex = startIndex + POSTS_PER_PAGE;
   const currentPosts = allBlogPosts.slice(startIndex, endIndex);
 
+  return (
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+        {currentPosts.map((post, index) => (
+          <BlogCard key={index} article={post} />
+        ))}
+      </div>
+
+      <Pagination totalPages={totalPages} basePath="/blog/all" />
+    </>
+  );
+}
+
+// Loading component for Suspense fallback
+function LoadingBlogContent() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <div key={index} className="flex flex-col animate-pulse">
+          <div className="w-full h-60 bg-gray-200 rounded-lg mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded mb-2"></div>
+          <div className="h-6 bg-gray-200 rounded mb-3"></div>
+          <div className="h-16 bg-gray-200 rounded mb-4"></div>
+          <div className="flex items-center">
+            <div className="w-8 h-8 bg-gray-200 rounded-full mr-2"></div>
+            <div className="h-4 bg-gray-200 rounded flex-1"></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function AllBlogsPage() {
   return (
     <div className="bg-white">
       <Navbar />
@@ -72,13 +108,9 @@ export default function AllBlogsPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
-          {currentPosts.map((post, index) => (
-            <BlogCard key={index} article={post} />
-          ))}
-        </div>
-
-        <Pagination totalPages={totalPages} basePath="/blog/all" />
+        <Suspense fallback={<LoadingBlogContent />}>
+          <PaginatedBlogContent />
+        </Suspense>
       </main>
       <FooterSection />
     </div>

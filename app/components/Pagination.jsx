@@ -1,9 +1,10 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-export default function Pagination({ totalPages, basePath }) {
+function PaginationContent({ totalPages, basePath }) {
   const searchParams = useSearchParams();
   const currentPage = Number(searchParams.get("page")) || 1;
 
@@ -61,4 +62,22 @@ export default function Pagination({ totalPages, basePath }) {
       </Link>
     </nav>
   );
-} 
+}
+
+function PaginationFallback() {
+  return (
+    <nav className="flex justify-center items-center space-x-2 mt-12">
+      <div className="px-4 py-2 rounded-md text-sm font-body font-medium bg-gray-100 text-gray-400">
+        Loading...
+      </div>
+    </nav>
+  );
+}
+
+export default function Pagination({ totalPages, basePath }) {
+  return (
+    <Suspense fallback={<PaginationFallback />}>
+      <PaginationContent totalPages={totalPages} basePath={basePath} />
+    </Suspense>
+  );
+}
