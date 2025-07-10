@@ -3,30 +3,7 @@ import Image from "next/image";
 import Navbar from "@/app/components/Navbar"; // Reusing the Navbar component
 import ButtonPrimary from "@/app/components/ButtonPrimary"; // Reusing the Button component
 import FooterSection from "../components/FooterSection";
-
-// Data untuk anggota tim agar mudah dikelola
-const announcerTeam = [
-  {
-    name: "Julienne",
-    role: "Announcer",
-    imageSrc: "/announcer-1.jpg", // Ganti dengan path gambar yang benar
-  },
-  {
-    name: "Hamzah",
-    role: "Event Host",
-    imageSrc: "/announcer-1.jpg", // Ganti dengan path gambar yang benar
-  },
-  {
-    name: "Nadh",
-    role: "Announcer",
-    imageSrc: "/announcer-1.jpg", // Ganti dengan path gambar yang benar
-  },
-  {
-    name: "Wanda", // Nama dari gambar ke-4
-    role: "Content Creator", // Contoh role
-    imageSrc: "/announcer-1.jpg", // Ganti dengan path gambar yang benar
-  },
-];
+import BoardSliderAnnouncer from "../components/BoardSliderAnnouncer";
 
 // Komponen Ikon Sosial Media (untuk kebersihan kode)
 const SocialIcon = ({ href, children }) => (
@@ -148,9 +125,9 @@ export const AnnouncerCard = ({ name, role, imageSrc }) => (
 );
 
 export const HeroSection = () => (
-  <section className="relative w-full min-h-[500px] flex items-center justify-center overflow-hidden px-4 sm:px-6 lg:px-28">
+  <section className="relative w-full min-h-150 md:min-h-[500px] flex items-center justify-center overflow-hidden px-4 sm:px-6 lg:px-28 pb-20 md:pb-0">
     <div className="absolute inset-0 z-10 pointer-events-none">
-      <div className="absolute right-0 top-1/8 w-1/2 h-full z-0 pointer-events-none">
+      <div className="absolute right-0 bottom-0 md:top-1/8 w-140 translate-x-1/3 md:w-300 z-0 pointer-events-none">
         <Image
           src="/sun-agency.png"
           alt="background decorative gradient"
@@ -158,36 +135,26 @@ export const HeroSection = () => (
           height={800}
         />
       </div>
-      <div className="absolute inset-0 top-3/4 left-1/4 w-36 h-36 opacity-70">
+      <div className="absolute inset-0 top-3/4 left-1/8 md:left-1/4 w-36 h-36 opacity-70">
         <Image
           src="/vstock-aboutus-2.svg"
-          alt="Decorative Checkmark"
+          alt="decorative"
           width={96}
           height={96}
           className="rotate-225"
         />
       </div>
-      <div className="absolute inset-0 top-1/8 left-[4%] w-20 h-20 opacity-70">
-        <Image
-          src="/vstock-aboutus-1.svg"
-          alt="Decorative Star"
-          width={80}
-          height={80}
-        />
+      <div className="absolute inset-0 top-1/8 left-[4%] w-16 md:w-20 h-20 opacity-70">
+        <Image src="/vstock-aboutus-1.svg" width={80} height={80} alt="decorative"/>
       </div>
-      <div className="absolute inset-0 top-1/8 left-1/2 translate-x-1/2 w-24 h-24 opacity-70">
-        <Image
-          src="/vstock-aboutus-3.svg"
-          alt="Decorative Arrow"
-          width={112}
-          height={112}
-        />
+      <div className="absolute inset-0 top-1/6 md:top-1/8 left-3/4 md:left-1/2 translate-x-1/2 w-12 md:w-24 h-24 opacity-70">
+        <Image src="/vstock-aboutus-3.svg" width={112} height={112} alt="decorative"/>
       </div>
     </div>
 
     <div className="relative z-20 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center max-w-7xl mx-auto">
       <div className="text-left">
-        <h1 className="text-6xl text-nowrap font-accent md:text-7xl lg:text-8xl text-gray-900 leading-tight">
+        <h1 className="text-6xl text-wrap font-accent md:text-7xl lg:text-8xl text-gray-900">
           8EH Agency Services
         </h1>
         <p className="mt-6 text-base font-body md:text-xl text-gray-700 max-w-lg">
@@ -195,9 +162,9 @@ export const HeroSection = () => (
           dynamic presentations.
         </p>
       </div>
-      <div className="absolute right-0 bottom-[-60%] justify-center lg:justify-end">
+      <div className="absolute right-0 top-0 translate-x-1/8 lg:translate-x-0 translate-y-1/2 lg:-translate-y-1/16 justify-center lg:justify-end">
         <div
-          className="w-[400px] h-[350px] m flex items-baseline justify-center scale-x-[-1]"
+          className="w-50 lg:w-100 h-100 flex items-baseline justify-center scale-x-[-1]"
           style={{
             filter: "grayscale(100%) contrast(1.5)",
           }}
@@ -216,8 +183,8 @@ export const HeroSection = () => (
 );
 
 export const AnnouncerServicesSection = () => (
-  <section className="relative pt-40 bg-gradient-to-b from-white via-[#b88a00] to-white overflow-hidden">
-    <div className="absolute inset-0 top-0 left-0 z-50 w-60 h-60 ">
+  <section className="relative pt-40 bg-white from-white via-[#c59402] to-white overflow-hidden">
+    <div className="absolute inset-0 top-1/12 md:top-0 left-0 z-50 w-30 md:w-60 h-60 ">
       <Image
         src="/vstock-agency-4.png"
         alt="Decorative Star"
@@ -225,10 +192,12 @@ export const AnnouncerServicesSection = () => (
         height={200}
       />
     </div>
-    <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="bg-gradient-to-t from-[#FF9904] to-orange-200 bg-opacity-90 rounded-[50px] shadow-xl px-10 py-6 md:px-16 grid md:grid-cols-2 gap-8 items-center z-20">
+
+    {/* ▼ Wadah HANYA untuk teks, agar tetap di tengah & rapi ▼ */}
+    <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-20">
+      <div className="md:bg-gradient-to-b from-[#FEF9E7] to-[#F5E6A3] rounded-3xl md:shadow-md px-10 py-6 md:px-16 grid md:grid-cols-2 gap-8 items-center backdrop-blur-xs">
         <div>
-          <h2 className="align-middle text-6xl font-accent text-gray-900 leading-tight">
+          <h2 className="align-middle text-5xl md:text-6xl font-accent text-black leading-tight">
             Professional <br /> Announcer Services
           </h2>
         </div>
@@ -237,15 +206,15 @@ export const AnnouncerServicesSection = () => (
             <div>
               <Image
                 src="/handshake.png"
-                alt="Decorative Star"
+                alt="Handshake Icon"
                 width={48}
                 height={48}
                 className="mb-4"
               />
-              <h3 className="text-lg font-body font-semibold text-gray-800 mb-2">
+              <h3 className="text-lg font-body font-semibold text-black mb-2">
                 Why Choose Us
               </h3>
-              <p className="text-gray-700 font-body text-sm">
+              <p className="text-black font-body text-sm">
                 Our announcers are experienced, engaging, and tailored to fit
                 your event's theme.
               </p>
@@ -255,15 +224,15 @@ export const AnnouncerServicesSection = () => (
             <div>
               <Image
                 src="/people.png"
-                alt="Decorative Star"
+                alt="People Icon"
                 width={48}
                 height={48}
                 className="mb-4"
               />
-              <h3 className="text-lg font-body font-semibold text-gray-800 mb-2">
+              <h3 className="text-lg font-body font-semibold text-black mb-2">
                 Our Talent
               </h3>
-              <p className="text-gray-700 font-body text-sm">
+              <p className="text-black font-body text-sm">
                 Meet our diverse team of talented announcers ready to make your
                 event unforgettable.
               </p>
@@ -271,85 +240,11 @@ export const AnnouncerServicesSection = () => (
           </div>
         </div>
       </div>
-      <div className="relative flex justify-center z-0">
-        <div
-          className="w-full mt-8 justify-center"
-          style={{
-            filter: "grayscale(100%) contrast(1.2)",
-          }}
-        >
-          <Image
-            src="/group-microphone.png"
-            alt="A group of microphones with a halftone effect"
-            width={1000}
-            height={600}
-            className="object-cover object-top w-full h-80"
-          />
-        </div>
-      </div>
     </div>
-    <div className="absolute z-10 bottom-0 inset-0 bg-linear-to-b from-transparent via-transparent via-40% to-white" />
-  </section>
-);
 
-export const AnnouncerTeamSection = () => (
-  <section className="relative bg-gradient-to-b from-[#f1281ed7] via-[#FF9904] to-white overflow-hidden">
-    <Image
-      src="/agency-white-transition.png" // Replace with the actual path to your microphone group image
-      alt="A group of microphones with a halftone effect"
-      width={1000}
-      height={600}
-      className="w-full pb-12"
-    />
-
-    <div className="max-w-5xl mx-auto">
-      <h2 className="text-4xl md:text-6xl font-accent text-white text-center mt-10 mb-20">
-        Our Announcer Team
-      </h2>
-      {/* Decorative Stars */}
-      <div className="absolute left-0 top-1/8 w-1/2 h-full z-0 pointer-events-none">
-        <Image
-          src="/vstock-agency-3.png"
-          alt="background decorative gradient"
-          width={96}
-          height={96}
-        />
-      </div>
-      <div className="absolute right-0 top-1/12 h-full z-0 pointer-events-none">
-        <Image
-          src="/vstock-agency-3.png"
-          alt="background decorative gradient"
-          width={96}
-          height={96}
-          className="rotate-30"
-        />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16">
-        {announcerTeam.map((member) => (
-          <AnnouncerCard
-            key={member.name}
-            name={member.name}
-            role={member.role}
-            imageSrc={member.imageSrc}
-          />
-        ))}
-      </div>
-    </div>
-    {/* View All Button */}
-    <div className="text-center mt-12 pb-12">
-      <ButtonPrimary className="!bg-gray-300 !text-gray-800 hover:!bg-gray-200 !font-bold !px-8 !py-3">
-        View all
-      </ButtonPrimary>
-    </div>
-  </section>
-);
-
-export const ContactSection = () => (
-  <section className="relative w-full bg-[#FBF9F4] py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-    {/* Elemen Grafis Latar Belakang */}
     <div
       aria-hidden="true"
-      className="absolute top-1/2 left-0 -translate-y-1/2"
+      className="absolute top-7/8 z-20 right-0 rotate-180 -translate-y-1/2 w-30 md:w-50"
     >
       <Image
         src="/vstock-agency-1.png"
@@ -358,7 +253,71 @@ export const ContactSection = () => (
         height={240}
       />
     </div>
-    <div aria-hidden="true" className="absolute z-40 top-0 right-0">
+
+    <div className="relative w-full z-0 mt-4 justify-center">
+      <div
+        className="relative w-full flex justify-center"
+        style={{
+          filter: "grayscale(100%) contrast(1.2)",
+        }}
+      >
+        {/* Lapisan putih transparan */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 to-white z-10"></div>
+
+        {/* Gambar itu sendiri */}
+        <Image
+          src="/group-microphone.png"
+          alt="A group of microphones with a halftone effect"
+          width={1920}
+          height={1080}
+          className="object-cover w-200 h-auto"
+        />
+      </div>
+    </div>
+  </section>
+);
+
+export const AnnouncersSection = () => (
+  <section className="pb-12 bg-gradient-to-b from-orange-400 via-orange-300 to-white text-gray-800">
+    {/* <Image
+        src="/agency-white-transition.png"
+        alt="A group of microphones with a halftone effect"
+        width={1920}
+        height={1080}
+        className="object-fit w-full h-4 md:h-10"
+      /> */}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
+      <div className="text-center max-w-2xl mb-12 mx-auto">
+        <h2 className="font-accent text-5xl sm:text-7xl text-white font-bold mb-4">
+          Our Announcers
+        </h2>
+        <p className="font-body text-lg text-white/90">
+          Meet our talented radio announcers and their stories.
+        </p>
+      </div>
+      <BoardSliderAnnouncer />
+    </div>
+  </section>
+);
+
+export const ContactSection = () => (
+  <section className="relative w-full bg-white py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    {/* Elemen Grafis Latar Belakang */}
+    <div
+      aria-hidden="true"
+      className="absolute top-1/2 left-0 -translate-y-1/2 w-30 md:w-50"
+    >
+      <Image
+        src="/vstock-agency-1.png"
+        alt="Decorative Checkmark"
+        width={240}
+        height={240}
+      />
+    </div>
+    <div
+      aria-hidden="true"
+      className="absolute z-40 top-0 right-0 w-30 md:w-50"
+    >
       <Image
         src="/vstock-agency-2.png"
         alt="Decorative Checkmark"
@@ -416,7 +375,7 @@ export default function AgencyServicesPage() {
       <Navbar />
       <HeroSection />
       <AnnouncerServicesSection />
-      <AnnouncerTeamSection />
+      <AnnouncersSection />
       <ContactSection />
       <FooterSection />
     </div>
