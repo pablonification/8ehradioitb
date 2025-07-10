@@ -32,6 +32,7 @@ const photoPaths = {
   "Nudia Salsabila": "/foto-announcer/FOTO NUD - Nudia Salsabila.jpg",
   "Theresya Rafaela Aritonang":
     "/foto-announcer/IMG_5330 - Theresya Rafaela A.jpeg",
+  "Fauzia Marchinda Fezavera": "/foto-announcer/IMG_8080.PNG",
 };
 
 // Get announcer members from the JSON data

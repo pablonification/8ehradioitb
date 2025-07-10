@@ -4,7 +4,7 @@ import { useRadioStream } from "@/app/hooks/useRadioStream";
 
 const RadioPlayer = ({ className = "", showTitle = true, compact = false }) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.7);
+  const [volume, setVolume] = useState(1);
   const [isBuffering, setIsBuffering] = useState(false);
   const audioRef = useRef(null);
   const playPromiseRef = useRef(null);

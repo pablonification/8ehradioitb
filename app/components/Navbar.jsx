@@ -1,14 +1,134 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useRadioStream } from "@/app/hooks/useRadioStream";
 
 export default function Navbar() {
   const router = useRouter();
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(1);
+  const audioRef = useRef(null);
   const navbarRef = useRef(null);
+
+  /* ------------------------------------------------------------- */
+  /* Radio stream (moved from GlobalAudioPlayer)                   */
+  /* ------------------------------------------------------------- */
+  const {
+    streamUrl,
+    isLoading,
+    error,
+    refreshStream,
+    handleStreamError,
+    getStreamUrl,
+    setIsLoading,
+    setError,
+  } = useRadioStream();
+
+  /* ------------------------------------------------------------- */
+  /* Helper to emit play state to other components                 */
+  /* ------------------------------------------------------------- */
+  const emitAudioStateChanged = useCallback((playing) => {
+    window.dispatchEvent(
+      new CustomEvent("audioStateChanged", {
+        detail: { isPlaying: playing },
+      }),
+    );
+  }, []);
+
+  /* ------------------------------------------------------------- */
+  /* Core playback actions                                         */
+  /* ------------------------------------------------------------- */
+  const playStream = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    try {
+      // Ensure any current playback is halted before changing source
+      // audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+
+      const freshUrl = getStreamUrl();
+      audio.src = freshUrl;
+      audio.load();
+      setIsLoading(true);
+      await audio.play();
+      audio.volume = volume;
+      setIsPlaying(true);
+      setIsLoading(false);
+      emitAudioStateChanged(true);
+    } catch (err) {
+      console.error("Navbar play error", err);
+      setIsPlaying(false);
+      setIsLoading(false);
+      handleStreamError();
+    }
+  }, [
+    getStreamUrl,
+    volume,
+    emitAudioStateChanged,
+    handleStreamError,
+    setIsLoading,
+  ]);
+
+  const pauseStream = useCallback(() => {
+    console.log("pauseStream");
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.pause();
+    // Reset source to fully stop streaming and avoid overlapping audio
+    audio.removeAttribute("src");
+    audio.load();
+    setIsPlaying(false);
+    emitAudioStateChanged(false);
+  }, [emitAudioStateChanged]);
+
+  const togglePlay = useCallback(() => {
+    if (isPlaying) {
+      pauseStream();
+      console.log("Paused");
+    } else {
+      playStream();
+      console.log("Played");
+    }
+  }, [isPlaying, playStream, pauseStream]);
+
+  /* ------------------------------------------------------------- */
+  /* External events from GlobalAudioPlayer                        */
+  /* ------------------------------------------------------------- */
+  useEffect(() => {
+    const handlePlayReq = () => {
+      if (!isPlaying) playStream();
+    };
+
+    const handlePauseReq = () => {
+      if (isPlaying) pauseStream();
+    };
+
+    const handleVolumeChanged = (e) => {
+      const newVol = e.detail.volume;
+      setVolume(newVol);
+      if (audioRef.current) audioRef.current.volume = newVol;
+    };
+
+    window.addEventListener("playRequested", handlePlayReq);
+    window.addEventListener("pauseRequested", handlePauseReq);
+    window.addEventListener("volumeChanged", handleVolumeChanged);
+
+    return () => {
+      window.removeEventListener("playRequested", handlePlayReq);
+      window.removeEventListener("pauseRequested", handlePauseReq);
+      window.removeEventListener("volumeChanged", handleVolumeChanged);
+    };
+  }, [isPlaying, playStream, pauseStream]);
+
+  /* ------------------------------------------------------------- */
+  /* Sync internal audio element events (optional future)          */
+  /* ------------------------------------------------------------- */
+  // could add listeners for ended/stalled etc if needed
 
   const handleDropdown = (dropdownName) => {
     setOpenDropdown((prev) => (prev === dropdownName ? null : dropdownName));
@@ -33,29 +153,15 @@ export default function Navbar() {
     };
   }, []);
 
-  useEffect(() => {
-    // Listen for audio state changes from the main page
-    const handleAudioStateChange = (event) => {
-      setIsPlaying(event.detail.isPlaying);
-    };
-
-    window.addEventListener("audioStateChanged", handleAudioStateChange);
-
-    return () => {
-      window.removeEventListener("audioStateChanged", handleAudioStateChange);
-    };
-  }, []);
-
   const handlePlayClick = () => {
-    // Dispatch custom event to trigger player control
-    window.dispatchEvent(new CustomEvent("triggerPlayerControl"));
+    togglePlay();
   };
 
   const discoverLinks = (
     <>
       <a
         href="#"
-        className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
+        className="block px-4 py-2 text-gray-700 hover:bg-gray-100 font-body text-base"
       >
         <div className="flex items-center gap-3">
           <div className="w-5 h-5 flex items-center justify-center">
@@ -72,7 +178,7 @@ export default function Navbar() {
       </a>
       <a
         href="/about-us"
-        className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
+        className="block px-4 py-2 text-gray-700 hover:bg-gray-100 font-body text-base"
       >
         <div className="flex items-center gap-3">
           <div className="w-5 h-5 flex items-center justify-center">
@@ -89,7 +195,7 @@ export default function Navbar() {
       </a>
       <a
         href="#"
-        className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
+        className="block px-4 py-2 text-gray-700 hover:bg-gray-100 font-body text-base"
       >
         <div className="flex items-center gap-3">
           <div className="w-5 h-5 flex items-center justify-center">
@@ -111,7 +217,7 @@ export default function Navbar() {
     <>
       <a
         href="#"
-        className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
+        className="block px-4 py-2 text-gray-700 hover:bg-gray-100 font-body text-base"
       >
         <div className="flex items-center gap-3">
           <div className="w-5 h-5 flex items-center justify-center">
@@ -128,7 +234,7 @@ export default function Navbar() {
       </a>
       <a
         href="#"
-        className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
+        className="block px-4 py-2 text-gray-700 hover:bg-gray-100 font-body text-base"
       >
         <div className="flex items-center gap-3">
           <div className="w-5 h-5 flex items-center justify-center">
@@ -147,7 +253,7 @@ export default function Navbar() {
   );
 
   return (
-    <header className="bg-[#FBEAEA] border-b border-gray-100" ref={navbarRef}>
+    <header className="bg-white border-b border-gray-100" ref={navbarRef}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo + Mobile Play Button */}
@@ -212,19 +318,19 @@ export default function Navbar() {
           <nav className="hidden md:flex items-center space-x-8">
             <a
               href="/"
-              className="text-gray-900 hover:text-gray-600 font-body font-normal text-base"
+              className="text-gray-900 hover:text-[#D83232] font-body font-normal text-base transition-colors"
             >
               Home
             </a>
             <a
-              href="#"
-              className="text-gray-900 hover:text-gray-600 font-body font-normal text-base"
+              href="/podcast"
+              className="text-gray-900 hover:text-[#D83232] font-body font-normal text-base transition-colors"
             >
               Podcast
             </a>
             <a
-              href="#"
-              className="text-gray-900 hover:text-gray-600 font-body font-normal text-base"
+              href="/blog"
+              className="text-gray-900 hover:text-[#D83232] font-body font-normal text-base transition-colors"
             >
               Blog
             </a>
@@ -233,7 +339,7 @@ export default function Navbar() {
             <div className="relative">
               <button
                 onClick={() => handleDropdown("discover")}
-                className="flex items-center text-gray-900 hover:text-gray-600 font-body font-normal text-base"
+                className="flex items-center text-gray-900 hover:text-[#D83232] font-body font-normal text-base transition-colors"
               >
                 Discover
                 <svg
@@ -253,7 +359,7 @@ export default function Navbar() {
                 </svg>
               </button>
               {openDropdown === "discover" && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-[#FBEAEA] rounded-lg shadow-lg py-2 z-50">
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
                   {discoverLinks}
                 </div>
               )}
@@ -263,7 +369,7 @@ export default function Navbar() {
             <div className="relative">
               <button
                 onClick={() => handleDropdown("partnership")}
-                className="flex items-center text-gray-900 hover:text-gray-600 font-body font-normal text-base"
+                className="flex items-center text-gray-900 hover:text-[#D83232] font-body font-normal text-base transition-colors"
               >
                 Partnership
                 <svg
@@ -283,7 +389,7 @@ export default function Navbar() {
                 </svg>
               </button>
               {openDropdown === "partnership" && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-[#FBEAEA] rounded-lg shadow-lg py-2 z-50">
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
                   {partnershipLinks}
                 </div>
               )}
@@ -345,7 +451,7 @@ export default function Navbar() {
           <div className="md:hidden">
             <button
               onClick={handleMobileMenuToggle}
-              className="text-gray-900 hover:text-red-500"
+              className="text-gray-900 hover:text-[#D83232] transition-colors"
             >
               <svg
                 className="h-6 w-6 cursor-pointer"
@@ -376,23 +482,23 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-[#FBEAEA] border-t border-gray-200">
+        <div className="md:hidden bg-white border-t border-gray-200">
           <nav className="flex flex-col px-4 pt-2 pb-4">
             <a
               href="/"
-              className="px-3 py-3 text-gray-900 rounded-md font-medium text-base font-body"
+              className="px-3 py-3 text-gray-900 hover:text-[#D83232] hover:bg-gray-100 rounded-md font-medium text-base font-body transition-colors"
             >
               Home
             </a>
             <a
               href="#"
-              className="px-3 py-3 text-gray-900 rounded-md font-medium text-base font-body"
+              className="px-3 py-3 text-gray-900 hover:text-[#D83232] hover:bg-gray-100 rounded-md font-medium text-base font-body transition-colors"
             >
               Podcast
             </a>
             <a
               href="#"
-              className="px-3 py-3 text-gray-900 rounded-md font-medium text-base font-body"
+              className="px-3 py-3 text-gray-900 hover:text-[#D83232] hover:bg-gray-100 rounded-md font-medium text-base font-body transition-colors"
             >
               Blog
             </a>
@@ -401,7 +507,7 @@ export default function Navbar() {
             <div>
               <button
                 onClick={() => handleDropdown("discover")}
-                className="w-full flex justify-between items-center px-3 py-3 text-gray-900 rounded-md font-medium text-base text-left font-body"
+                className="w-full flex justify-between items-center px-3 py-3 text-gray-900 hover:text-[#D83232] hover:bg-gray-100 rounded-md font-medium text-base text-left font-body transition-colors"
               >
                 <span>Discover</span>
                 <svg
@@ -429,7 +535,7 @@ export default function Navbar() {
             <div>
               <button
                 onClick={() => handleDropdown("partnership")}
-                className="w-full flex justify-between items-center px-3 py-3 text-gray-900 rounded-md font-medium text-base text-left font-body"
+                className="w-full flex justify-between items-center px-3 py-3 text-gray-900 hover:text-[#D83232] hover:bg-gray-100 rounded-md font-medium text-base text-left font-body transition-colors"
               >
                 <span>Partnership</span>
                 <svg
@@ -455,6 +561,14 @@ export default function Navbar() {
           </nav>
         </div>
       )}
+
+      {/* Hidden audio element */}
+      <audio
+        ref={audioRef}
+        src={streamUrl || undefined}
+        preload="none"
+        playsInline
+      />
     </header>
   );
 }
