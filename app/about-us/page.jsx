@@ -4,7 +4,7 @@ import Navbar from "@/app/components/Navbar";
 import ButtonPrimary from "@/app/components/ButtonPrimary";
 import RadioPlayer from "@/app/components/RadioPlayer";
 import { useState, useRef } from "react";
-import BoardSlider from "@/app/components/BoardSlider";
+import BoardSliderMB from "@/app/components/BoardSliderMB";
 import FooterSection from "@/app/components/FooterSection";
 
 const discoverCards = [
@@ -285,7 +285,7 @@ export default function AboutUs() {
           </p>
 
           {/* Board Grid */}
-          <BoardSlider />
+          <BoardSliderMB />
         </div>
       </section>
 
@@ -341,7 +341,7 @@ export default function AboutUs() {
 
       {/* Student Voices Section */}
       <section className="relative py-24 bg-white">
-        <div className="hidden md:block absolute w-full max-w-lg mx-auto -top-20 left-60 top-1 z-0">
+        <div className="hidden md:block absolute w-full max-w-lg mx-auto -top-20 left-60 translate-y-12 -translate-x-10 z-0">
           <Image
             src="/vstock-4.png"
             alt="About Us"

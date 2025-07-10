@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import Navbar from "@/app/components/Navbar";
 import ButtonPrimary from "@/app/components/ButtonPrimary";
-import BoardSlider from "@/app/components/BoardSlider";
+import BoardSliderAnnouncer from "@/app/components/BoardSliderAnnouncer";
 import RadioPlayer from "@/app/components/RadioPlayer";
 import FooterSection from "@/app/components/FooterSection";
 
@@ -237,59 +237,59 @@ function PodcastSection() {
           alt="background decorative gradient"
           width={800}
           height={800}
-          // className=""
         />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <p className="font-body text-gray-500 text-sm mb-1">Listen</p>
-        <h2 className="font-heading text-3xl sm:text-4xl text-gray-900 mb-6">
-          Listen to Our Podcasts
+        <h2 className="font-accent text-5xl sm:text-6xl text-gray-900 mb-4">
+          Listen to Our Podcast
         </h2>
+        <div className="w-1/2 sm:w-1/3 border-t-2 border-gray-200 mb-10" />
 
         {/* Podcasts List */}
         <div className="space-y-4">
           {podcasts.map((pod, idx) => (
             <div
               key={idx}
-              className="flex items-start gap-6 py-8 border-b border-gray-200/80 last:border-b-0"
+              className="flex items-start gap-4 sm:gap-6 py-8 border-b border-gray-200/80 last:border-b-0"
             >
               {/* Image */}
-              <div className="w-40 h-40 relative flex-shrink-0">
+              <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 relative flex-shrink-0">
                 <Image
                   src={pod.image}
                   alt="Podcast Thumbnail"
                   fill
-                  className="object-cover rounded-xl shadow-md"
+                  className="object-cover rounded-2xl shadow-md"
                 />
               </div>
               {/* Details */}
               <div className="flex-1">
-                <h3 className="font-heading text-xl text-gray-900 font-bold mb-2">
+                <h3 className="font-heading text-lg sm:text-xl text-gray-900 font-bold mb-2">
                   {pod.title}
                 </h3>
-                <p className="font-body text-sm text-gray-500 mb-1">
+                <p className="font-body text-sm text-gray-500 mb-2">
                   {pod.subtitle}
                 </p>
-                <p className="font-body text-base text-gray-600 mb-3">
+                <p className="font-body text-sm text-gray-600 mb-4 leading-relaxed">
                   {pod.description}
                 </p>
-                <p className="font-body text-sm text-gray-500">
-                  {pod.date} &bull; {pod.duration}
-                </p>
+                <div className="flex justify-between items-center mt-4">
+                  <p className="font-body text-xs sm:text-sm text-gray-500">
+                    {pod.date} &bull; {pod.duration}
+                  </p>
+                  <ButtonPrimary className="!w-12 !h-12 !p-0 !rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-white ml-0.5"
+                      fill="white"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <polygon points="6,4 20,12 6,20" fill="white" />
+                    </svg>
+                  </ButtonPrimary>
+                </div>
               </div>
-              {/* Play Button */}
-              <ButtonPrimary className="!w-14 !h-14 !rounded-full !p-0 flex items-center justify-center flex-shrink-0">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-white ml-0.5"
-                  fill="white"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <polygon points="6,4 20,12 6,20" fill="white" />
-                </svg>
-              </ButtonPrimary>
             </div>
           ))}
         </div>
@@ -408,23 +408,23 @@ function ProgramsSection() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-12">
           <div className="text-left">
-            <h2 className="font-heading text-lg md:text-xl text-red-600/90 mb-1">
+            <h2 className="font-heading text-base sm:text-lg md:text-xl text-red-600/90 mb-1">
               Discover the Vibrant World of
             </h2>
-            <h3 className="font-accent text-5xl md:text-6xl font-bold text-gray-900">
+            <h3 className="font-accent text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900">
               8EH Radio Programs
             </h3>
           </div>
           {/* Slider Controls */}
-          <div className="hidden sm:flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <button
               onClick={() => scroll("left")}
-              className="w-14 h-14 rounded-full bg-white/70 backdrop-blur-sm hover:bg-white/100 transition-colors flex items-center justify-center border border-gray-200/80 shadow-md"
+              className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-white/70 backdrop-blur-sm hover:bg-white/100 hover:border-gray-300 transition-all duration-200 flex items-center justify-center border border-gray-200/80 shadow-md hover:shadow-lg cursor-pointer"
               aria-label="Scroll left"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-gray-700"
+                className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -439,12 +439,12 @@ function ProgramsSection() {
             </button>
             <button
               onClick={() => scroll("right")}
-              className="w-14 h-14 rounded-full bg-white/70 backdrop-blur-sm hover:bg-white/100 transition-colors flex items-center justify-center border border-gray-200/80 shadow-md"
+              className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-white/70 backdrop-blur-sm hover:bg-white/100 hover:border-gray-300 transition-all duration-200 flex items-center justify-center border border-gray-200/80 shadow-md hover:shadow-lg cursor-pointer"
               aria-label="Scroll right"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-gray-700"
+                className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -463,7 +463,7 @@ function ProgramsSection() {
         {/* Horizontal scroll container */}
         <div
           ref={scrollContainerRef}
-          className="flex overflow-x-auto scroll-smooth space-x-6 pb-4 -mx-4 px-4 snap-x snap-mandatory hide-scrollbar"
+          className="flex overflow-x-auto scroll-smooth space-x-6 pb-4 -mx-4 px-4 -my-4 py-4 snap-x snap-mandatory hide-scrollbar"
         >
           {programs.map((prog, idx) => (
             <div
@@ -582,21 +582,17 @@ function TuneTrackerSection() {
 
 function AnnouncersSection() {
   return (
-    <section className="py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 className="font-heading text-3xl sm:text-4xl text-gray-900 mb-2">
-          Our Announcers
-        </h2>
-        <p className="font-body text-gray-600 mb-10">
-          Meet our talented radio announcers and street teams.
-        </p>
-
-        {/* BoardSlider uses its own dummy data if none provided */}
-        <BoardSlider />
-
-        <div className="mt-10">
-          <ButtonPrimary>View All</ButtonPrimary>
+    <section className="py-24 bg-gradient-to-b from-orange-400 via-orange-300 to-yellow-200 text-gray-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center sm:text-left max-w-2xl mb-12">
+          <h2 className="font-accent text-5xl sm:text-7xl text-white font-bold mb-4">
+            Our Announcers
+          </h2>
+          <p className="font-body text-lg text-white/90">
+            Meet our talented radio announcers and their stories.
+          </p>
         </div>
+        <BoardSliderAnnouncer />
       </div>
     </section>
   );

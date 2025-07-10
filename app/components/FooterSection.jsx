@@ -95,13 +95,15 @@ export default function FooterSection() {
           {/* Links Grid */}
           <div className="lg:col-span-8 grid grid-cols-2 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="font-semibold text-gray-900 mb-4">Discover</h3>
+              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                Discover
+              </h3>
               <ul className="space-y-3">
                 {footerLinks.discover.map((link) => (
                   <li key={link.title}>
                     <Link
                       href={link.href}
-                      className="text-gray-600 hover:text-red-600 transition-colors"
+                      className="text-sm text-gray-600 hover:text-red-600 transition-colors"
                     >
                       {link.title}
                     </Link>
@@ -110,13 +112,15 @@ export default function FooterSection() {
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 mb-4">Partnership</h3>
+              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                Partnership
+              </h3>
               <ul className="space-y-3">
                 {footerLinks.partnership.map((link) => (
                   <li key={link.title}>
                     <Link
                       href={link.href}
-                      className="text-gray-600 hover:text-red-600 transition-colors"
+                      className="text-sm text-gray-600 hover:text-red-600 transition-colors"
                     >
                       {link.title}
                     </Link>
@@ -125,13 +129,15 @@ export default function FooterSection() {
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 mb-4">Profile</h3>
+              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                Profile
+              </h3>
               <ul className="space-y-3">
                 {footerLinks.company.map((link) => (
                   <li key={link.title}>
                     <Link
                       href={link.href}
-                      className="text-gray-600 hover:text-red-600 transition-colors"
+                      className="text-sm text-gray-600 hover:text-red-600 transition-colors"
                     >
                       {link.title}
                     </Link>

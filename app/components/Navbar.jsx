@@ -1,20 +1,29 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
+  const router = useRouter();
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const navbarRef = useRef(null);
 
   const handleDropdown = (dropdownName) => {
-    setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
+    setOpenDropdown((prev) => (prev === dropdownName ? null : dropdownName));
+  };
+
+  const handleMobileMenuToggle = () => {
+    setIsMobileMenuOpen((prev) => !prev);
+    setOpenDropdown(null);
   };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (navbarRef.current && !navbarRef.current.contains(event.target)) {
         setOpenDropdown(null);
+        setIsMobileMenuOpen(false);
       }
     };
 
@@ -42,6 +51,101 @@ export default function Navbar() {
     window.dispatchEvent(new CustomEvent("triggerPlayerControl"));
   };
 
+  const discoverLinks = (
+    <>
+      <a
+        href="#"
+        className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-5 h-5 flex items-center justify-center">
+            <Image
+              src="/radio-icon.svg"
+              alt="Podcast"
+              width={20}
+              height={20}
+              style={{ position: "relative", top: "0.5px" }}
+            />
+          </div>
+          Programs
+        </div>
+      </a>
+      <a
+        href="/about-us"
+        className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-5 h-5 flex items-center justify-center">
+            <Image
+              src="/aboutus-icon.svg"
+              alt="About Us"
+              width={18}
+              height={18}
+              style={{ position: "relative", top: "1px" }}
+            />
+          </div>
+          About Us
+        </div>
+      </a>
+      <a
+        href="#"
+        className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-5 h-5 flex items-center justify-center">
+            <Image
+              src="/faq-icon.svg"
+              alt="FAQ"
+              width={22}
+              height={22}
+              style={{ position: "relative", top: "1px" }}
+            />
+          </div>
+          FAQ
+        </div>
+      </a>
+    </>
+  );
+
+  const partnershipLinks = (
+    <>
+      <a
+        href="#"
+        className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-5 h-5 flex items-center justify-center">
+            <Image
+              src="/medpart-icon.svg"
+              alt="Media Partner"
+              width={22}
+              height={22}
+              style={{ position: "relative", top: "1px" }}
+            />
+          </div>
+          Media Partner
+        </div>
+      </a>
+      <a
+        href="#"
+        className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-5 h-5 flex items-center justify-center">
+            <Image
+              src="/agency-icon.svg"
+              alt="Agency"
+              width={22}
+              height={22}
+              style={{ position: "relative", top: "1px" }}
+            />
+          </div>
+          Agency
+        </div>
+      </a>
+    </>
+  );
+
   return (
     <header className="bg-[#FBEAEA] border-b border-gray-100" ref={navbarRef}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -49,7 +153,14 @@ export default function Navbar() {
           {/* Logo + Mobile Play Button */}
           <div className="flex items-center space-x-3">
             {/* Logo */}
-            <Image src="/8eh.png" alt="8EH Logo" width={61} height={61} />
+            <Image
+              src="/8eh.png"
+              alt="8EH Logo"
+              width={61}
+              height={61}
+              className="cursor-pointer"
+              onClick={() => router.push("/")}
+            />
 
             {/* Play button (mobile only) */}
             <button
@@ -97,7 +208,7 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* Navigation */}
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <a
               href="/"
@@ -143,57 +254,7 @@ export default function Navbar() {
               </button>
               {openDropdown === "discover" && (
                 <div className="absolute top-full left-0 mt-2 w-48 bg-[#FBEAEA] rounded-lg shadow-lg py-2 z-50">
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 flex items-center justify-center">
-                        <Image
-                          src="/radio-icon.svg"
-                          alt="Podcast"
-                          width={20}
-                          height={20}
-                          style={{ position: "relative", top: "0.5px" }}
-                        />
-                      </div>
-                      Programs
-                    </div>
-                  </a>
-                  <a
-                    href="/about-us"
-                    className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 flex items-center justify-center">
-                        <Image
-                          src="/aboutus-icon.svg"
-                          alt="About Us"
-                          width={18}
-                          height={18}
-                          style={{ position: "relative", top: "1px" }}
-                        />
-                      </div>
-                      About Us
-                    </div>
-                  </a>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 flex items-center justify-center">
-                        <Image
-                          src="/faq-icon.svg"
-                          alt="FAQ"
-                          width={22}
-                          height={22}
-                          style={{ position: "relative", top: "1px" }}
-                        />
-                      </div>
-                      FAQ
-                    </div>
-                  </a>
+                  {discoverLinks}
                 </div>
               )}
             </div>
@@ -223,40 +284,7 @@ export default function Navbar() {
               </button>
               {openDropdown === "partnership" && (
                 <div className="absolute top-full left-0 mt-2 w-48 bg-[#FBEAEA] rounded-lg shadow-lg py-2 z-50">
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 flex items-center justify-center">
-                        <Image
-                          src="/medpart-icon.svg"
-                          alt="Media Partner"
-                          width={22}
-                          height={22}
-                          style={{ position: "relative", top: "1px" }}
-                        />
-                      </div>
-                      Media Partner
-                    </div>
-                  </a>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-gray-700 hover:bg-[#ecdbdb] font-body text-base"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 flex items-center justify-center">
-                        <Image
-                          src="/agency-icon.svg"
-                          alt="Agency"
-                          width={22}
-                          height={22}
-                          style={{ position: "relative", top: "1px" }}
-                        />
-                      </div>
-                      Agency
-                    </div>
-                  </a>
+                  {partnershipLinks}
                 </div>
               )}
             </div>
@@ -315,24 +343,118 @@ export default function Navbar() {
 
           {/* Mobile menu button */}
           <div className="md:hidden">
-            <button className="text-gray-900 hover:text-red-500">
+            <button
+              onClick={handleMobileMenuToggle}
+              className="text-gray-900 hover:text-red-500"
+            >
               <svg
-                className="h-6 w-6"
+                className="h-6 w-6 cursor-pointer"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
+                {isMobileMenuOpen ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                )}
               </svg>
             </button>
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-[#FBEAEA] border-t border-gray-200">
+          <nav className="flex flex-col px-4 pt-2 pb-4">
+            <a
+              href="/"
+              className="px-3 py-3 text-gray-900 rounded-md font-medium text-base font-body"
+            >
+              Home
+            </a>
+            <a
+              href="#"
+              className="px-3 py-3 text-gray-900 rounded-md font-medium text-base font-body"
+            >
+              Podcast
+            </a>
+            <a
+              href="#"
+              className="px-3 py-3 text-gray-900 rounded-md font-medium text-base font-body"
+            >
+              Blog
+            </a>
+
+            {/* Discover Dropdown for Mobile */}
+            <div>
+              <button
+                onClick={() => handleDropdown("discover")}
+                className="w-full flex justify-between items-center px-3 py-3 text-gray-900 rounded-md font-medium text-base text-left font-body"
+              >
+                <span>Discover</span>
+                <svg
+                  className={`h-5 w-5 transition-transform ${
+                    openDropdown === "discover" ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+              {openDropdown === "discover" && (
+                <div className="pl-4 mt-2 space-y-1">{discoverLinks}</div>
+              )}
+            </div>
+
+            {/* Partnership Dropdown for Mobile */}
+            <div>
+              <button
+                onClick={() => handleDropdown("partnership")}
+                className="w-full flex justify-between items-center px-3 py-3 text-gray-900 rounded-md font-medium text-base text-left font-body"
+              >
+                <span>Partnership</span>
+                <svg
+                  className={`h-5 w-5 transition-transform ${
+                    openDropdown === "partnership" ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+              {openDropdown === "partnership" && (
+                <div className="pl-4 mt-2 space-y-1">{partnershipLinks}</div>
+              )}
+            </div>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }
