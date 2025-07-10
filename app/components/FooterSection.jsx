@@ -6,12 +6,12 @@ const footerLinks = {
   discover: [
     { title: "Podcast", href: "#" },
     { title: "Blog", href: "#" },
-    { title: "Programs", href: "#" },
+    { title: "Programs", href: "/programs" },
     { title: "FAQ", href: "#" },
   ],
   partnership: [
     { title: "Media Partner", href: "#" },
-    { title: "Agency", href: "#" },
+    { title: "Agency", href: "/agency" },
     { title: "Join Us", href: "#" },
   ],
   company: [
