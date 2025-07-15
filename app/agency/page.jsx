@@ -152,7 +152,7 @@ export const HeroSection = () => (
       </div>
     </div>
 
-    <div className="relative z-20 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center max-w-7xl mx-auto">
+    <div className="relative z-20 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center px-4 md:mx-0 max-w-7xl">
       <div className="text-left">
         <h1 className="text-6xl text-wrap font-accent md:text-7xl lg:text-8xl text-gray-900">
           8EH Agency Services
