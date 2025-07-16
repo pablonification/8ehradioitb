@@ -193,7 +193,6 @@ export const AnnouncerServicesSection = () => (
       />
     </div>
 
-    {/* ▼ Wadah HANYA untuk teks, agar tetap di tengah & rapi ▼ */}
     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-20">
       <div className="md:bg-gradient-to-b from-orange-200 to-orange-400/70 transition-all duration-300 border hover:border-gray-300 border-gray-200/80 rounded-3xl md:shadow-lg px-10 py-6 md:px-16 grid md:grid-cols-2 gap-8 items-center backdrop-blur-xs">
         <div>
