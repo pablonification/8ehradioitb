@@ -29,16 +29,19 @@ model User {
 }
 
 model BlogPost {
-  id        String         @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  slug      String         @unique
-  content   String
-  category  String?
-  mainImage String?
-  tags      String[]
-  authors   AuthorOnPost[]
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  slug        String         @unique
+  content     String
+  description String?
+  readTime    String?
+  category    String?
+  mainImage   String?
+  tags        String[]
+  isFeatured  Boolean        @default(false)
+  authors     AuthorOnPost[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 }
 
 model AuthorOnPost {
@@ -96,4 +99,10 @@ model VerificationToken {
   expires    DateTime
 
   @@index([identifier], map: "token_identifier_index")
+}
+
+model WhitelistedEmail {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  email String @unique
+  createdAt DateTime @default(now())
 }

@@ -14,7 +14,7 @@ export default function DashboardLayout({ children }) {
         <main className="flex-1 p-8 overflow-y-auto">
           {children}
         </main>
-        <footer className="text-center text-xs text-gray-500 font-body py-4">
+        <footer className="text-xs text-gray-500 font-body text-center py-4 mb-4">
             © 2025 Technic 8EH Radio ITB. All rights reserved.
         </footer>
       </div>

@@ -1,57 +1,85 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { notFound } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
 import FooterSection from "@/app/components/FooterSection";
+import { prisma } from "@/lib/prisma";
 
-// --- MOCK DATA FOR A SINGLE BLOG POST ---
-const post = {
-  slug: "exploring-the-vibrant-world-of-campus-life",
-  title: "Exploring the Vibrant World of Campus Life",
-  category: "Updates",
-  author: "John Doe",
-  authorRole: "Content Writer, 8EH Radio",
-  authorImage: "/8eh-real.svg", // Using an existing placeholder
-  date: "11 Jan 2023",
-  readTime: "5 min read",
-  mainImage: "/placeholder-news2.png", // Using an existing placeholder
-  tags: [
-    "Campus Life",
-    "Student Engagement",
-    "Media Innovation",
-    "Creative Programs",
-  ],
-  content: `
-### Introduction
-Mi tincidunt elit, id quisque ligula ac diam, amet. Vel etiam sus-pendisse morbi eleifend faucibus eget. Eget quis mi enim, leo lacinia pharetra, semper. Eget in volutpat mollis at volutpat lectus velit, sed auctor. Porttitor fames arcu quis fusce augue enim. Quis at habitant diam at. Suscipit tristique risus, at donec. In amet, vitae risi, tellus tincidunt. At feugiat sapien varius id.
+async function getPost(slug) {
+  const post = await prisma.blogPost.findUnique({
+    where: { slug },
+    include: {
+      authors: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  return post;
+}
 
-![An image caption that describes the image.](/placeholderlek.JPG)
+export async function generateMetadata({ params }) {
+  const slug = await params.slug;
+  const post = await getPost(slug);
+  
+  if (!post) {
+    return {
+      title: "Post Not Found",
+      description: "The post you are looking for could not be found.",
+    };
+  }
 
-Dolor enim eu tortor urna sed duis nulla. Aliquam vestibulum, nulla odio nisl vitae. In aliquet pellentesque aenean hac vestibulum turpis mi bibendum diam. Tempor integer aliquam in vitae malesuada fringilla.
-
-> "Ipsum sit mattis nulla quam nulla. Gravida id gravida ac enim mauris id. Non et tellus molestie sem nunc, dictumst. Sapien, dictumst ac, scelerisque cras tempus. Diam elit, orci, tincidunt aenean tempus."
-
-Tristique odio senectus nam posuere ornare leo metus, ultricies. Blandit duis ultricies et in cras placerat elit. Aliquam tellus lorem sed ac. Montes, sed mattis pellentesque suscipit
-viverra aenean magna risus elementum faucibus mollis. Velit sed quis proin morbi quisque dictumst. In et vitae vestibulum.
-
-### Conclusion
-Morbi sed imperdiet in ipsum, adipiscing elit dui lectus. Tellus id scelerisque est ultricies ultricies. Duis est sit sed leo nisl, blandit elit sagittis. Quis-que tristique consequat quam sed. Nisl at scelerisque amet nulla purus enim. Nunc sed faucibus bibendum feugiat sed interdum. Ipsum egestas condimentum mi massa. In tincidunt turpis ut et. Et et sed nec ut, adipiscing arc.
-`,
-};
-
-const socialIcons = {
-  linkedin: "/LinkedIn.svg",
-  x: "/X.svg",
-  instagram: "/Instagram.svg",
-};
+  return {
+    title: post.title,
+    description: post.description,
+    openGraph: {
+      title: post.title,
+      description: post.description,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}/blog/${post.slug}`,
+      images: [
+        {
+          url: post.mainImage || "/8eh-real-long.png",
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
+      type: "article",
+      article: {
+        publishedTime: post.createdAt.toISOString(),
+        authors: post.authors?.map((a) => a.user.name).join(", "),
+        tags: post.tags,
+      },
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.description,
+      images: [post.mainImage || "/8eh-real-long.png"],
+    },
+  };
+}
 
 // --- BLOG POST PAGE ---
-export default function BlogPostPage({ params }) {
-  // In a real app, you'd fetch the post data based on `params.slug`
-  // For now, we'll use the mock data.
+export default async function BlogPostPage({ params }) {
+  const post = await getPost(params.slug);
+
+  if (!post) {
+    notFound();
+  }
+
+  const mainAuthor = post.authors?.[0]?.user;
+  const coAuthors = post.authors?.slice(1).map((a) => a.user);
+  const allAuthorNames =
+    post.authors?.map((a) => a.user.name).join(", ") || "8EH Radio ITB";
 
   return (
     <div className="bg-white">
@@ -60,64 +88,83 @@ export default function BlogPostPage({ params }) {
         <article>
           {/* Header */}
           <div className="mb-12">
-            <p className="text-sm font-body text-gray-600 mb-4">
-              <Link href="/blog" className="hover:underline">
-                Blog
-              </Link>{" "}
-              &gt; <span className="text-gray-900">{post.category}</span>
+            <p className="text-sm font-body text-red-600 mb-2 font-semibold">
+              {post.category}
             </p>
             <h1 className="text-4xl md:text-5xl font-heading font-bold text-gray-900 mb-6">
               {post.title}
             </h1>
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gray-200 rounded-full relative overflow-hidden">
-                  <Image src={post.authorImage} alt={post.author} fill />
-                </div>
+                {mainAuthor?.image && (
+                  <div className="w-12 h-12 bg-gray-200 rounded-full relative overflow-hidden">
+                    <Image src={mainAuthor.image} alt={mainAuthor.name} fill />
+                  </div>
+                )}
                 <div>
                   <p className="font-body font-semibold text-gray-900">
-                    {post.author}
+                    {allAuthorNames}
                   </p>
                   <p className="font-body text-sm text-gray-500">
-                    {post.date} &bull; {post.readTime}
+                    {new Date(post.createdAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                    {post.readTime && ` • ${post.readTime}`}
                   </p>
                 </div>
               </div>
               <div className="flex items-center space-x-4 text-gray-700">
-                <Image
-                  src="/LinkedIn.svg"
-                  alt="LinkedIn"
-                  width={20}
-                  height={20}
-                  className="cursor-pointer hover:text-red-600"
-                />
-                <Image
-                  src="/X.svg"
-                  alt="X"
-                  width={20}
-                  height={20}
-                  className="cursor-pointer hover:text-red-600"
-                />
-                <Image
-                  src="/Instagram.svg"
-                  alt="Instagram"
-                  width={20}
-                  height={20}
-                  className="cursor-pointer hover:text-red-600"
-                />
+                {/* LinkedIn Share */}
+                <a
+                  href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+                    `${process.env.NEXT_PUBLIC_SITE_URL}/blog/${post.slug}`,
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Share on LinkedIn"
+                >
+                  <Image
+                    src="/LinkedIn.svg"
+                    alt="LinkedIn"
+                    width={20}
+                    height={20}
+                    className="cursor-pointer transition-opacity hover:opacity-75"
+                  />
+                </a>
+                {/* X/Twitter Share */}
+                <a
+                  href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(
+                    `${process.env.NEXT_PUBLIC_SITE_URL}/blog/${post.slug}`,
+                  )}&text=${encodeURIComponent(`Artikel terbaru 8EH Radio ITB, '${post.title}', seru banget! Gimana menurutmu? Baca selengkapnya:`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Share on X"
+                >
+                  <Image
+                    src="/X.svg"
+                    alt="X"
+                    width={20}
+                    height={20}
+                    className="cursor-pointer transition-opacity hover:opacity-75"
+                  />
+                </a>
               </div>
             </div>
           </div>
 
           {/* Main Image */}
-          <div className="w-full aspect-video bg-gray-200 rounded-2xl relative overflow-hidden mb-12">
-            <Image
-              src={post.mainImage}
-              alt={post.title}
-              layout="fill"
-              objectFit="cover"
-            />
-          </div>
+          {post.mainImage && (
+            <div className="w-full aspect-video bg-gray-200 rounded-2xl relative overflow-hidden mb-12 shadow-lg">
+              <Image
+                src={post.mainImage}
+                alt={post.title}
+                layout="fill"
+                objectFit="cover"
+              />
+            </div>
+          )}
 
           {/* Markdown Content */}
           <div className="max-w-none">
@@ -174,8 +221,20 @@ export default function BlogPostPage({ params }) {
                     {...props}
                   />
                 ),
+                ul: ({ node, ...props }) => (
+                  <ul
+                    className="list-disc pl-6 mb-4 font-body text-gray-800"
+                    {...props}
+                  />
+                ),
+                ol: ({ node, ...props }) => (
+                  <ol
+                    className="list-decimal pl-6 mb-4 font-body text-gray-800"
+                    {...props}
+                  />
+                ),
                 li: ({ node, ...props }) => (
-                  <li className="text-gray-800 mb-1" {...props} />
+                  <li className="mb-1 font-body text-gray-800" {...props} />
                 ),
                 strong: ({ node, ...props }) => (
                   <strong className="text-gray-900 font-semibold" {...props} />
@@ -204,32 +263,75 @@ export default function BlogPostPage({ params }) {
           {/* Footer Section */}
           <div className="mt-16 border-t border-gray-200 pt-8">
             {/* Tags Section */}
-            <div className="flex flex-wrap items-center gap-3 mb-8">
-              <span className="font-body font-semibold mr-2 text-gray-700">
-                Tags
-              </span>
-              {post.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="bg-gray-200 text-gray-700 text-sm font-medium px-3 py-1 rounded-full font-body"
-                >
-                  {tag}
+            {post.tags && post.tags.length > 0 && (
+              <div className="flex flex-wrap items-center gap-3 mb-8">
+                <span className="font-body font-semibold mr-2 text-gray-700">
+                  Tags
                 </span>
-              ))}
-            </div>
+                {post.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="bg-gray-200 text-gray-700 text-sm font-medium px-3 py-1 rounded-full font-body"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/* Author Box */}
-            <div className="bg-gray-100 p-6 rounded-2xl flex items-center space-x-6">
-              <div className="w-20 h-20 bg-gray-200 rounded-full relative overflow-hidden flex-shrink-0">
-                <Image src={post.authorImage} alt={post.author} fill />
+            {post.authors && post.authors.length > 0 && (
+              <div className="bg-gray-50 p-6 rounded-2xl">
+                {mainAuthor && (
+                  <div className="flex items-center space-x-6">
+                    <div className="w-20 h-20 bg-gray-200 rounded-full relative overflow-hidden flex-shrink-0">
+                      <Image
+                        src={mainAuthor.image || "/8eh-real.svg"}
+                        alt={mainAuthor.name}
+                        fill
+                        objectFit="cover"
+                      />
+                    </div>
+                    <div>
+                      <p className="font-body text-sm text-gray-500 mb-1">
+                        Written by
+                      </p>
+                      <p className="font-heading font-bold text-lg text-gray-900">
+                        {mainAuthor.name}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {coAuthors && coAuthors.length > 0 && (
+                  <div className="mt-6 space-y-6">
+                    {coAuthors.map((author) => (
+                      <div
+                        key={author.id}
+                        className="flex items-center space-x-6"
+                      >
+                        <div className="w-20 h-20 bg-gray-200 rounded-full relative overflow-hidden flex-shrink-0">
+                          <Image
+                            src={author.image || "/8eh-real.svg"}
+                            alt={author.name}
+                            fill
+                            objectFit="cover"
+                          />
+                        </div>
+                        <div>
+                          <p className="font-body text-sm text-gray-500 mb-1">
+                            Co-Author
+                          </p>
+                          <p className="font-heading font-bold text-lg text-gray-900">
+                            {author.name}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div>
-                <p className="font-heading font-bold text-lg text-gray-900">
-                  {post.author}
-                </p>
-                <p className="font-body text-gray-600">{post.authorRole}</p>
-              </div>
-            </div>
+            )}
           </div>
         </article>
       </main>

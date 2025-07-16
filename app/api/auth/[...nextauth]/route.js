@@ -15,8 +15,25 @@ export const authOptions = {
     }),
   ],
   callbacks: {
+    async signIn({ profile }) {
+      if (!profile?.email) {
+        console.log("Sign-in denied: No email in profile.");
+        return false;
+      }
+
+      const whitelistedEmail = await prisma.whitelistedEmail.findUnique({
+        where: { email: profile.email },
+      });
+
+      if (!whitelistedEmail) {
+        console.log(`Unauthorized sign-in attempt: ${profile.email}`);
+        return false; // Deny access
+      }
+      
+      return true; // Allow access
+    },
     async jwt({ token, user }) {
-      if (user) {
+      if (user) { // This is only available on first sign-in
         token.role = user.role;
       }
       return token;

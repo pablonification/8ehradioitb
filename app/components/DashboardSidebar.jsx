@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import ButtonPrimary from "./ButtonPrimary";
 import { useState } from 'react';
 
@@ -12,6 +12,8 @@ const HomeIcon = () => <Image src="/home.svg" alt="Home" width={24} height={24} 
 const BlogIcon = () => <Image src="/blog.svg" alt="Blog" width={24} height={24} />;
 const PodcastIcon = () => <Image src="/podcast.svg" alt="Podcast" width={24} height={24} />;
 const LinkIcon = () => <Image src="/link.svg" alt="Links" width={24} height={24} />;
+const UsersIcon = () => <Image src="/people.png" alt="Users" width={24} height={24} />;
+const WhitelistIcon = () => <Image src="/file.svg" alt="Whitelist" width={24} height={24} />;
 const LogoutIcon = () => <Image src="/log-out.svg" alt="Logout" width={24} height={24} />;
 
 const CollapseIcon = () => (
@@ -30,11 +32,20 @@ const navItems = [
   { href: "/dashboard/blog", label: "Blog", icon: BlogIcon },
   { href: "/dashboard/podcast", label: "Podcast", icon: PodcastIcon },
   { href: "/dashboard/links", label: "Links", icon: LinkIcon },
+  { href: "/dashboard/users", label: "Users", icon: UsersIcon, roles: ["DEVELOPER"] },
+  { href: "/dashboard/whitelist", label: "Whitelist", icon: WhitelistIcon, roles: ["DEVELOPER"] },
 ];
 
 export default function DashboardSidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const [isExpanded, setIsExpanded] = useState(true);
+
+  const visibleNavItems = navItems.filter(item => {
+    if (!item.roles) return true; // show item if no roles are specified
+    if (!session?.user?.role) return false; // hide if user has no role
+    return item.roles.includes(session.user.role); // show if user role is in the item's roles
+  });
 
   return (
     <aside className={`h-screen flex flex-col bg-[#FBEAEA] shadow-sm transition-all duration-300 ease-in-out ${isExpanded ? 'w-56' : 'w-24'}`}>
@@ -47,7 +58,7 @@ export default function DashboardSidebar() {
       <div className={`px-4 mb-4`}>
         <ButtonPrimary className={`w-full rounded-lg py-3 flex items-center justify-center font-heading`}>
             {isExpanded ? (
-                <span className="font-heading font-semibold">Create New</span>
+                <span className="font-heading font-semibold text-lg">Create New</span>
             ) : (
                 <span className="font-heading text-xl -mt-1">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="inline-block align-middle" xmlns="http://www.w3.org/2000/svg">
@@ -62,7 +73,7 @@ export default function DashboardSidebar() {
       <div className="w-4/5 h-px bg-gray-200 my-2 mx-auto" />
       
       <nav className="flex-1 flex flex-col space-y-2 mt-4 px-4">
-        {navItems.map(({ href, label, icon: Icon }) => {
+        {visibleNavItems.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
           return (
             <Link
@@ -89,7 +100,7 @@ export default function DashboardSidebar() {
              {isExpanded && <span className="font-body">Collapse</span>}
          </button>
          <button
-           onClick={() => signOut({ callbackUrl: '/' })}
+           onClick={() => signOut({ callbackUrl: '/login' })}
            className={`w-full flex items-center space-x-4 p-3 rounded-lg text-gray-600 hover:bg-pink-50 ${!isExpanded ? 'justify-center' : ''}`}
          >
              <LogoutIcon />

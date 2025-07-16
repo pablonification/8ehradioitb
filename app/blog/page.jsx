@@ -2,19 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/app/components/Navbar";
 import FooterSection from "@/app/components/FooterSection";
-import { allBlogPosts } from "@/app/blog/data";
-
-// --- DUMMY DATA ---
-const featuredArticle = allBlogPosts[0];
-const latestBlogs = allBlogPosts.slice(0, 9);
+import { prisma } from "@/lib/prisma";
 
 // --- NEW COMPONENTS FOR THE BLOG PAGE ---
 
 const FeaturedArticle = ({ article }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+  <Link href={`/blog/${article.slug}`} className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center group">
     <div className="w-full h-80 relative rounded-lg overflow-hidden">
       <Image
-        src={article.image}
+        src={article.mainImage || '/placeholder-news1.png'}
         alt={article.title}
         layout="fill"
         objectFit="cover"
@@ -27,34 +23,37 @@ const FeaturedArticle = ({ article }) => (
       <h2 className="text-3xl font-bold text-gray-900 mb-2 font-heading">
         {article.title}
       </h2>
-      <p className="text-gray-600 mb-4 font-body">{article.description}</p>
+      <p className="text-gray-600 mb-4 font-body line-clamp-2">{article.description}</p>
       <div className="flex items-center mt-auto">
-        <div className="w-10 h-10 relative mr-3">
-          <Image
-            src={article.authorImage}
-            alt={article.author}
-            fill
-            className="rounded-full"
-          />
-        </div>
+        {article.authors?.[0]?.user?.image && (
+          <div className="w-10 h-10 relative mr-3">
+            <Image
+              src={article.authors[0].user.image}
+              alt={article.authors[0].user.name || 'Author'}
+              fill
+              className="rounded-full"
+            />
+          </div>
+        )}
         <div className="flex flex-col">
           <p className="font-body font-semibold text-sm text-gray-800">
-            {article.author}
+            {article.authors?.map(a => a.user.name).join(', ') || '8EH Radio ITB'}
           </p>
           <p className="font-body text-xs text-gray-500">
-            {article.date} &bull; {article.readTime}
+            {new Date(article.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+            {article.readTime && ` • ${article.readTime}`}
           </p>
         </div>
       </div>
     </div>
-  </div>
+  </Link>
 );
 
 const BlogCard = ({ article }) => (
   <Link href={`/blog/${article.slug}`} className="flex flex-col group">
     <div className="w-full h-60 relative rounded-lg overflow-hidden mb-4">
       <Image
-        src={article.image}
+        src={article.mainImage || '/placeholder-news1.png'}
         alt={article.title}
         layout="fill"
         objectFit="cover"
@@ -67,22 +66,25 @@ const BlogCard = ({ article }) => (
     <h3 className="font-heading text-xl text-gray-900 font-bold mb-3">
       {article.title}
     </h3>
-    <p className="font-body text-sm text-gray-600 mb-4 flex-grow">
+    <p className="font-body text-sm text-gray-600 mb-4 flex-grow line-clamp-2">
       {article.description}
     </p>
     <div className="flex items-center text-xs text-gray-500 mt-auto">
-      <div className="w-8 h-8 relative mr-2">
-        <Image
-          src={article.authorImage}
-          alt={article.author}
-          fill
-          className="rounded-full"
-        />
-      </div>
+      {article.authors?.[0]?.user?.image && (
+        <div className="w-8 h-8 relative mr-2">
+          <Image
+            src={article.authors[0].user.image}
+            alt={article.authors[0].user.name || 'Author'}
+            fill
+            className="rounded-full"
+          />
+        </div>
+      )}
       <div>
-        <p className="font-semibold text-gray-800">{article.author}</p>
+        <p className="font-semibold text-gray-800">{article.authors?.map(a => a.user.name).join(', ') || '8EH Radio ITB'}</p>
         <p>
-          {article.date} &bull; {article.readTime}
+          {new Date(article.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          {article.readTime && ` • ${article.readTime}`}
         </p>
       </div>
     </div>
@@ -101,7 +103,69 @@ const SectionHeader = ({ title, linkText = "See all", linkHref }) => (
   </div>
 );
 
-export default function Blog() {
+async function getPosts() {
+    const posts = await prisma.blogPost.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        authors: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    return posts;
+}
+
+async function getFeaturedPost() {
+    let featured = await prisma.blogPost.findFirst({
+        where: { isFeatured: true },
+        include: {
+            authors: {
+              include: {
+                user: {
+                  select: { id: true, name: true, image: true },
+                },
+              },
+            },
+        },
+    });
+
+    if (!featured) {
+        featured = await prisma.blogPost.findFirst({
+            orderBy: { createdAt: 'desc' },
+            include: {
+                authors: {
+                  include: {
+                    user: {
+                      select: { id: true, name: true, image: true },
+                    },
+                  },
+                },
+            },
+        });
+    }
+    return featured;
+}
+
+export default async function Blog() {
+  const [featuredArticle, allPosts] = await Promise.all([
+      getFeaturedPost(),
+      getPosts(),
+  ]);
+
+  // Exclude featured article from the main list to avoid duplication
+  const latestBlogs = allPosts
+    .filter(p => p.id !== featuredArticle?.id)
+    .slice(0, 9);
+
   return (
     <div className="bg-white">
       <Navbar />
@@ -119,19 +183,23 @@ export default function Blog() {
         </section>
 
         {/* Featured Article */}
-        <section>
-          <FeaturedArticle article={featuredArticle} />
-        </section>
+        {featuredArticle && (
+          <section>
+            <FeaturedArticle article={featuredArticle} />
+          </section>
+        )}
 
         {/* Latest Blog */}
-        <section>
-          <SectionHeader title="Latest Blog" linkHref="/blog/all" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
-            {latestBlogs.map((article, index) => (
-              <BlogCard key={index} article={article} />
-            ))}
-          </div>
-        </section>
+        {latestBlogs.length > 0 && (
+            <section>
+            <SectionHeader title="Latest Blog" linkHref="/blog/all" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+                {latestBlogs.map((article) => (
+                <BlogCard key={article.id} article={article} />
+                ))}
+            </div>
+            </section>
+        )}
       </main>
       <FooterSection />
     </div>
