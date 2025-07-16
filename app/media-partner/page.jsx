@@ -596,7 +596,7 @@ const PartnerMarquee = () => {
 
 const GetInTouch = () => {
   return (
-    <section className="relative py-24 bg-gradient-to-b from-white via-yellow-300 to-orange-500">
+    <section className="relative py-24 bg-gradient-to-b from-white via-yellow-100 to-orange-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-5xl md:text-6xl font-heading text-gray-900 mb-4">
             Get in Touch
@@ -697,6 +697,8 @@ const GetInTouch = () => {
             </div>
           </div>
 
+          {/* Google Maps iframe */}
+          <div className="relative rounded-3xl overflow-hidden h-150 w-full mt-10">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63374.86072097309!2d107.53145050717926!3d-6.89911962316508!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e6578d4253e7%3A0x136b7b51bcb1002d!2sSunken%20Court%2C%20ITB!5e0!3m2!1sid!2sid!4v1751814179388!5m2!1sid!2sid"
               width="600"
@@ -705,10 +707,10 @@ const GetInTouch = () => {
               allowFullScreen=""
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              sandbox="allow-scripts allow-same-origin"
-              title="8EH Radio ITB Office Location"
               className="absolute inset-0 w-full h-full"
-            ></iframe>        </div>
+            ></iframe>
+          </div>
+        </div>
       </section>
   );
 };
