@@ -216,7 +216,7 @@ export default function Navbar() {
   const partnershipLinks = (
     <>
       <a
-        href="#"
+        href="/media-partner"
         className="block px-4 py-2 text-gray-700 hover:bg-gray-100 font-body text-base"
       >
         <div className="flex items-center gap-3">
@@ -491,13 +491,13 @@ export default function Navbar() {
               Home
             </a>
             <a
-              href="#"
+              href="/podcast"
               className="px-3 py-3 text-gray-900 hover:text-[#D83232] hover:bg-gray-100 rounded-md font-medium text-base font-body transition-colors"
             >
               Podcast
             </a>
             <a
-              href="#"
+              href="/blog"
               className="px-3 py-3 text-gray-900 hover:text-[#D83232] hover:bg-gray-100 rounded-md font-medium text-base font-body transition-colors"
             >
               Blog

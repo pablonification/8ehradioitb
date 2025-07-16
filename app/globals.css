@@ -38,6 +38,18 @@ body {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
   }
+  @keyframes marquee-infinite {
+    from {
+      transform: translateX(0%);
+    }
+    to {
+      transform: translateX(-100%);
+    }
+  }
+
+  .animate-marquee-infinite {
+    animation: marquee-infinite 20s linear infinite;
+  }
 }
 
 @tailwind base;

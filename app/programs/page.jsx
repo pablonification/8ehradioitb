@@ -1,29 +1,407 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { useRef, useState } from "react";
+import "swiper/css";
 import Navbar from "../components/Navbar";
-import ProgramHero from "../components/ProgramHero";
-import PodcastSection from "../components/PodcastSection";
-import HighlightsSection from "../components/HighlightsSection";
 import FooterSection from "../components/FooterSection";
 
-// Data dummy untuk podcast
-const podcasts = [
+const programs = [
   {
-    title: "Dulu VS Sekarang | Gather With Us Special Podcast",
-    category: "GWS Special",
-    imageUrl: "/images/placeholder.svg",
+    logo: "/ctrl-logo.png", // Logo dari gambar
+    title: "CTRL: Coba Tanya Radio Lo!",
+    description: "CTRL: Coba Tanya Radio Lo! adalah ...",
+    link: "/programs/gws",
   },
   {
-    title: "Vibes of GWS! | Gather With Us #23",
-    category: "Vibes of GWS!",
-    imageUrl: "/images/placeholder.svg",
-  },
-  {
-    title: "#8EH2GETHER | Hias Kue Ultah ke-12 8EH!",
-    category: "ON AIR",
-    imageUrl: "/images/placeholder.svg",
+    logo: "/gws-logo.png", // Contoh program lain
+    title: "GWS: Gather With Us",
+    description: "Gather With Us adalah ...",
+    link: "/programs/on-air",
   },
 ];
+
+const podcast = [
+  {
+    title: "Dulu VS Sekarang! | Gather With Us Special Podcast",
+    link: "",
+    image: "/placeholder-program.png",
+  },
+  {
+    title: "Vibes of Belief | Gather With Us #21",
+    link: "",
+    image: "/placeholder-program.png",
+  },
+  {
+    title: "#6ET2GETHER : Hias Kue Ultah ke-42 8EH!",
+    link: "",
+    image: "/placeholder-program.png",
+  },
+  {
+    title: "Night Drive",
+    link: "",
+    image: "/placeholder-program.png",
+  },
+  {
+    title: "Morning Brew",
+    link: "",
+    image: "/placeholder-program.png",
+  },
+];
+
+const highlightsData = [
+  {
+    imageUrl: '/highlight-2.png',
+    altText: 'Highlight Program Dulu vs Sekarang',
+    link: ''
+  },
+  {
+    imageUrl: '/highlight-1.png',
+    altText: 'Highlight Program Gather With Us',
+    link: ''
+  },
+  {
+    imageUrl: '/highlight-3.png',
+    altText: 'Highlight Program Hias Kue',
+    link: ''
+  }
+];
+
+const ProgramHero = () => {
+  return (
+    <section className="relative py-16 overflow-hidden">
+      <div className="absolute inset-0 top-1/8 left-0 w-40 md:w-60 opacity-70">
+        <Image
+          src="/vstock-programs-1.png"
+          alt="Decorative Checkmark"
+          width={300}
+          height={300}
+          className=""
+        />
+      </div>
+      <div className="absolute top-1/4 right-0 w-40 md:w-80 opacity-30">
+        <Image
+          src="/vstock-programs-2.png"
+          alt="Decorative Checkmark"
+          width={600}
+          height={600}
+          className=""
+        />
+      </div>
+      <div className="absolute top-1/4 right-0 w-30 md:w-60 opacity-30">
+        <Image
+          src="/vstock-programs-3.png"
+          alt="Decorative Checkmark"
+          width={600}
+          height={600}
+          className=""
+        />
+      </div>
+      <div className="absolute top-5/8 left-0 w-40 md:w-60 opacity-70">
+        <Image
+          src="/vstock-programs-4.png"
+          alt="Decorative Checkmark"
+          width={600}
+          height={600}
+          className=""
+        />
+      </div>
+      <div className="absolute top-11/16 left-0 w-30 md:w-50 opacity-70">
+        <Image
+          src="/vstock-programs-5.png"
+          alt="Decorative Checkmark"
+          width={600}
+          height={600}
+          className=""
+        />
+      </div>
+      <div className="container px-10 md:px-20 mx-auto relative z-10">
+        <h2 className="text-6xl font-accent text-center text-gray-800 mb-12">
+          Our Programs
+        </h2>
+
+        <Swiper
+          // Konfigurasi untuk menampilkan 1 slide penuh dan sedikit slide berikutnya
+          slidesPerView={1.1}
+          spaceBetween={20} // Jarak antar slide
+          centeredSlides={false} // Slide aktif akan berada di tengah
+          loop={false} // Slider akan berputar tanpa henti
+          breakpoints={{
+            // Konfigurasi untuk layar yang lebih besar
+            768: {
+              slidesPerView: 1.3,
+              spaceBetween: 30,
+            },
+            1024: {
+              slidesPerView: 2,
+              spaceBetween: 40,
+            },
+          }}
+          className="!overflow-visible" // Agar shadow tidak terpotong
+        >
+          {programs.map((program, index) => (
+            <SwiperSlide key={index}>
+              <div className="bg-gradient-to-br backdrop-blur-xs from-orange-600/80 via-yellow-500/50 to-yellow-100/30 rounded-3xl px-8 lg:px-20 pt-8 md:pt-8 pb-8 shadow-xl h-96 flex flex-col justify-between overflow-hidden transition-all duration-300 border hover:border-gray-400 border-gray-200/80">
+                <div className="flex flex-wrap items-center justify-center">
+                  <div className="flex-shrink-0 mb-4 w-40 md:w-65 lg:w-70">
+                    <Image
+                      src={program.logo}
+                      alt={`${program.title} logo`}
+                      width={300}
+                      height={300}
+                      className="drop-shadow-lg"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-xl lg:text-2xl font-bold text-gray-800 text-center">
+                      {program.title}
+                    </h3>
+                    <p className="text-gray-700 text-xs lg:text-sm mt-1 text-center">
+                      {program.description}
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href={program.link}
+                  className="self-center text-red-600 hover:text-red-800 font-semibold text-sm flex items-center"
+                >
+                  View More
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 ml-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </Link>
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </div>
+    </section>
+  );
+};
+
+const PodcastSection = () => {
+  const scrollContainerRef = useRef(null);
+
+  const scroll = (direction) => {
+    if (scrollContainerRef.current) {
+      const { current } = scrollContainerRef;
+      const scrollAmount = current.offsetWidth; // Scroll by the container width
+      current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  return (
+    <section className="relative py-24 overflow-hidden">
+      <div className="absolute top-0 md:top-1/16 right-0 w-40 md:w-60 opacity-70">
+        <Image
+          src="/vstock-programs-6.png"
+          alt="Decorative Checkmark"
+          width={600}
+          height={600}
+          className=""
+        />
+      </div>
+      <div className="absolute top-0 -translate-y-1/8 right-0 w-40 md:w-60 opacity-100">
+        <Image
+          src="/vstock-programs-7.png"
+          alt="Decorative Checkmark"
+          width={600}
+          height={600}
+          className=""
+        />
+      </div>
+      <div className="absolute top-1/4 left-0 w-40 md:w-60 opacity-70">
+        <Image
+          src="/vstock-programs-8.png"
+          alt="Decorative Checkmark"
+          width={600}
+          height={600}
+          className=""
+        />
+      </div>
+      <div className="absolute top-1/4 left-0 w-40 md:w-80 opacity-70">
+        <Image
+          src="/vstock-programs-9.png"
+          alt="Decorative Checkmark"
+          width={600}
+          height={600}
+          className=""
+        />
+      </div>
+      <div className="absolute top-1/2 right-0 w-60 h-60 opacity-100">
+        <Image
+          src="/vstock-programs-10.png"
+          alt="Decorative Checkmark"
+          width={600}
+          height={600}
+          className=""
+        />
+      </div>
+      <div className="absolute top-1/2 right-0 w-60 h-60 opacity-100">
+        <Image
+          src="/vstock-programs-11.png"
+          alt="Decorative Checkmark"
+          width={600}
+          height={600}
+          className=""
+        />
+      </div>
+
+      
+      <div className="relative max-w-7xl mx-auto px-12 sm:px-16 lg:px-24">
+        <div className="flex justify-between items-center mb-12">
+          <div className="text-center">
+            <h3 className="font-accent text-4xl sm:text-5xl md:text-5xl lg:text-6xl text-gray-900">
+              Discover Our Exciting <br />
+              Podcast at 8EH Radio ITB
+            </h3>
+          </div>
+          {/* Slider Controls */}
+          <div className="hidden md:flex items-center space-x-2 sm:space-x-4">
+            <button
+              onClick={() => scroll("left")}
+              className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-white/70 backdrop-blur-sm hover:bg-white/100 hover:border-gray-300 transition-all duration-200 flex items-center justify-center border border-gray-200/80 shadow-md hover:shadow-lg cursor-pointer"
+              aria-label="Scroll left"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={() => scroll("right")}
+              className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-white/70 backdrop-blur-sm hover:bg-white/100 hover:border-gray-300 transition-all duration-200 flex items-center justify-center border border-gray-200/80 shadow-md hover:shadow-lg cursor-pointer"
+              aria-label="Scroll right"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Horizontal scroll container */}
+        <div
+          ref={scrollContainerRef}
+          className="flex flex-wrap md:flex-nowrap overflow-x-auto scroll-smooth space-x-6 pb-4 -mx-4 px-8 -my-4 py-8 snap-x snap-mandatory hide-scrollbar bg-gradient-to-b from-white/60 to-yellow-300/30 rounded-4xl backdrop-blur-xs transition-all duration-300 border hover:border-gray-300 border-gray-200/80"
+        >
+          {podcast.map((prog, idx) => (
+            <div
+              key={idx}
+              className="flex-shrink-0 w-full md:w-[calc(33.9%-1.125rem)] snap-center group"
+            >
+              <div className="relative w-full h-48 sm:h-48 rounded-2xl mb-4 bg-gray-200/80 overflow-hidden transition-all duration-300 group-hover:scale-105">
+                {/* Image will go here */}
+              </div>
+              <div className="text-center px-2 justify-center">
+                <h4 className="font-heading text-xl font-semibold text-gray-800 mb-1">
+                  {prog.title}
+                </h4>
+                <p className="font-body text-sm text-gray-500">
+                  <Link
+                    href={prog.link}
+                    className="text-red-600 hover:text-red-800 my-4 font-semibold justify-center text-sm flex items-center"
+                  >
+                    Listen
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 ml-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </Link>
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const HighlightsSection = () => {
+  return (
+    // Latar belakang gelap untuk menonjolkan kartu
+    <section className="relative bg-[url('/highlights-bg.png')] bg-cover bg-center bg-no-repeat py-20">
+      <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-white"></div>
+
+      <div className="relative container mx-auto px-12">
+        
+        {/* Judul "Program Highlights" */}
+        <div className="flex justify-center mb-12">
+          <h2 className="bg-gradient-to-br backdrop-blur-xs drop-shadow-md from-yellow-500/80 via-orange-400/70 to-white/60 text-black text-center font-accent text-4xl lg:text-5xl px-4 lg:px-12 py-3 rounded-xl shadow-lg">
+            Program Highlights
+          </h2>
+        </div>
+
+        {/* Grid untuk Kartu Highlight */}
+        <div className="flex flex-wrap justify-center gap-8">
+          {highlightsData.map((highlight, index) => (
+            <a 
+              key={index} 
+            //   href={highlight.link} 
+              className="group block transform transition-transform duration-300 ease-in-out hover:scale-105"
+            >
+              <Image
+                src={highlight.imageUrl}
+                alt={highlight.altText}
+                width={500}
+                height={500}
+                className="w-50 md:w-70 h-60 md:h-90 object-cover rounded-2xl shadow-lg group-hover:shadow-yellow-400/30 group-hover:shadow-2xl drop-shadow-xl/30 transition-all"
+              />
+            </a>
+          ))}
+        </div>
+
+      </div>
+    </section>
+  );
+};
 
 const YoutubeCTA = () => {
   return (
@@ -86,7 +464,6 @@ export default function Home() {
   return (
     <main className="bg-[#FFF6F4] overflow-x-hidden font-sans">
       <Navbar />
-
       <ProgramHero />
       <PodcastSection />
       <HighlightsSection />

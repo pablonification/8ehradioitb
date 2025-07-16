@@ -1,18 +1,471 @@
-// import { PodcastSection } from "@/app/page";
+"use client"; // Diperlukan karena slider menggunakan state dan event browser
 import Navbar from "../components/Navbar";
 import FooterSection from "../components/FooterSection";
+import Image from "next/image";
+import Link from "next/link";
+import ButtonPrimary from "../components/ButtonPrimary";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import { useState, useRef } from "react";
+
+const podcasts = [
+  {
+    title: "GWS#13: Stereotype Battle! UKM Tersulit Digapai Se-ITB? 8EH VS LFM",
+    subtitle: "GWS : Gather With Us",
+    description:
+      "Emang bener masuk 8EH dan LFM penuh perjuangan?!🤔 GWS #14 bakal bongkar mitos, stereotype, dan cerita kocak dari dua UKM yang katanya cuma buat anak chosen ones. Penasaran siapa yang paling bikin ciut? Dengerin sampai habis ya, Kampus Mania !!",
+    date: "Dec 23, 2024",
+    duration: "31 min 34 sec",
+    image: "/pod1.png",
+  },
+  {
+    title: "GWS #14 : ITB! Kupu-Kupu VS Kura-Kura?",
+    subtitle: "GWS : Gather With Us",
+    description:
+      "GWS! Mahasiswa kupu-kupu tuh apa sih? Kalau mahasiswa kura-kura itu apa? Itu mahasiswa yang punya hewan ya? 🤔 Ga dong Kampus Mania! Tapi kalau penasaran, Kampus Mania wajib dengerin nih bareng Iam dan Ael tentang istilah-istilah stereotype mahasiswa beginian! 😉 Siapa tahu Kampus Mania kan ternyata masuk tipe-tipe yang bakal disebutkan nantinya! 😉",
+    date: "Dec 7, 2024",
+    duration: "33 min 40 sec",
+    image: "/pod2.png",
+  },
+  {
+    title: "GWS #15 : ITB! Kupu-Kupu VS Kura-Kura?",
+    subtitle: "GWS : Gather With Us",
+    description:
+      "GWS! Mahasiswa kupu-kupu tuh apa sih? Kalau mahasiswa kura-kura itu apa? Itu mahasiswa yang punya hewan ya? 🤔 Ga dong Kampus Mania! Tapi kalau penasaran, Kampus Mania wajib dengerin nih bareng Iam dan Ael tentang istilah-istilah stereotype mahasiswa beginian! 😉 Siapa tahu Kampus Mania kan ternyata masuk tipe-tipe yang bakal disebutkan nantinya! 😉",
+    date: "Dec 7, 2024",
+    duration: "33 min 40 sec",
+    image: "/pod2.png",
+  },
+  {
+    title: "GWS #16 : ITB! Kupu-Kupu VS Kura-Kura?",
+    subtitle: "GWS : Gather With Us",
+    description:
+      "GWS! Mahasiswa kupu-kupu tuh apa sih? Kalau mahasiswa kura-kura itu apa? Itu mahasiswa yang punya hewan ya? 🤔 Ga dong Kampus Mania! Tapi kalau penasaran, Kampus Mania wajib dengerin nih bareng Iam dan Ael tentang istilah-istilah stereotype mahasiswa beginian! 😉 Siapa tahu Kampus Mania kan ternyata masuk tipe-tipe yang bakal disebutkan nantinya! 😉",
+    date: "Dec 7, 2024",
+    duration: "33 min 40 sec",
+    image: "/pod2.png",
+  },
+  {
+    title: "GWS #17 : ITB! Kupu-Kupu VS Kura-Kura?",
+    subtitle: "GWS : Gather With Us",
+    description:
+      "GWS! Mahasiswa kupu-kupu tuh apa sih? Kalau mahasiswa kura-kura itu apa? Itu mahasiswa yang punya hewan ya? 🤔 Ga dong Kampus Mania! Tapi kalau penasaran, Kampus Mania wajib dengerin nih bareng Iam dan Ael tentang istilah-istilah stereotype mahasiswa beginian! 😉 Siapa tahu Kampus Mania kan ternyata masuk tipe-tipe yang bakal disebutkan nantinya! 😉",
+    date: "Dec 7, 2024",
+    duration: "33 min 40 sec",
+    image: "/pod2.png",
+  },
+  {
+    title: "GWS #18 : ITB! Kupu-Kupu VS Kura-Kura?",
+    subtitle: "GWS : Gather With Us",
+    description:
+      "GWS! Mahasiswa kupu-kupu tuh apa sih? Kalau mahasiswa kura-kura itu apa? Itu mahasiswa yang punya hewan ya? 🤔 Ga dong Kampus Mania! Tapi kalau penasaran, Kampus Mania wajib dengerin nih bareng Iam dan Ael tentang istilah-istilah stereotype mahasiswa beginian! 😉 Siapa tahu Kampus Mania kan ternyata masuk tipe-tipe yang bakal disebutkan nantinya! 😉",
+    date: "Dec 7, 2024",
+    duration: "33 min 40 sec",
+    image: "/pod2.png",
+  },
+];
 
 
+const programs = [
+  {
+    logo: "/ctrl-logo.png", // Logo dari gambar
+    title: "CTRL: Coba Tanya Radio Lo!",
+    description: "CTRL: Coba Tanya Radio Lo! adalah ...",
+    link: "/programs/gws",
+  },
+  {
+    logo: "/gws-logo.png", // Contoh program lain
+    title: "GWS: Gather With Us",
+    description:
+      "Gather With Us adalah ...",
+    link: "/programs/on-air",
+  },
+];
 
-export default function Podcast() {
+const PodcastHero = () => {
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-      <div className="flex flex-col items-center justify-center h-screen">
-        <h1 className="text-black">ini podcast ya</h1>
+    // Section utama dengan padding, latar belakang, dan positioning relatif untuk elemen dekoratif
+    <section className="relative w-full bg-[#FDFBF8] py-24 px-4 sm:px-8 lg:px-36 overflow-hidden">
+      {/* Elemen Dekoratif di Latar Belakang */}
+      <div className="absolute inset-0 z-0">
+        {/* Bentuk Abstrak/Halftone */}
+        <Image
+          src="/vstock-podcast-1.png" // Sediakan gambar ini di folder public
+          alt="Abstract Shape"
+          width={100}
+          height={100}
+          className="absolute top-0 md:top-1/3 left-0 opacity-70 w-20 z-1"
+        />
+        <Image
+          src="/vstock-podcast-2.png" // Sediakan gambar ini di folder public
+          alt="Abstract Shape"
+          width={100}
+          height={100}
+          className="absolute top-[5%] md:top-[8%] right-0 translate-x-10 md:translate-x-0 md:left-1/3 opacity-70 z-1"
+        />
+        <Image
+          src="/vstock-podcast-5.png" // Sediakan gambar ini di folder public
+          alt="Abstract Shape"
+          width={200}
+          height={200}
+          className="absolute bottom-[10%] md:top-[10%] right-0 opacity-90 z-1 translate-x-[10%] md:translate-x-20 w-30 md:w-50"
+        />
+        <Image
+          src="/vstock-podcast-6.png" // Sediakan gambar ini di folder public
+          alt="Abstract Shape"
+          width={200}
+          height={200}
+          className="absolute top-0 md:top-[5%] left-0 -translate-x-[30%] md:translate-x-0 opacity-80 w-70 z-0"
+        />
+        <Image
+          src="/vstock-podcast-7.png" // Sediakan gambar ini di folder public
+          alt="Abstract Shape"
+          width={200}
+          height={200}
+          className="absolute top-[40%] md:top-[3%] translate-x-[40%] md:translate-x-0 right-[3%] opacity-90 w-150 z-0"
+        />
+        <Image
+          src="/vstock-podcast-8.png" // Sediakan gambar ini di folder public
+          alt="Abstract Shape"
+          width={200}
+          height={200}
+          className="absolute top-[40%] md:top-[5%] right-0 opacity-90 w-70 md:w-100 translate-x-[50%] md:translate-x-0 z-0"
+        />
       </div>
-      {/* <PodcastSection /> */}
-      {/* <FooterSection /> */}
-    </div>
+
+      {/* Kontainer Konten Utama */}
+      <div className="relative z-20 flex flex-col md:flex-row items-center justify-between px-4 max-w-7xl mx-auto">
+        {/* Sisi Kiri: Teks & Tombol */}
+        <div className="md:w-1/2 text-start mb-12 md:mb-0">
+          <h1 className="font-accent text-6xl md:text-8xl font-medium text-gray-800 mb-6">
+            Our Podcasts
+          </h1>
+          <p className="text-lg text-gray-600 max-w-md mx-auto md:mx-0 mb-8">
+            Experience the excitement of 8EH's podcasts, where we bring you
+            engaging discussions and entertaining stories. Join us as we explore
+            campus life and beyond, all wrapped in our signature vibrant style.
+          </p>
+          <ButtonPrimary
+            className="!bg-[#EFEAE6]/80 !text-[#444] hover:!bg-[#E5DED8] !px-8 !py-3"
+            onClick={() => {}}
+          >
+            Explore
+          </ButtonPrimary>
+        </div>
+
+        {/* Sisi Kanan: Gambar Player */}
+        <div className="relative md:w-1/2 flex justify-center md:justify-end -mt-10 md:-mt-20">
+          <div className="relative w-[500px] h-[500px]">
+            {/* Gambar Frame Player PNG */}
+            <Image
+              src="/player-podcast.png" // Path ke PNG player
+              alt="Modern podcast player with earbuds"
+              layout="fill"
+              objectFit="contain"
+              className="z-0 drop-shadow-2xl"
+            />
+            <div className="absolute z-10 rotate-12 bottom-[16%] left-[42.5%]">
+              <button
+                onClick={() =>
+                  window.dispatchEvent(new CustomEvent("triggerPlayerControl"))
+                }
+                className="w-13 h-13 rounded-full bg-white hover:bg-gray-200 flex items-center justify-center transition-colors flex-shrink-0 border border-gray-200/90 shadow-md cursor-pointer"
+                aria-label={`Play`}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5 text-gray-700"
+                  fill="currentColor"
+                >
+                  {<path d="M8 5v14l11-7z" />}
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const PodcastPrograms = () => {
+  return (
+    <section className="relative py-16 overflow-hidden">
+      <div className="absolute inset-0 top-1/8 left-0 w-40 md:w-60 opacity-70">
+        <Image
+          src="/vstock-programs-1.png"
+          alt="Decorative Checkmark"
+          width={300}
+          height={300}
+          className=""
+        />
+      </div>
+      <div className="absolute top-1/4 right-0 w-40 md:w-100 opacity-100">
+        <Image
+          src="/vstock-podcast-4.png"
+          alt="Decorative Checkmark"
+          width={600}
+          height={600}
+          className=""
+        />
+      </div>
+      <div className="container px-8 md:px-24 mx-auto relative z-10">
+        <div className="mx-0 md:mx-24">
+          <p className="text-lg font-bold text-gray-800 max-w-md mx-auto md:mx-0 mb-4">
+            Explore 8EH Radio ITB
+          </p>
+          <h2 className="text-6xl font-accent text-left text-gray-800 mb-12">
+            Podcast Programs
+          </h2>
+        </div>
+
+        <Swiper
+          // Konfigurasi untuk menampilkan 1 slide penuh dan sedikit slide berikutnya
+          slidesPerView={1.2}
+          spaceBetween={20} // Jarak antar slide
+          centeredSlides={false} // Slide aktif akan berada di tengah
+          loop={false} // Slider akan berputar tanpa henti
+          breakpoints={{
+            // Konfigurasi untuk layar yang lebih besar
+            768: {
+              slidesPerView: 1.3,
+              spaceBetween: 30,
+            },
+            1024: {
+              slidesPerView: 2,
+              spaceBetween: 40,
+            },
+          }}
+          className="!overflow-visible" // Agar shadow tidak terpotong
+        >
+          {programs.map((program, index) => (
+            <SwiperSlide key={index}>
+              <div className="bg-gradient-to-br backdrop-blur-xs from-orange-600/80 via-yellow-500/50 to-yellow-100/30 rounded-3xl px-8 lg:px-20 pt-8 md:pt-8 pb-8 shadow-xl h-84 md:h-96 flex flex-col justify-between overflow-hidden transition-all duration-300 border hover:border-gray-400 border-gray-200/80">
+                <div className="flex flex-wrap items-center justify-center">
+                  <div className="flex mb-4 w-full lg:h-40 justify-center">
+                    <Image
+                      src={program.logo}
+                      alt={`${program.title} logo`}
+                      width={300}
+                      height={300}
+                      className="drop-shadow-lg w-50 md:w-70 object-contain"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-xl lg:text-2xl font-bold text-gray-800 text-center">
+                      {program.title}
+                    </h3>
+                    <p className="text-gray-700 text-xs lg:text-sm mt-1 text-center">
+                      {program.description}
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href={program.link}
+                  className="self-center text-red-600 hover:text-red-800 font-semibold text-sm flex items-center"
+                >
+                  View More
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 ml-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </Link>
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </div>
+    </section>
+  );
+};
+
+const PodcastEpisodes = () => {
+  // --- MULAI LOGIKA PAGINASI ---
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const episodesPerPage = 3; // Tentukan berapa episode per halaman
+
+  // --- STATE BARU UNTUK ANIMASI ---
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const totalPages = Math.ceil(podcasts.length / episodesPerPage);
+  const indexOfLastEpisode = currentPage * episodesPerPage;
+  const indexOfFirstEpisode = indexOfLastEpisode - episodesPerPage;
+  const currentEpisodes = podcasts.slice(
+    indexOfFirstEpisode,
+    indexOfLastEpisode,
+  );
+
+  // --- FUNGSI PAGINASI DIMODIFIKASI UNTUK MENTRIGGER ANIMASI ---
+  const handlePageChange = (newPage) => {
+    // Jangan lakukan apa pun jika sudah dalam proses animasi atau halaman tidak valid
+    if (isAnimating || newPage < 1 || newPage > totalPages) return;
+
+    setIsAnimating(true); // Mulai animasi fade-out
+
+    // Tunggu animasi fade-out selesai, lalu ganti halaman dan fade-in
+    setTimeout(() => {
+      setCurrentPage(newPage);
+      setIsAnimating(false); // Selesaikan animasi, memicu fade-in
+    }, 200); // Durasi harus sama dengan durasi transisi di CSS (duration-200)
+  };
+
+  // --- SELESAI LOGIKA PAGINASI ---
+  return (
+    <>
+      {/* Bagian Latest Podcast Episodes */}
+      <section className="pt-24 bg-gradient-to-b from-black/0 from-0% to-black to-5% md:to-15% text-white relative overflow-hidden">
+        <div className="absolute top-0 md:top-1/3 right-0 md:right-0 w-100 md:w-180 opacity-20 -rotate-17">
+          <Image
+            src="/boombox-podcast.png"
+            alt="Decorative Checkmark"
+            width={1000}
+            height={1000}
+            className=""
+          />
+        </div>
+        <div className="absolute bottom-0 md:top-0 left-0 md:-translate-x-20 w-40 md:w-100 opacity-30 rotate-44">
+          <Image
+            src="/mic-podcast.png"
+            alt="Decorative Checkmark"
+            width={1000}
+            height={1000}
+            className=""
+          />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto">
+          <p className="text-lg font-bold text-gray-100 mx-auto md:mx-0 mb-4 text-center drop-shadow-md">
+            Podcasts
+          </p>
+          <h2 className="text-6xl font-accent text-center mb-12 drop-shadow-md">
+            Latest Podcast Episodes
+          </h2>
+          <div className="bg-white/15 backdrop-blur-sm py-4 md:px-12 rounded-4xl px-4 mx-0 md:mx-4 border border-gray-200/20">
+            <div
+              className={`space-y-4 transition-opacity duration-200 ${isAnimating ? "opacity-0" : "opacity-100"}`}
+            >
+              {/* Podcasts List */}
+              <div className="space-y-4">
+                {currentEpisodes.map((pod, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start gap-4 sm:gap-6 py-8 border-b border-gray-200/80 last:border-b-0"
+                  >
+                    {/* Image */}
+                    <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 relative flex-shrink-0">
+                      <Image
+                        src={pod.image}
+                        alt="Podcast Thumbnail"
+                        fill
+                        className="object-cover rounded-2xl shadow-md"
+                      />
+                    </div>
+                    {/* Details */}
+                    <div className="flex-1">
+                      <h3 className="font-heading text-lg sm:text-xl text-gray-200 font-bold mb-2">
+                        {pod.title}
+                      </h3>
+                      <p className="font-body text-sm text-gray-300 mb-2">
+                        {pod.subtitle}
+                      </p>
+                      <p className="font-body text-sm text-gray-300 mb-4 leading-relaxed">
+                        {pod.description}
+                      </p>
+                      <div className="flex justify-between items-center mt-4">
+                        <p className="font-body text-xs sm:text-sm text-gray-300">
+                          {pod.date} &bull; {pod.duration}
+                        </p>
+                        <ButtonPrimary className="!w-12 !h-12 !p-0 !rounded-full flex items-center justify-center flex-shrink-0">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 text-white ml-0.5"
+                            fill="white"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <polygon points="6,4 20,12 6,20" fill="white" />
+                          </svg>
+                        </ButtonPrimary>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* Kontrol Paginasi */}
+          <div className="flex justify-center items-center my-12 space-x-4">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1 || isAnimating} // Nonaktifkan tombol saat animasi berjalan
+              className="w-12 h-12 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200/20"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </button>
+            <p className="font-semibold text-lg">
+              {currentPage}
+              <span className="text-white/60 mx-2">/</span>
+              {totalPages}
+            </p>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages || isAnimating} // Nonaktifkan tombol saat animasi berjalan
+              className="w-12 h-12 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200/20"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+};
+
+export default function PodcastPage() {
+  return (
+    <main className="bg-[#FEFBF8] overflow-x-hidden font-body">
+      <Navbar />
+      <PodcastHero />
+      <PodcastPrograms />
+      <PodcastEpisodes />
+      {/* Anda bisa menambahkan komponen lain seperti YoutubeCTA di sini jika perlu */}
+      <FooterSection />
+    </main>
   );
 }
