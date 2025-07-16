@@ -194,7 +194,7 @@ export default function Navbar() {
         </div>
       </a>
       <a
-        href="#"
+        href="/faq"
         className="block px-4 py-2 text-gray-700 hover:bg-gray-100 font-body text-base"
       >
         <div className="flex items-center gap-3">

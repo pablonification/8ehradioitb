@@ -1,0 +1,360 @@
+"use client"; // Diperlukan karena slider menggunakan state dan event browser
+import Navbar from "../components/Navbar";
+import FooterSection from "../components/FooterSection";
+import Image from "next/image";
+import Link from "next/link";
+import ButtonPrimary from "../components/ButtonPrimary";
+import "swiper/css";
+import { useState, useEffect } from "react";
+
+const faqData = [
+  {
+    question: "What is 8EH Radio?",
+    answer:
+      "8EH Radio ITB is the official student radio at Institut Teknologi Bandung. We provide a vibrant platform for entertainment, information, and creativity. Our programs include live broadcasts, music events, and podcasts.",
+  },
+  {
+    question: "How can I listen?",
+    answer:
+      "You can listen to 8EH Radio through our website or mobile app. Tune in for live shows and enjoy our on-demand podcasts. Stay connected with us for the latest updates.",
+  },
+  {
+    question: "What programs do you offer?",
+    answer:
+      "We offer a variety of programs including interactive live shows, music events like Jamgazm, and talent development through 8EH Agency. Our content is designed to engage and entertain our listeners. Check our schedule for specific program times.",
+  },
+  {
+    question: "How can businesses collaborate?",
+    answer:
+      "Businesses can collaborate with 8EH Radio ITB for advertising, sponsorships, and event partnerships. We offer tailored solutions to meet your marketing needs. Reach out to our business team for more details.",
+  },
+  {
+    question: "How do I contact you?",
+    answer:
+      "You can contact us via our website's contact form or email us directly. We are here to answer any questions you may have. Don't hesitate to reach out!",
+  },
+  {
+    question: "Is there a mobile app?",
+    answer:
+      "Yes, our mobile app is available for both Android and iOS devices, providing the best listening experience on the go. You can download it from the Google Play Store and Apple App Store.",
+  },
+  {
+    question: "Can I request a song?",
+    answer:
+      "Absolutely! During our live music shows, you can send in your song requests through our social media channels or the request feature on our website and mobile app.",
+  },
+];
+
+// --- Sub-komponen untuk setiap item FAQ ---
+const FaqItem = ({ faq, isOpen, onToggle }) => {
+  return (
+    <div className="border-b border-orange-200/50 py-4">
+      <button
+        onClick={onToggle}
+        className="flex w-full items-center justify-between text-left"
+      >
+        <div className="flex items-end">
+          <div className="[letter-spacing:3px]">
+            <span className="mr-4 font-bold text-xl font-accent text-red-600">
+              Q:
+            </span>
+          </div>
+          <span className="font-bold text-gray-800">{faq.question}</span>
+        </div>
+        <div
+          className={`transform transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+        >
+          <svg
+            className="h-5 w-5 text-gray-500"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </div>
+      </button>
+
+      {/* Konten Jawaban dengan animasi collapse */}
+      <div
+        className={`overflow-hidden transition-[max-height] duration-500 ease-in-out`}
+        style={{ maxHeight: isOpen ? "200px" : "0px" }} // Set max-height yang cukup
+      >
+        <div className="mt-2 flex items-start text-gray-800">
+          <div className="[letter-spacing:4px]">
+            <span className="mr-4 font-bold text-xl font-accent text-red-600">
+              A:
+            </span>
+          </div>
+          <span className="font-normal font-body text-gray-800">
+            {faq.answer}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FAQHero = () => {
+  return (
+    // Section utama dengan padding, latar belakang, dan positioning relatif untuk elemen dekoratif
+    <section className="relative w-full bg-gradient-to-b from-white via-yellow-200/90 to-white py-24 px-4 sm:px-8 lg:px-16 overflow-hidden">
+      {/* Elemen Dekoratif di Latar Belakang */}
+      <div className="absolute inset-0 z-0">
+        {/* Bentuk Abstrak/Halftone */}
+        <Image
+          src="/vstock-podcast-6.png" 
+          alt="Abstract Shape"
+          width={200}
+          height={200}
+          className="absolute top-0 md:top-[20%] left-0 -translate-x-[30%] md:translate-x-0 opacity w-70 z-0"
+        />
+        <Image
+          src="/vstock-podcast-7.png" 
+          alt="Abstract Shape"
+          width={200}
+          height={200}
+          className="absolute top-[40%] md:top-[3%] translate-x-[40%] md:translate-x-0 right-[3%] opacity-90 w-100 z-0"
+        />
+      </div>
+
+      {/* Kontainer Konten Utama */}
+      <div className="relative z-20 flex flex-col md:flex-row items-center justify-between px-4 w-full">
+        {/* Sisi Kiri: Teks & Tombol */}
+        <div className="text-start mb-12 md:mb-0">
+          <h1 className="font-accent text-6xl md:text-7xl font-medium text-gray-800 mb-6">
+            Your Questions Answered
+          </h1>
+          <p className="text-lg font-heading font-medium text-gray-800 mx-auto md:mx-0 mb-8">
+            Explore our FAQ to find answers to your questions about 8EH Radio
+            ITB.
+          </p>
+        </div>
+
+        {/* Sisi Kanan: Gambar Player */}
+        <div className="relative flex justify-center -mr-[10%] -mt-10 md:-mt-20">
+          <div className="relative w-100 md:w-140">
+            {/* Gambar Frame Player PNG */}
+            <Image
+              src="/mail-faq.png" // Path ke PNG player
+              alt="Modern podcast player with earbuds"
+              width={500}
+              height={300}
+              className="z-0 drop-shadow-2xl"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// --- Komponen Utama FAQ ---
+const FaqSection = () => {
+  // --- PERUBAHAN STATE ACCORDION ---
+  // Menggunakan array untuk menyimpan semua indeks yang terbuka
+  const [openIndices, setOpenIndices] = useState([]); // Buka item pertama secara default
+
+  const handleToggle = (clickedIndex) => {
+    // Cek apakah indeks sudah ada di dalam array
+    if (openIndices.includes(clickedIndex)) {
+      // Jika sudah ada, hapus dari array (menutup accordion)
+      setOpenIndices(openIndices.filter((i) => i !== clickedIndex));
+    } else {
+      // Jika belum ada, tambahkan ke array (membuka accordion)
+      setOpenIndices([...openIndices, clickedIndex]);
+    }
+  };
+
+  // --- LOGIKA PAGINASI (tetap sama) ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const faqsPerPage = 5;
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const totalPages = Math.ceil(faqData.length / faqsPerPage);
+  const indexOfLastFaq = currentPage * faqsPerPage;
+  const indexOfFirstFaq = indexOfLastFaq - faqsPerPage;
+  const currentFaqs = faqData.slice(indexOfFirstFaq, indexOfLastFaq);
+
+  const handlePageChange = (newPage) => {
+    if (isAnimating || newPage < 1 || newPage > totalPages) return;
+
+    setIsAnimating(true);
+    setTimeout(() => {
+      setCurrentPage(newPage);
+      setOpenIndices([]); // Reset accordion, buka item pertama di halaman baru
+      setIsAnimating(false);
+    }, 300);
+  };
+
+  return (
+    <section className="relative bg-white py-24 px-4">
+      {/* Gambar Dekoratif */}
+      <div className="absolute top-0 left-0 w-40 md:w-64 opacity-70 md:opacity-100 -translate-x-1/4">
+        <Image
+          src="/vstock-medpart-2.png"
+          alt="decoration"
+          width={300}
+          height={300}
+        />
+      </div>
+      <div className="absolute top-2/3 right-0 w-60 md:w-96 rotate-180 translate-x-1/4">
+        <Image src="/vstock-3.png" alt="decoration" width={400} height={400} />
+      </div>
+      <div className="absolute top-0 right-0 w-60 md:w-96 opacity-70 translate-x-1/4">
+        <Image
+          src="/vstock-podcast-8.png"
+          alt="decoration"
+          width={400}
+          height={400}
+        />
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-4xl text-center">
+        <h2 className="text-6xl font-accent text-gray-800">FAQs</h2>
+        <p className="mt-4 text-gray-800 font-body">
+          Find answers to common questions about 8EH Radio ITB for listeners and
+          business clients.
+        </p>
+      </div>
+
+      {/* Kontainer Utama FAQ dengan Paginasi */}
+      <div className="relative z-10 mx-auto mt-12 max-w-4xl rounded-4xl bg-gradient-to-t from-yellow-300/50 to-orange-300/40 p-6 shadow-xl backdrop-blur-sm sm:px-10 py-6">
+        {/* Wrapper untuk animasi fade */}
+        <div
+          className={`transition-opacity duration-300 ${
+            isAnimating ? "opacity-0" : "opacity-100"
+          }`}
+        >
+          {currentFaqs.map((faq, index) => (
+            <FaqItem
+              key={index}
+              faq={faq}
+              // --- PERUBAHAN LOGIKA PENGECEKAN & PENGATURAN ---
+              isOpen={openIndices.includes(index)}
+              onToggle={() => handleToggle(index)}
+            />
+          ))}
+        </div>
+
+        {/* Kontrol Paginasi */}
+        <div className="mt-8 flex items-center justify-center space-x-4">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1 || isAnimating}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/50 shadow-md transition hover:bg-white/80 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-400/60"
+          >
+            <svg
+              className="h-5 w-5 text-black"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages || isAnimating}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/50 shadow-md transition hover:bg-white/80 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-400/60"
+          >
+            <svg
+              className="h-5 w-5 text-black"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const ContactCTA = () => {
+  return (
+    <section className="bg-[#F3F4F6] py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Gambar Dekoratif di Latar Belakang */}
+      <Image
+        src="/vstock-agency-3.png" // Ganti dengan path gambar bintang Anda
+        alt="Decorative Star"
+        width={150}
+        height={150}
+        className="absolute top-0 left-0 -translate-[40%] opacity-50"
+      />
+      <Image
+        src="/vstock-agency-3.png" // Ganti dengan path gambar bintang Anda
+        alt="Decorative Star"
+        width={150}
+        height={150}
+        className="hidden md:absolute top-0 right-8 -translate-y-[40%] opacity-50"
+      />
+      <Image
+        src="/vstock-agency-3.png" // Ganti dengan path gambar bintang Anda
+        alt="Decorative Star"
+        width={150}
+        height={150}
+        className="absolute bottom-0 right-0 md:left-1/2 rotate-180 translate-y-1/2 opacity-50"
+      />
+
+      {/* Kontainer Konten Utama */}
+      <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 px-12">
+        {/* Sisi Kiri: Teks */}
+        <div className="text-center md:text-left">
+          <h2 className="font-heading md:font-accent text-4xl md:text-6xl font-medium text-gray-800">
+            Have Questions? We're Here!
+          </h2>
+          <p className="mt-3 text-lg text-gray-700 font-body">
+            Contact us for any inquiries or information.
+          </p>
+        </div>
+
+        {/* Sisi Kanan: Tombol */}
+        <div className="flex flex-shrink-0 items-center space-x-4">
+          <ButtonPrimary
+            className="!bg-[#EA4A30] !text-white hover:!bg-[#D0402A] !px-8 !py-3"
+            onClick={() => {}}
+          >
+            Contact
+          </ButtonPrimary>
+          <ButtonPrimary
+            className="!bg-[#EFEAE6]/80 !text-[#444] hover:!bg-[#E5DED8] !px-8 !py-3"
+            onClick={() => {}}
+          >
+            Learn More
+          </ButtonPrimary>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default function FAQPage() {
+  return (
+    <main className="bg-[#FEFBF8] overflow-x-hidden font-body">
+      <Navbar />
+      <FAQHero />
+      <FaqSection />
+      <ContactCTA />
+      <FooterSection />
+    </main>
+  );
+}

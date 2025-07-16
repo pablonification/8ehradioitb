@@ -1,5 +1,6 @@
 "use client";
 
+
 import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -83,4 +84,6 @@ export default function LoginPage() {
       </footer>
     </div>
   );
+
 }
+
