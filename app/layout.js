@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Plus_Jakarta_Sans, Arimo, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import GlobalAudioPlayer from "@/app/components/GlobalAudioPlayer";
+import AuthProvider from "@/app/components/AuthProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,6 +17,7 @@ const geistMono = Geist_Mono({
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-plus-jakarta-sans",
+  style: ["normal", "italic"],
   weight: ["400", "500", "600", "700", "800"],
 });
 
@@ -42,7 +44,7 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} ${arimo.variable} ${instrumentSerif.variable} antialiased`}
       >
-        {children}
+        <AuthProvider>{children}</AuthProvider>
         <div>
           <GlobalAudioPlayer />
         </div>
