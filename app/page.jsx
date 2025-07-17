@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Navbar from "@/app/components/Navbar";
 import ButtonPrimary from "@/app/components/ButtonPrimary";
 import BoardSliderAnnouncer from "@/app/components/BoardSliderAnnouncer";
@@ -490,19 +490,36 @@ function ProgramsSection() {
 }
 
 function TuneTrackerSection() {
-  const [nowPlaying, setNowPlaying] = useState(null); // Will store the index of the playing song
+  const [nowPlaying, setNowPlaying] = useState(null);
+  const [tunes, setTunes] = useState([]);
+  const [loading, setLoading] = useState(true);
   const audioRef = useRef(null);
+
+  useEffect(() => {
+    fetch("/api/tune-tracker")
+      .then((res) => res.json())
+      .then((data) => {
+        // Always 10 entries, fill missing with placeholder
+        const filled = Array.from({ length: 10 }, (_, i) => {
+          const found = data.find((e) => e.order === i + 1);
+          return found || { order: i + 1, title: "", artist: "", coverImage: "/music-1.png", audioUrl: "" };
+        });
+        setTunes(filled);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   const handlePlay = (idx) => {
     if (nowPlaying === idx) {
-      // If the same song is clicked, pause it
       audioRef.current.pause();
       setNowPlaying(null);
     } else {
-      // If a new song is clicked, play it
       setNowPlaying(idx);
-      audioRef.current.src = "/bof.mp3"; // Using bof.mp3 for all songs for now
-      audioRef.current.play();
+      if (tunes[idx].audioUrl) {
+        audioRef.current.src = tunes[idx].audioUrl;
+        audioRef.current.play();
+      }
     }
   };
 
@@ -529,52 +546,57 @@ function TuneTrackerSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-          {tunes.map((tune, idx) => {
-            const isPlaying = nowPlaying === idx;
-            return (
-              <div
-                key={idx}
-                className="flex items-center p-3 rounded-2xl bg-white/70 border border-gray-200/80 backdrop-blur-md hover:bg-gray-50/80 hover:border-gray-300 transition-all duration-300 shadow-sm"
-              >
-                <div className="w-8 text-center text-gray-400 font-mono font-medium">
-                  {String(idx + 1).padStart(2, "0")}
-                </div>
-                <div className="w-14 h-14 relative mx-4 rounded-full overflow-hidden flex-shrink-0 shadow-inner">
-                  <Image
-                    src={tune.image}
-                    alt={tune.title}
-                    fill
-                    className={`object-cover ${isPlaying ? "animate-[spin_3s_linear_infinite]" : ""}`}
-                  />
-                </div>
-                <div className="flex-grow">
-                  <h3 className="font-heading font-bold text-gray-800">
-                    {tune.title}
-                  </h3>
-                  <p className="text-sm text-gray-500">{tune.artist}</p>
-                </div>
-                <button
-                  onClick={() => handlePlay(idx)}
-                  className="w-12 h-12 rounded-full bg-white hover:bg-gray-200 flex items-center justify-center transition-colors flex-shrink-0 border border-gray-200/90 shadow-md cursor-pointer"
-                  aria-label={`Play ${tune.title}`}
+        {loading ? (
+          <div className="text-center py-8">Loading...</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            {tunes.map((tune, idx) => {
+              const isPlaying = nowPlaying === idx;
+              return (
+                <div
+                  key={idx}
+                  className="flex items-center p-3 rounded-2xl bg-white/70 border border-gray-200/80 backdrop-blur-md hover:bg-gray-50/80 hover:border-gray-300 transition-all duration-300 shadow-sm"
                 >
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="h-5 w-5 text-gray-700"
-                    fill="currentColor"
+                  <div className="w-8 text-center text-gray-400 font-mono font-medium">
+                    {String(idx + 1).padStart(2, "0")}
+                  </div>
+                  <div className="w-14 h-14 relative mx-4 rounded-full overflow-hidden flex-shrink-0 shadow-inner">
+                    <img
+                      src={tune.coverImage || "/music-1.png"}
+                      alt={tune.title || `Song ${idx + 1}`}
+                      className={`object-cover w-full h-full absolute inset-0 ${isPlaying ? "animate-[spin_3s_linear_infinite]" : ""}`}
+                      style={{ position: "absolute", inset: 0 }}
+                    />
+                  </div>
+                  <div className="flex-grow">
+                    <h3 className="font-heading font-bold text-gray-800">
+                      {tune.title || <span className="italic text-gray-400">Coming Soon</span>}
+                    </h3>
+                    <p className="text-sm text-gray-500">{tune.artist || <span className="italic text-gray-300">Coming Soon</span>}</p>
+                  </div>
+                  <button
+                    onClick={() => handlePlay(idx)}
+                    className="w-12 h-12 rounded-full bg-white hover:bg-gray-200 flex items-center justify-center transition-colors flex-shrink-0 border border-gray-200/90 shadow-md cursor-pointer disabled:opacity-40"
+                    aria-label={`Play ${tune.title}`}
+                    disabled={!tune.audioUrl}
                   >
-                    {isPlaying ? (
-                      <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-                    ) : (
-                      <path d="M8 5v14l11-7z" />
-                    )}
-                  </svg>
-                </button>
-              </div>
-            );
-          })}
-        </div>
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="h-5 w-5 text-gray-700"
+                      fill="currentColor"
+                    >
+                      {isPlaying ? (
+                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                      ) : (
+                        <path d="M8 5v14l11-7z" />
+                      )}
+                    </svg>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -12,6 +12,7 @@ enum Role {
   TECHNIC
   REPORTER
   KRU
+  MUSIC
 }
 
 model User {
@@ -153,5 +154,16 @@ model StreamConfig {
   baseUrls   String[]
   defaultUrl String
   fallbackUrl String
+  onAir      Boolean  @default(true)
+  updatedAt  DateTime @updatedAt
+}
+
+model TuneTrackerEntry {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  order      Int      // 1-10, chart position
+  title      String
+  artist     String
+  coverImage String?  // R2 URL
+  audioUrl   String?  // R2 URL
   updatedAt  DateTime @updatedAt
 }

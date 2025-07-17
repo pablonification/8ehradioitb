@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 
 const PodcastAudioPlayer = ({ audioUrl, title, image, subtitle, description, isPlaying, setIsPlaying }) => {
   const [volume, setVolume] = useState(1);
+  const [muted, setMuted] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -10,29 +11,61 @@ const PodcastAudioPlayer = ({ audioUrl, title, image, subtitle, description, isP
   useEffect(() => {
     if (audioUrl) {
       setShowPlayer(true);
-      setIsPlaying(true);
+      // Ketika audioUrl berubah, kita ingin memastikan audio siap diputar
+      // Jika audioRef.current sudah ada, kita bisa langsung load ulang dan menunggu canplaythrough
+      if (audioRef.current) {
+        audioRef.current.load(); // Memuat ulang audio jika URL berubah
+        setIsPlaying(false); // Pastikan status awal adalah pause
+      }
     } else {
       setShowPlayer(false);
       setIsPlaying(false);
     }
-    // eslint-disable-next-line
   }, [audioUrl]);
+
+  // Sinkronisasi: jika radio mulai play, matikan podcast
+  useEffect(() => {
+    const handleRadioPlay = () => {
+      setIsPlaying(false);
+      setShowPlayer(false);
+    };
+    window.addEventListener("radioPlayRequested", handleRadioPlay);
+    return () => window.removeEventListener("radioPlayRequested", handleRadioPlay);
+  }, []);
+
+  // Saat podcast mulai play, broadcast event agar radio stop
+  useEffect(() => {
+    if (isPlaying) {
+      window.dispatchEvent(new CustomEvent("podcastPlayRequested"));
+    }
+  }, [isPlaying]);
 
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
+      audioRef.current.muted = muted;
     }
-  }, [volume]);
+  }, [volume, muted]);
 
   useEffect(() => {
+    // Pengelolaan play/pause berdasarkan isPlaying state
     if (audioRef.current) {
       if (isPlaying) {
-        audioRef.current.play();
+        // Kita hanya mencoba play jika audio sudah bisa diputar
+        // Event onCanPlayThrough akan menangani pemutaran otomatis
+        // agar tidak ada race condition saat pertama kali load
+        if (audioRef.current.readyState >= 3) { // READYSTATE_HAVE_FUTURE_DATA (bisa diputar sedikit)
+          audioRef.current.play().catch(error => {
+            console.error("Error playing audio:", error);
+            // Handle error (misal, user belum interaksi dengan halaman)
+            // Mungkin tampilkan pesan "Klik play untuk memulai"
+          });
+        }
       } else {
         audioRef.current.pause();
       }
     }
-  }, [isPlaying, audioUrl]);
+  }, [isPlaying]); // audioUrl tidak perlu lagi di sini karena di-handle oleh useEffect pertama
 
   const togglePlay = () => {
     setIsPlaying((prev) => !prev);
@@ -40,6 +73,13 @@ const PodcastAudioPlayer = ({ audioUrl, title, image, subtitle, description, isP
 
   const handleVolumeChange = (e) => {
     setVolume(parseFloat(e.target.value));
+    if (muted && parseFloat(e.target.value) > 0) {
+      setMuted(false);
+    }
+  };
+
+  const toggleMute = () => {
+    setMuted((prev) => !prev);
   };
 
   const handleTimeUpdate = () => {
@@ -51,6 +91,15 @@ const PodcastAudioPlayer = ({ audioUrl, title, image, subtitle, description, isP
   const handleLoadedMetadata = () => {
     if (audioRef.current) {
       setDuration(audioRef.current.duration);
+    }
+  };
+
+  // Callback ini akan dipanggil ketika browser menentukan bahwa audio bisa diputar tanpa buffering
+  const handleCanPlayThrough = () => {
+    if (isPlaying) { // Hanya play jika state isPlaying sudah true
+      audioRef.current.play().catch(error => {
+        console.error("Error playing audio after canplaythrough:", error);
+      });
     }
   };
 
@@ -99,7 +148,7 @@ const PodcastAudioPlayer = ({ audioUrl, title, image, subtitle, description, isP
             <div className="flex items-center justify-center w-full gap-6">
               <button
                 className="text-gray-500 hover:text-black disabled:opacity-40 text-xl"
-                disabled
+                disabled // Tetap disabled jika belum ada fungsi prev/next
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -133,7 +182,7 @@ const PodcastAudioPlayer = ({ audioUrl, title, image, subtitle, description, isP
               </button>
               <button
                 className="text-gray-500 hover:text-black disabled:opacity-40 text-xl"
-                disabled
+                disabled // Tetap disabled jika belum ada fungsi prev/next
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -154,7 +203,7 @@ const PodcastAudioPlayer = ({ audioUrl, title, image, subtitle, description, isP
                 step={0.1}
                 value={progress}
                 onChange={handleSeek}
-                className="flex-grow h-1 bg-gray-200 rounded-full accent-gray-800 min-w-0"
+                className="flex-grow h-3 bg-gray-200 rounded-full min-w-0 accent-gray-500"
               />
               <span className="w-8 text-left flex-shrink-0">{formatTime(duration)}</span>
             </div>
@@ -163,6 +212,7 @@ const PodcastAudioPlayer = ({ audioUrl, title, image, subtitle, description, isP
               src={audioUrl}
               onTimeUpdate={handleTimeUpdate}
               onLoadedMetadata={handleLoadedMetadata}
+              onCanPlayThrough={handleCanPlayThrough}
               onEnded={() => setIsPlaying(false)}
               style={{ display: "none" }}
             />
@@ -170,21 +220,32 @@ const PodcastAudioPlayer = ({ audioUrl, title, image, subtitle, description, isP
 
           {/* 3. Volume */}
           <div className="hidden md:flex items-center gap-2 flex-shrink-0 w-32 justify-end">
-            <span className="text-gray-600">
-              <svg
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="w-5 h-5"
-              >
-                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path>
-              </svg>
-            </span>
+            <button
+              type="button"
+              onClick={toggleMute}
+              className="text-gray-600 hover:text-black focus:outline-none cursor-pointer"
+              aria-label={muted ? "Unmute" : "Mute"}
+            >
+              {muted ? (
+                // Speaker slashed
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5" alt="Mute">
+                  <path d="M16.5 12a6.5 6.5 0 0 0-6.5-6.5v2A4.5 4.5 0 0 1 14.5 12h2z" fill="#d1d5db"/>
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm16.5 3a6.5 6.5 0 0 0-6.5-6.5v2A4.5 4.5 0 0 1 17.5 12h2z"/>
+                  <line x1="19" y1="5" x2="5" y2="19" stroke="#ef4444" strokeWidth="2" />
+                </svg>
+              ) : (
+                // Speaker normal
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path>
+                </svg>
+              )}
+            </button>
             <input
               type="range"
               min="0"
               max="1"
               step="0.01"
-              value={volume}
+              value={muted ? 0 : volume}
               onChange={handleVolumeChange}
               className="w-20 md:w-24 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-800"
             />
@@ -195,4 +256,4 @@ const PodcastAudioPlayer = ({ audioUrl, title, image, subtitle, description, isP
   );
 };
 
-export default PodcastAudioPlayer; 
+export default PodcastAudioPlayer;

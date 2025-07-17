@@ -41,12 +41,21 @@ const StreamConfigIcon = () => (
   </svg>
 );
 
+const TuneTrackerIcon = () => (
+  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M9 18V5l12-2v13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <circle cx="6" cy="18" r="3" stroke="currentColor" strokeWidth="2"/>
+    <circle cx="18" cy="16" r="3" stroke="currentColor" strokeWidth="2"/>
+  </svg>
+);
+
 // [DIUBAH] Player dan Stream Config dimasukkan ke sini dengan role-nya masing-masing
 const navItems = [
-  { href: "/dashboard", label: "Home", icon: HomeIcon },
-  { href: "/dashboard/blog", label: "Blog", icon: BlogIcon },
-  { href: "/dashboard/podcast", label: "Podcast", icon: PodcastIcon },
-  { href: "/dashboard/links", label: "Links", icon: LinkIcon },
+  { href: "/dashboard", label: "Home", icon: HomeIcon, roles: ["MUSIC", "DEVELOPER", "TECHNIC", "REPORTER", "KRU"] },
+  { href: "/dashboard/blog", label: "Blog", icon: BlogIcon, roles: ["DEVELOPER", "REPORTER"] },
+  { href: "/dashboard/podcast", label: "Podcast", icon: PodcastIcon, roles: ["DEVELOPER", "TECHNIC"] },
+  { href: "/dashboard/links", label: "Links", icon: LinkIcon, roles: ["MUSIC", "DEVELOPER", "TECHNIC", "REPORTER", "KRU"] },
+  { href: "/dashboard/tune-tracker", label: "Tune Tracker", icon: TuneTrackerIcon, roles: ["MUSIC", "DEVELOPER"] },
   { href: "/dashboard/player-config", label: "Player Config", icon: PlayerConfigIcon, roles: ["DEVELOPER", "TECHNIC"] },
   { href: "/dashboard/stream-config", label: "Stream Config", icon: StreamConfigIcon, roles: ["DEVELOPER", "TECHNIC"] },
   { href: "/dashboard/users", label: "Users", icon: UsersIcon, roles: ["DEVELOPER"] },

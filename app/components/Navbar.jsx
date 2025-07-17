@@ -12,6 +12,8 @@ export default function Navbar() {
   const [volume, setVolume] = useState(1);
   const audioRef = useRef(null);
   const navbarRef = useRef(null);
+  const [onAir, setOnAir] = useState(false);
+  const [playerTitle, setPlayerTitle] = useState("");
 
   /* ------------------------------------------------------------- */
   /* Radio stream (moved from GlobalAudioPlayer)                   */
@@ -153,8 +155,20 @@ export default function Navbar() {
     };
   }, []);
 
+  useEffect(() => {
+    fetch("/api/stream-config")
+      .then((res) => res.json())
+      .then((data) => setOnAir(typeof data?.onAir === "boolean" ? data.onAir : true));
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/player-config")
+      .then((res) => res.json())
+      .then((data) => setPlayerTitle(data?.title || ""));
+  }, []);
+
   const handlePlayClick = () => {
-    togglePlay();
+    if (onAir) togglePlay();
   };
 
   const discoverLinks = (
@@ -267,51 +281,22 @@ export default function Navbar() {
               className="cursor-pointer"
               onClick={() => router.push("/")}
             />
-
-            {/* Play button (mobile only) */}
-            <button
-              onClick={handlePlayClick}
-              className="md:hidden bg-[#D83232] hover:bg-[#B72929] text-white px-3 py-2 rounded-full font-body font-medium transition-colors cursor-pointer flex items-center gap-2"
-              style={{
-                boxShadow: `
-                  0 1px 2px rgba(2, 8, 11, 0.05),
-                  inset 0 32px 24px rgba(255, 255, 255, 0.05),
-                  inset 0 2px 1px rgba(255, 255, 255, 0.25),
-                  inset 0 0px 0px rgba(2, 8, 11, 0.15),
-                  inset 0 -2px 1px rgba(0, 0, 0, 0.20)
-                `,
-              }}
-            >
-              {isPlaying ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <rect x="6" y="5" width="4" height="14" rx="1" fill="white" />
-                  <rect
-                    x="14"
-                    y="5"
-                    width="4"
-                    height="14"
-                    rx="1"
-                    fill="white"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-white"
-                  fill="white"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <polygon points="6,4 20,12 6,20" fill="white" />
-                </svg>
-              )}
-            </button>
+            {onAir && (
+              <span className="flex items-center gap-1 font-body">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </span>
+                <span className="text-red-600 text-sm font-semibold ml-1">
+                  On Air
+                </span>
+                {/* {playerTitle && (
+                  <span className="font-base text-sm text-gray-900">
+                    {playerTitle}
+                  </span>
+                )} */}
+              </span>
+            )}
           </div>
 
           {/* Desktop Navigation */}
@@ -399,7 +384,8 @@ export default function Navbar() {
           {/* Custom Play Button (desktop/tablet) */}
           <button
             onClick={handlePlayClick}
-            className="hidden md:flex bg-[#D83232] hover:bg-[#B72929] text-white px-4 py-2 rounded-full font-body font-medium transition-colors cursor-pointer items-center gap-2"
+            className={`hidden md:flex px-4 py-2 rounded-full font-body font-medium transition-colors items-center gap-2 ${onAir ? "bg-[#D83232] hover:bg-[#B72929] text-white cursor-pointer" : "bg-gray-300 text-white cursor-not-allowed"}`}
+            disabled={!onAir}
             style={{
               boxShadow: `
                 0 1px 2px rgba(2, 8, 11, 0.05),

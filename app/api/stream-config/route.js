@@ -17,16 +17,16 @@ export async function POST(req) {
   if (!session || !isAdmin(session.user.role)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const { baseUrls, defaultUrl, fallbackUrl } = await req.json();
+  const { baseUrls, defaultUrl, fallbackUrl, onAir } = await req.json();
   let config = await prisma.streamConfig.findFirst();
   if (config) {
     config = await prisma.streamConfig.update({
       where: { id: config.id },
-      data: { baseUrls, defaultUrl, fallbackUrl },
+      data: { baseUrls, defaultUrl, fallbackUrl, onAir },
     });
   } else {
     config = await prisma.streamConfig.create({
-      data: { baseUrls, defaultUrl, fallbackUrl },
+      data: { baseUrls, defaultUrl, fallbackUrl, onAir },
     });
   }
   return NextResponse.json(config);
