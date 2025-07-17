@@ -19,32 +19,10 @@ export default function PasswordProtectedPage() {
             setError('Please enter a password');
             return;
         }
-
         setLoading(true);
         setError('');
-
-        try {
-            const response = await fetch(`/api/redirect/${slug}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ password }),
-            });
-
-            if (response.ok) {
-                // The API will handle the redirect
-                window.location.href = response.url;
-            } else {
-                const data = await response.json();
-                setError(data.error || 'Incorrect password');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            setError('Something went wrong. Please try again.');
-        } finally {
-            setLoading(false);
-        }
+        // Redirect ke API dengan password sebagai query param
+        window.location.href = `/api/redirect/${slug}?password=${encodeURIComponent(password)}`;
     };
 
     return (
