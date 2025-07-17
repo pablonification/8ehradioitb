@@ -7,7 +7,7 @@ import { useSession, signOut } from "next-auth/react";
 import ButtonPrimary from "./ButtonPrimary";
 import { useState } from 'react';
 
-// Icons
+// --- Icons ---
 const HomeIcon = () => <Image src="/home.svg" alt="Home" width={24} height={24} />;
 const BlogIcon = () => <Image src="/blog.svg" alt="Blog" width={24} height={24} />;
 const PodcastIcon = () => <Image src="/podcast.svg" alt="Podcast" width={24} height={24} />;
@@ -27,11 +27,28 @@ const ExpandIcon = () => (
     </svg>
 );
 
+// [BARU] Ikon yang lebih representatif untuk Player dan Stream Config
+const PlayerConfigIcon = () => (
+  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 20V10M12 10V4M18 20V14M18 14V4M6 20V16M6 16V4M4 16H8M10 10H14M16 14H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+const StreamConfigIcon = () => (
+  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0" fill="currentColor" />
+    <path d="M18.364 5.636a9 9 0 0 1 0 12.728M5.636 5.636a9 9 0 0 0 0 12.728" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M15.536 8.464a5 5 0 0 1 0 7.072M8.464 8.464a5 5 0 0 0 0 7.072" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+// [DIUBAH] Player dan Stream Config dimasukkan ke sini dengan role-nya masing-masing
 const navItems = [
   { href: "/dashboard", label: "Home", icon: HomeIcon },
   { href: "/dashboard/blog", label: "Blog", icon: BlogIcon },
   { href: "/dashboard/podcast", label: "Podcast", icon: PodcastIcon },
   { href: "/dashboard/links", label: "Links", icon: LinkIcon },
+  { href: "/dashboard/player-config", label: "Player Config", icon: PlayerConfigIcon, roles: ["DEVELOPER", "TECHNIC"] },
+  { href: "/dashboard/stream-config", label: "Stream Config", icon: StreamConfigIcon, roles: ["DEVELOPER", "TECHNIC"] },
   { href: "/dashboard/users", label: "Users", icon: UsersIcon, roles: ["DEVELOPER"] },
   { href: "/dashboard/whitelist", label: "Whitelist", icon: WhitelistIcon, roles: ["DEVELOPER"] },
 ];
@@ -41,10 +58,11 @@ export default function DashboardSidebar() {
   const { data: session } = useSession();
   const [isExpanded, setIsExpanded] = useState(true);
 
+  // Logika filter ini sekarang otomatis menangani semua item, termasuk Player & Stream Config
   const visibleNavItems = navItems.filter(item => {
-    if (!item.roles) return true; // show item if no roles are specified
-    if (!session?.user?.role) return false; // hide if user has no role
-    return item.roles.includes(session.user.role); // show if user role is in the item's roles
+    if (!item.roles) return true; // Tampilkan jika tidak butuh role
+    if (!session?.user?.role) return false; // Sembunyikan jika user tidak punya role
+    return item.roles.includes(session.user.role); // Tampilkan jika role user sesuai
   });
 
   return (
@@ -72,6 +90,7 @@ export default function DashboardSidebar() {
 
       <div className="w-4/5 h-px bg-gray-200 my-2 mx-auto" />
       
+      {/* [DIUBAH] Bagian navigasi sekarang sepenuhnya dinamis */}
       <nav className="flex-1 flex flex-col space-y-2 mt-4 px-4">
         {visibleNavItems.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
@@ -93,20 +112,20 @@ export default function DashboardSidebar() {
 
       <div className={`px-4 py-4 border-t border-gray-200`}>
          <button
-           onClick={() => setIsExpanded(!isExpanded)}
-           className={`w-full flex items-center space-x-4 p-3 rounded-lg text-gray-600 hover:bg-pink-50 ${!isExpanded ? 'justify-center' : ''}`}
-         >
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={`w-full flex items-center space-x-4 p-3 rounded-lg text-gray-600 hover:bg-pink-50 ${!isExpanded ? 'justify-center' : ''}`}
+          >
              {isExpanded ? <CollapseIcon /> : <ExpandIcon />}
              {isExpanded && <span className="font-body">Collapse</span>}
-         </button>
-         <button
-           onClick={() => signOut({ callbackUrl: '/login' })}
-           className={`w-full flex items-center space-x-4 p-3 rounded-lg text-gray-600 hover:bg-pink-50 ${!isExpanded ? 'justify-center' : ''}`}
-         >
+          </button>
+          <button
+            onClick={() => signOut({ callbackUrl: '/login' })}
+            className={`w-full flex items-center space-x-4 p-3 rounded-lg text-gray-600 hover:bg-pink-50 ${!isExpanded ? 'justify-center' : ''}`}
+          >
              <LogoutIcon />
              {isExpanded && <span className="font-body">Logout</span>}
-         </button>
+          </button>
       </div>
     </aside>
   );
-} 
+}

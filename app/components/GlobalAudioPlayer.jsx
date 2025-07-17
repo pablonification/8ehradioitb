@@ -23,6 +23,25 @@ const GlobalAudioPlayer = () => {
   const [showPlayer, setShowPlayer] = useState(false);
   const [error, setError] = useState("");
 
+  // Player config state
+  const [playerConfig, setPlayerConfig] = useState({ title: "", subtitle: "", coverImage: "" });
+
+  useEffect(() => {
+    // Fetch player config from API
+    fetch("/api/player-config")
+      .then((res) => res.json())
+      .then((data) => {
+        setPlayerConfig({
+          title: data?.title || "",
+          subtitle: data?.subtitle || "",
+          coverImage: data?.coverImage || "",
+        });
+      })
+      .catch(() => {
+        setPlayerConfig({ title: "", subtitle: "", coverImage: "" });
+      });
+  }, []);
+
   /* Listen to global play-state changes */
   useEffect(() => {
     const handler = (e) => {
@@ -83,25 +102,28 @@ const GlobalAudioPlayer = () => {
               {/* 1. Album Art + Song Info */}
               <div className="flex items-center gap-3 w-full md:w-auto md:flex-shrink-0">
                 <div className="w-14 h-14 bg-gray-200 rounded-md relative overflow-hidden shadow-sm flex-shrink-0">
-                  <Image
-                    src="/player1.jpg"
+                  <img
+                    src={playerConfig.coverImage || "/8eh.png"}
                     alt="cover"
-                    fill
-                    style={{ objectFit: "cover" }}
+                    className="object-cover w-full h-full absolute inset-0"
                   />
                 </div>
-                <div className="text-sm min-w-0">
-                  <p className="font-bold text-gray-800 truncate">
-                    Kelam Di Balik Cecil Hotel
+                <div className="text-sm min-w-0 w-48 md:w-60 flex-shrink-0 overflow-hidden">
+                  <p className="font-bold text-gray-800 truncate font-body">
+                    {playerConfig.title || "8EH Radio ITB"}
                   </p>
-                  <p className="text-gray-500">
-                    SAMAR: Skema Misterius di Antara Rahasia
+                  <p className="text-gray-500 flex items-center gap-2 font-body">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    </span>
+                    Live Now
                   </p>
                 </div>
               </div>
 
               {/* 2. Controls & Progress */}
-              <div className="w-full md:flex-grow flex flex-col items-center justify-center md:mx-2">
+              <div className="flex-1 flex flex-col items-center justify-center md:mx-2 min-w-0">
                 <div className="flex items-center justify-center w-full gap-6">
                   <button
                     className="text-gray-500 hover:text-black disabled:opacity-40 text-xl"
@@ -150,21 +172,21 @@ const GlobalAudioPlayer = () => {
                     </svg>
                   </button>
                 </div>
-                {/* Fake progress bar */}
-                <div className="w-full flex items-center gap-2 text-[10px] text-gray-500 mt-2">
-                  <span>0:00</span>
-                  <div className="flex-grow h-1 bg-gray-200 rounded-full relative">
+                {/* Progress bar row with fixed duration width */}
+                <div className="w-full flex items-center gap-2 text-[10px] text-gray-500 mt-2 min-w-0">
+                  <span className="w-8 text-right flex-shrink-0">0:00</span>
+                  <div className="flex-grow h-1 bg-gray-200 rounded-full relative min-w-0">
                     <div
                       className="absolute h-full bg-gray-800 rounded-full"
                       style={{ width: "0%" }}
                     />
                   </div>
-                  <span>0:00</span>
+                  <span className="w-8 text-left flex-shrink-0">0:00</span>
                 </div>
               </div>
 
               {/* 3. Volume */}
-              <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+              <div className="hidden md:flex items-center gap-2 flex-shrink-0 w-32 justify-end">
                 <span className="text-gray-600">
                   <svg
                     viewBox="0 0 24 24"

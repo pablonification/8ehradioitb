@@ -10,6 +10,8 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { useEffect, useState } from "react";
+import GlobalAudioPlayer from "../components/GlobalAudioPlayer";
+import PodcastAudioPlayer from "../components/PodcastAudioPlayer";
 
 const programs = [
   {
@@ -242,6 +244,8 @@ const PodcastEpisodes = () => {
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [currentPodcast, setCurrentPodcast] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     fetch("/api/podcast")
@@ -275,6 +279,15 @@ const PodcastEpisodes = () => {
     }, 250); // duration matches transition
   };
 
+  const handlePlayPause = (pod) => {
+    if (currentPodcast && currentPodcast.id === pod.id) {
+      setIsPlaying((prev) => !prev);
+    } else {
+      setCurrentPodcast(pod);
+      setIsPlaying(true);
+    }
+  };
+
   return (
     <section className="pt-24 bg-gradient-to-b from-black/0 from-0% to-black to-5% md:to-15% text-white relative overflow-hidden">
       <div className="absolute top-0 md:top-1/3 right-0 md:right-0 w-100 md:w-180 opacity-20 -rotate-17">
@@ -304,39 +317,69 @@ const PodcastEpisodes = () => {
         </h2>
         <div className="bg-white/15 backdrop-blur-sm mb-12 py-4 md:px-12 rounded-4xl px-4 mx-0 md:mx-4 border border-gray-200/20">
           <div className={`space-y-4 transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
-            {currentPodcasts.map((pod, idx) => (
-              <div
-                key={pod.id || idx}
-                className="flex items-start gap-4 sm:gap-6 py-8 border-b border-gray-200/80 last:border-b-0"
-              >
-                {/* Image */}
-                <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 relative flex-shrink-0">
-                  <img
-                    src={pod.image || pod.coverImage || "/8eh-real.svg"}
-                    alt="Podcast Thumbnail"
-                    className="object-cover rounded-2xl shadow-md w-full h-full"
-                  />
-                </div>
-                {/* Details */}
-                <div className="flex-1">
-                  <h3 className="font-heading text-lg sm:text-xl text-gray-200 font-bold mb-2">
-                    {pod.title}
-                  </h3>
-                  <p className="font-body text-sm text-gray-300 mb-2">
-                    {pod.subtitle}
-                  </p>
-                  <p className="font-body text-sm text-gray-300 mb-4 leading-relaxed">
-                    {pod.description}
-                  </p>
-                  <div className="flex justify-between items-center mt-4">
-                    <p className="font-body text-xs sm:text-sm text-gray-300">
-                      {pod.date} &bull; {pod.duration}
+            {currentPodcasts.map((pod, idx) => {
+              const playing = currentPodcast && currentPodcast.id === pod.id && isPlaying;
+              return (
+                <div
+                  key={pod.id || idx}
+                  className="flex items-start gap-4 sm:gap-6 py-8 border-b border-gray-200/80 last:border-b-0"
+                >
+                  {/* Image */}
+                  <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 relative flex-shrink-0">
+                    <img
+                      src={pod.image || pod.coverImage || "/8eh-real.svg"}
+                      alt="Podcast Thumbnail"
+                      className="object-cover rounded-2xl shadow-md w-full h-full"
+                    />
+                  </div>
+                  {/* Details */}
+                  <div className="flex-1">
+                    <h3 className="font-heading text-lg sm:text-xl text-gray-200 font-bold mb-2">
+                      {pod.title}
+                    </h3>
+                    <p className="font-body text-sm text-gray-300 mb-2">
+                      {pod.subtitle}
                     </p>
-                    <audio controls src={pod.audioUrl} className="w-40" />
+                    <p className="font-body text-sm text-gray-300 mb-4 leading-relaxed">
+                      {pod.description}
+                    </p>
+                    <div className="flex justify-between items-center mt-4">
+                      <p className="font-body text-xs sm:text-sm text-gray-300">
+                        {pod.date} &bull; {pod.duration}
+                      </p>
+                      <ButtonPrimary
+                        className="!w-12 !h-12 !p-0 !rounded-full flex items-center justify-center flex-shrink-0"
+                        aria-label={playing ? "Pause Podcast" : "Play Podcast"}
+                        onClick={() => handlePlayPause(pod)}
+                      >
+                        {playing ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 text-white ml-0.5"
+                            fill="white"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <rect x="6" y="5" width="4" height="14" />
+                            <rect x="14" y="5" width="4" height="14" />
+                          </svg>
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 text-white ml-0.5"
+                            fill="white"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <polygon points="6,4 20,12 6,20" fill="white" />
+                          </svg>
+                        )}
+                      </ButtonPrimary>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
         {/* Swiper Pagination */}
@@ -390,6 +433,16 @@ const PodcastEpisodes = () => {
           </div>
         )}
       </div>
+      {/* Render GlobalAudioPlayer at the bottom, passing podcast info if selected */}
+      <PodcastAudioPlayer
+        audioUrl={currentPodcast?.audioUrl}
+        title={currentPodcast?.title}
+        image={currentPodcast?.image || currentPodcast?.coverImage || "/8eh-real.svg"}
+        subtitle={currentPodcast?.subtitle}
+        description={currentPodcast?.description}
+        isPlaying={isPlaying}
+        setIsPlaying={setIsPlaying}
+      />
     </section>
   );
 };

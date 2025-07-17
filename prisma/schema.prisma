@@ -138,3 +138,20 @@ model Podcast {
   author      User     @relation(fields: [authorId], references: [id])
   authorId    String
 }
+
+model PlayerConfig {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  subtitle  String?
+  coverImage String?
+  coverImages String[] // semua cover image yang pernah diupload
+  updatedAt DateTime @updatedAt
+}
+
+model StreamConfig {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  baseUrls   String[]
+  defaultUrl String
+  fallbackUrl String
+  updatedAt  DateTime @updatedAt
+}
