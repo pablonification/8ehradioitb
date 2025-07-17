@@ -54,7 +54,7 @@ export async function DELETE(req, { params }) {
   }
 
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Check if the short link belongs to the user
     const shortLink = await prisma.shortLink.findFirst({

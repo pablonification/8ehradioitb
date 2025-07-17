@@ -107,9 +107,22 @@ function ShortLinkCard({ shortLink, onEdit, onDelete, onViewAnalytics }) {
 function AnalyticsModal({ shortLink, analytics, isOpen, onClose }) {
     if (!isOpen) return null;
 
+    // Close modal if click on backdrop
+    const handleBackdropClick = (e) => {
+        if (e.target === e.currentTarget) {
+            onClose();
+        }
+    };
+
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+        <div
+            className="fixed inset-0 flex items-center justify-center z-50"
+            style={{
+                backgroundColor: "rgba(17,24,39,0.25)" // Tailwind's gray-900 with 25% opacity
+            }}
+            onClick={handleBackdropClick}
+        >
+            <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-heading font-bold text-gray-900">Analytics for {shortLink.title || 'Untitled Link'}</h2>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -215,6 +228,10 @@ export default function LinksDashboardPage() {
             } catch {
                 newErrors.destination = 'Please enter a valid URL';
             }
+        }
+        // Slug tidak boleh kosong saat edit
+        if ((isEditing && !formData.slug) || (!isEditing && formData.slug === '')) {
+            newErrors.slug = 'Custom back-half cannot be empty';
         }
         return newErrors;
     };
@@ -331,7 +348,19 @@ export default function LinksDashboardPage() {
                 )}
             </div>
 
-            <div className="bg-white p-8 rounded-2xl shadow-sm mb-8">
+            <div className={`p-8 rounded-2xl shadow-sm mb-8 ${
+                isEditing 
+                    ? 'bg-gradient-to-br from-pink-50 to-rose-50 border border-pink-200' 
+                    : 'bg-white'
+            }`}>
+                {isEditing && (
+                    <div className="mb-6 p-3 bg-pink-100 border border-pink-200 rounded-lg">
+                        <div className="flex items-center">
+                            <FiEdit className="w-5 h-5 text-pink-600 mr-2" />
+                            <span className="text-pink-800 font-medium font-body">Editing: {formData.title || 'Untitled Link'}</span>
+                        </div>
+                    </div>
+                )}
                 <form onSubmit={handleSubmit} className="space-y-6 text-gray-900 font-body">
                     <FormInput
                         label="Destination URL"
@@ -384,9 +413,13 @@ export default function LinksDashboardPage() {
                         <button 
                             type="button" 
                             onClick={resetForm}
-                            className="text-sm font-medium text-gray-600 hover:text-gray-900 font-body cursor-pointer"
+                            className={`px-4 py-2 rounded-md font-medium font-body transition-colors ${
+                                isEditing 
+                                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300' 
+                                    : 'text-gray-600 hover:text-gray-900'
+                            }`}
                         >
-                            Cancel
+                            {isEditing ? 'Cancel Edit' : 'Cancel'}
                         </button>
                         <ButtonPrimary type="submit" disabled={loading}>
                             {loading ? 'Saving...' : (isEditing ? 'Update Link' : 'Create Link')}
