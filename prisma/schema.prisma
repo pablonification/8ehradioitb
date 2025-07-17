@@ -12,6 +12,7 @@ enum Role {
   TECHNIC
   REPORTER
   KRU
+  MUSIC
 }
 
 model User {
@@ -26,6 +27,7 @@ model User {
   accounts  Account[]
   sessions  Session[]
   shortLinks ShortLink[]
+  podcasts  Podcast[]
 }
 
 model BlogPost {
@@ -120,4 +122,48 @@ model WhitelistedEmail {
   id    String @id @default(auto()) @map("_id") @db.ObjectId
   email String @unique
   createdAt DateTime @default(now())
+}
+
+model Podcast {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  subtitle    String?
+  description String
+  date        String?
+  duration    String?
+  audioUrl    String
+  image       String?
+  coverImage  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    String
+}
+
+model PlayerConfig {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  subtitle  String?
+  coverImage String?
+  coverImages String[] // semua cover image yang pernah diupload
+  updatedAt DateTime @updatedAt
+}
+
+model StreamConfig {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  baseUrls   String[]
+  defaultUrl String
+  fallbackUrl String
+  onAir      Boolean  @default(true)
+  updatedAt  DateTime @updatedAt
+}
+
+model TuneTrackerEntry {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  order      Int      // 1-10, chart position
+  title      String
+  artist     String
+  coverImage String?  // R2 URL
+  audioUrl   String?  // R2 URL
+  updatedAt  DateTime @updatedAt
 }

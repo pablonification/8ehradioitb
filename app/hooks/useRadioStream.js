@@ -5,13 +5,24 @@ export const useRadioStream = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [retryCount, setRetryCount] = useState(0);
+  const [config, setConfig] = useState({ defaultUrl: "https://s3.free-shoutcast.com/stream/18032", fallbackUrl: "https://s3.free-shoutcast.com/stream/18032" });
+
+  // Fetch config from API
+  useEffect(() => {
+    fetch("/api/stream-config")
+      .then((res) => res.json())
+      .then((data) => {
+        setConfig({
+          defaultUrl: data?.defaultUrl || "https://s3.free-shoutcast.com/stream/18032",
+          fallbackUrl: data?.fallbackUrl || "https://s3.free-shoutcast.com/stream/18032",
+        });
+      });
+  }, []);
 
   // Configuration for the streaming service
   const STREAM_CONFIG = {
-    // Base URL for the Free-Shoutcast stream (without the random query segment)
-    baseUrl: "https://s2.free-shoutcast.com/stream/18068/;stream.mp3",
-    // Fallback URL (static) – used after the first failure
-    fallbackUrl: "https://s2.free-shoutcast.com/stream/18068/;stream.mp3",
+    baseUrl: config.defaultUrl,
+    fallbackUrl: config.fallbackUrl,
     maxRetries: 3,
     retryDelay: 2000,
   };
@@ -20,8 +31,8 @@ export const useRadioStream = () => {
   const generateStreamUrl = useCallback(() => {
     // Generate a 6-character alphanumeric code (letters & digits)
     const randomCode = Math.random().toString(36).substring(2, 8);
-    return `${STREAM_CONFIG.baseUrl}?${randomCode}`;
-  }, []);
+    return `${STREAM_CONFIG.baseUrl}/;stream.mp3?${randomCode}`;
+  }, [STREAM_CONFIG.baseUrl]);
 
   // Detect if running on an iOS device (iPhone, iPod, iPad)
   const isIOS =
@@ -32,7 +43,8 @@ export const useRadioStream = () => {
   useEffect(() => {
     const url = isIOS ? "/api/stream" : generateStreamUrl();
     setStreamUrl(url);
-  }, [generateStreamUrl, isIOS]);
+    // eslint-disable-next-line
+  }, [generateStreamUrl, isIOS, config.defaultUrl]);
 
   // Refresh stream URL
   const refreshStream = useCallback(() => {
@@ -51,7 +63,7 @@ export const useRadioStream = () => {
     if (retryCount === 0) {
       setError("Primary connection failed. Switching to fallback stream...");
       setRetryCount((prev) => prev + 1);
-      setStreamUrl(STREAM_CONFIG.fallbackUrl);
+      setStreamUrl(`${STREAM_CONFIG.fallbackUrl}/;stream.mp3`);
       return;
     }
 
@@ -68,7 +80,7 @@ export const useRadioStream = () => {
     } else {
       setError("Unable to connect to the radio stream. Please try refreshing.");
     }
-  }, [retryCount, generateStreamUrl]);
+  }, [retryCount, generateStreamUrl, STREAM_CONFIG.fallbackUrl]);
 
   // Get stream URL with fresh session (use fallback for iOS)
   const getStreamUrl = useCallback(() => {

@@ -3,7 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 
-const ROLES = ["DEVELOPER", "TECHNIC", "REPORTER", "KRU"];
+const ROLE_OPTIONS = [
+  { value: "DEVELOPER", label: "Developer" },
+  { value: "TECHNIC", label: "Technic" },
+  { value: "REPORTER", label: "Reporter" },
+  { value: "KRU", label: "Kru" },
+  { value: "MUSIC", label: "Music" },
+];
 
 export default function UsersPage() {
   const { data: session, status } = useSession();
@@ -107,8 +113,8 @@ export default function UsersPage() {
                       className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md text-gray-900"
                       disabled={user.email === session.user.email} // Disable changing own role
                     >
-                      {ROLES.map(role => (
-                        <option key={role} value={role} style={{ fontFamily: 'var(--font-body), ui-sans-serif, system-ui, sans-serif' }} className="text-gray-900">{role}</option>
+                      {ROLE_OPTIONS.map(role => (
+                        <option key={role.value} value={role.value} style={{ fontFamily: 'var(--font-body), ui-sans-serif, system-ui, sans-serif' }} className="text-gray-900">{role.label}</option>
                       ))}
                     </select>
                   </td>

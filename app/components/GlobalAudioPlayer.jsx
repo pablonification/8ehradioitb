@@ -22,6 +22,26 @@ const GlobalAudioPlayer = () => {
   const [volume, setVolume] = useState(1);
   const [showPlayer, setShowPlayer] = useState(false);
   const [error, setError] = useState("");
+  const [isMuted, setIsMuted] = useState(false);
+
+  // Player config state
+  const [playerConfig, setPlayerConfig] = useState({ title: "", subtitle: "", coverImage: "" });
+
+  useEffect(() => {
+    // Fetch player config from API
+    fetch("/api/player-config")
+      .then((res) => res.json())
+      .then((data) => {
+        setPlayerConfig({
+          title: data?.title || "",
+          subtitle: data?.subtitle || "",
+          coverImage: data?.coverImage || "",
+        });
+      })
+      .catch(() => {
+        setPlayerConfig({ title: "", subtitle: "", coverImage: "" });
+      });
+  }, []);
 
   /* Listen to global play-state changes */
   useEffect(() => {
@@ -32,8 +52,25 @@ const GlobalAudioPlayer = () => {
     };
 
     window.addEventListener("audioStateChanged", handler);
-    return () => window.removeEventListener("audioStateChanged", handler);
+    // Sinkronisasi: jika podcast mulai play, matikan radio
+    const handlePodcastPlay = () => {
+      setIsPlaying(false);
+      setShowPlayer(false);
+      window.dispatchEvent(new CustomEvent("pauseRequested"));
+    };
+    window.addEventListener("podcastPlayRequested", handlePodcastPlay);
+    return () => {
+      window.removeEventListener("audioStateChanged", handler);
+      window.removeEventListener("podcastPlayRequested", handlePodcastPlay);
+    };
   }, []);
+
+  // Saat radio mulai play, broadcast event agar podcast stop
+  useEffect(() => {
+    if (isPlaying) {
+      window.dispatchEvent(new CustomEvent("radioPlayRequested"));
+    }
+  }, [isPlaying]);
 
   /* --------------------------------------------------------------------- */
   /*                          Event Handlers                               */
@@ -51,9 +88,26 @@ const GlobalAudioPlayer = () => {
   const handleVolumeChange = (e) => {
     const newVol = parseFloat(e.target.value);
     setVolume(newVol);
+    setIsMuted(newVol === 0);
     window.dispatchEvent(
       new CustomEvent("volumeChanged", { detail: { volume: newVol } }),
     );
+  };
+
+  const handleMuteToggle = () => {
+    if (isMuted) {
+      setIsMuted(false);
+      setVolume(1);
+      window.dispatchEvent(
+        new CustomEvent("volumeChanged", { detail: { volume: 1 } }),
+      );
+    } else {
+      setIsMuted(true);
+      setVolume(0);
+      window.dispatchEvent(
+        new CustomEvent("volumeChanged", { detail: { volume: 0 } }),
+      );
+    }
   };
 
   const handleRefresh = () => {
@@ -83,25 +137,28 @@ const GlobalAudioPlayer = () => {
               {/* 1. Album Art + Song Info */}
               <div className="flex items-center gap-3 w-full md:w-auto md:flex-shrink-0">
                 <div className="w-14 h-14 bg-gray-200 rounded-md relative overflow-hidden shadow-sm flex-shrink-0">
-                  <Image
-                    src="/player1.jpg"
+                  <img
+                    src={playerConfig.coverImage || "/8eh.png"}
                     alt="cover"
-                    fill
-                    style={{ objectFit: "cover" }}
+                    className="object-cover w-full h-full absolute inset-0"
                   />
                 </div>
-                <div className="text-sm min-w-0">
-                  <p className="font-bold text-gray-800 truncate">
-                    Kelam Di Balik Cecil Hotel
+                <div className="text-sm min-w-0 w-48 md:w-60 flex-shrink-0">
+                  <p className="font-bold text-gray-800 truncate font-body">
+                    {playerConfig.title || "8EH Radio ITB"}
                   </p>
-                  <p className="text-gray-500">
-                    SAMAR: Skema Misterius di Antara Rahasia
+                  <p className="text-gray-500 flex items-center gap-2 font-body">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    </span>
+                    Live Now
                   </p>
                 </div>
               </div>
 
               {/* 2. Controls & Progress */}
-              <div className="w-full md:flex-grow flex flex-col items-center justify-center md:mx-2">
+              <div className="flex-1 flex flex-col items-center justify-center md:mx-2 min-w-0">
                 <div className="flex items-center justify-center w-full gap-6">
                   <button
                     className="text-gray-500 hover:text-black disabled:opacity-40 text-xl"
@@ -150,30 +207,34 @@ const GlobalAudioPlayer = () => {
                     </svg>
                   </button>
                 </div>
-                {/* Fake progress bar */}
-                <div className="w-full flex items-center gap-2 text-[10px] text-gray-500 mt-2">
-                  <span>0:00</span>
-                  <div className="flex-grow h-1 bg-gray-200 rounded-full relative">
+                {/* Progress bar row with fixed duration width */}
+                <div className="w-full flex items-center gap-2 text-[10px] text-gray-500 mt-2 min-w-0">
+                  <span className="w-8 text-right flex-shrink-0">0:00</span>
+                  <div className="flex-grow h-1 bg-gray-200 rounded-full relative min-w-0">
                     <div
                       className="absolute h-full bg-gray-800 rounded-full"
                       style={{ width: "0%" }}
                     />
                   </div>
-                  <span>0:00</span>
+                  <span className="w-8 text-left flex-shrink-0">0:00</span>
                 </div>
               </div>
 
               {/* 3. Volume */}
-              <div className="hidden md:flex items-center gap-2 flex-shrink-0">
-                <span className="text-gray-600">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="w-5 h-5"
-                  >
-                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path>
-                  </svg>
-                </span>
+              <div className="hidden md:flex items-center gap-2 flex-shrink-0 w-32 justify-end">
+                <button type="button" onClick={handleMuteToggle} className="text-gray-600 focus:outline-none cursor-pointer">
+                  {isMuted || volume === 0 ? (
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5" alt="Mute">
+                      <path d="M16.5 12a6.5 6.5 0 0 0-6.5-6.5v2A4.5 4.5 0 0 1 14.5 12h2z" fill="#d1d5db"/>
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm16.5 3a6.5 6.5 0 0 0-6.5-6.5v2A4.5 4.5 0 0 1 17.5 12h2z"/>
+                      <line x1="19" y1="5" x2="5" y2="19" stroke="#ef4444" strokeWidth="2" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5" alt="Unmute">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path>
+                    </svg>
+                  )}
+                </button>
                 <input
                   type="range"
                   min="0"

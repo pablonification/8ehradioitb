@@ -45,7 +45,7 @@ export async function PATCH(req) {
     }
     
     // Optional: Check if the role is a valid enum value
-    const validRoles = ["DEVELOPER", "TECHNIC", "REPORTER", "KRU"];
+    const validRoles = ["DEVELOPER", "TECHNIC", "REPORTER", "KRU", "MUSIC"];
     if (!validRoles.includes(role)) {
         return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }

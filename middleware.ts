@@ -14,6 +14,7 @@ const RESERVED = [
   "media-partner",
   "podcast",
   "programs",
+  "faq",
   "_next",
   "favicon.ico",
 ];
