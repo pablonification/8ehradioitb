@@ -45,6 +45,7 @@ const GlobalAudioPlayer = () => {
 
   /* Listen to global play-state changes */
   useEffect(() => {
+    let externalPause = false;
     const handler = (e) => {
       const playing = e.detail.isPlaying;
       setIsPlaying(playing);
@@ -55,15 +56,31 @@ const GlobalAudioPlayer = () => {
     // Sinkronisasi: jika podcast mulai play, matikan radio
     const handlePodcastPlay = () => {
       setIsPlaying(false);
-      setShowPlayer(false);
+      setShowPlayer(false); // Hide radio player UI when podcast starts
+      externalPause = true;
       window.dispatchEvent(new CustomEvent("pauseRequested"));
     };
     window.addEventListener("podcastPlayRequested", handlePodcastPlay);
+
+    // Hide radio player UI when radio is paused by podcast (external), not by user
+    if (!isPlaying && externalPause) {
+      setShowPlayer(false);
+      externalPause = false;
+    }
+
+    // Sinkronisasi: jika radio mulai play, matikan podcast
+    const handleRadioPlay = () => {
+      window.dispatchEvent(new CustomEvent("radioPlayRequested"));
+    };
+    if (isPlaying) {
+      handleRadioPlay();
+    }
+
     return () => {
       window.removeEventListener("audioStateChanged", handler);
       window.removeEventListener("podcastPlayRequested", handlePodcastPlay);
     };
-  }, []);
+  }, [isPlaying]);
 
   // Saat radio mulai play, broadcast event agar podcast stop
   useEffect(() => {
@@ -209,14 +226,14 @@ const GlobalAudioPlayer = () => {
                 </div>
                 {/* Progress bar row with fixed duration width */}
                 <div className="w-full flex items-center gap-2 text-[10px] text-gray-500 mt-2 min-w-0">
-                  <span className="w-8 text-right flex-shrink-0">0:00</span>
+                  {/* <span className="w-8 text-right flex-shrink-0">0:00</span> */}
                   <div className="flex-grow h-1 bg-gray-200 rounded-full relative min-w-0">
                     <div
                       className="absolute h-full bg-gray-800 rounded-full"
                       style={{ width: "0%" }}
                     />
                   </div>
-                  <span className="w-8 text-left flex-shrink-0">0:00</span>
+                  {/* <span className="w-8 text-left flex-shrink-0">0:00</span> */}
                 </div>
               </div>
 
