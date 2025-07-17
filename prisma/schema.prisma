@@ -59,9 +59,24 @@ model ShortLink {
   title       String?
   domain      String   @default("8eh.link")
   password    String?
+  isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   userId      String   @db.ObjectId
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clicks      ShortLinkClick[]
+}
+
+model ShortLinkClick {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  shortLinkId String   @db.ObjectId
+  shortLink   ShortLink @relation(fields: [shortLinkId], references: [id], onDelete: Cascade)
+  ipAddress   String?
+  userAgent   String?
+  referer     String?
+  country     String?
+  city        String?
+  clickedAt   DateTime @default(now())
 }
 
 model Account {
