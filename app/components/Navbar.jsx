@@ -48,14 +48,12 @@ export default function Navbar() {
     if (!audio) return;
 
     try {
-      // Ensure any current playback is halted before changing source
-      // audio.pause();
-      audio.removeAttribute("src");
-      audio.load();
-
       const freshUrl = getStreamUrl();
-      audio.src = freshUrl;
-      audio.load();
+      // Hanya set src jika berbeda
+      if (audio.src !== freshUrl) {
+        audio.src = freshUrl;
+        audio.load();
+      }
       setIsLoading(true);
       await audio.play();
       audio.volume = volume;
@@ -270,7 +268,7 @@ export default function Navbar() {
     <header className="bg-white border-b border-gray-100" ref={navbarRef}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo + Mobile Play Button */}
+          {/* Logo + Mobile Play Button + On Air Mobile */}
           <div className="flex items-center space-x-3">
             {/* Logo */}
             <Image
@@ -281,6 +279,54 @@ export default function Navbar() {
               className="cursor-pointer"
               onClick={() => router.push("/")}
             />
+
+            {/* Play button (mobile only) */}
+            <button
+              onClick={handlePlayClick}
+              className={`md:hidden px-3 py-2 rounded-full font-body font-medium transition-colors cursor-pointer flex items-center gap-2 ${onAir ? "bg-[#D83232] hover:bg-[#B72929] text-white cursor-pointer" : "bg-gray-300 text-white cursor-not-allowed"}`}
+              disabled={!onAir}
+              style={{
+                boxShadow: `
+                  0 1px 2px rgba(2, 8, 11, 0.05),
+                  inset 0 32px 24px rgba(255, 255, 255, 0.05),
+                  inset 0 2px 1px rgba(255, 255, 255, 0.25),
+                  inset 0 0px 0px rgba(2, 8, 11, 0.15),
+                  inset 0 -2px 1px rgba(0, 0, 0, 0.20)
+                `,
+              }}
+            >
+              {isPlaying ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <rect x="6" y="5" width="4" height="14" rx="1" fill="white" />
+                  <rect
+                    x="14"
+                    y="5"
+                    width="4"
+                    height="14"
+                    rx="1"
+                    fill="white"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-white"
+                  fill="white"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <polygon points="6,4 20,12 6,20" fill="white" />
+                </svg>
+              )}
+            </button>
+
+            {/* On Air indicator (visible on mobile alongside play button, and on desktop with logo) */}
             {onAir && (
               <span className="flex items-center gap-1 font-body">
                 <span className="relative flex h-2 w-2">

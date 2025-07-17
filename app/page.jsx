@@ -517,7 +517,7 @@ function TuneTrackerSection() {
     } else {
       setNowPlaying(idx);
       if (tunes[idx].audioUrl) {
-        audioRef.current.src = tunes[idx].audioUrl;
+        audioRef.current.src = `/api/proxy-audio?url=${encodeURIComponent(tunes[idx].audioUrl)}`;
         audioRef.current.play();
       }
     }
