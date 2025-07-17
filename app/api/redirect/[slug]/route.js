@@ -5,8 +5,8 @@ import { headers } from "next/headers";
 // GET - Handle short link redirect and track analytics
 export async function GET(req, { params }) {
   try {
-    const { slug } = params;
-    const headersList = headers();
+    const { slug } = await params;
+    const headersList = await headers();
     const { searchParams } = new URL(req.url);
     const passwordParam = searchParams.get("password");
     
