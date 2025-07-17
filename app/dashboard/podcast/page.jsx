@@ -192,7 +192,7 @@ function PodcastDashboard() {
                   {(podcast.image || podcast.coverImage || "/8eh-real.svg") && (
                     <img src={podcast.image || podcast.coverImage || "/8eh-real.svg"} alt="cover" className="w-32 h-32 object-cover rounded mb-2" />
                   )}
-                  <audio controls src={podcast.audioUrl} className="w-full" />
+                  <audio controls src={podcast.audioUrl ? `/api/proxy-audio?url=${encodeURIComponent(podcast.audioUrl)}` : undefined} className="w-full" />
                   <div className="text-xs text-gray-500 mt-1">By {podcast.author?.name || "Unknown"}</div>
                   {isAdmin && (
                     <div className="flex gap-2 mt-2">

@@ -1,3 +1,4 @@
+// app/hooks/useRadioStream.js
 import { useState, useEffect, useCallback } from "react";
 
 export const useRadioStream = () => {
@@ -31,20 +32,23 @@ export const useRadioStream = () => {
   const generateStreamUrl = useCallback(() => {
     // Generate a 6-character alphanumeric code (letters & digits)
     const randomCode = Math.random().toString(36).substring(2, 8);
+    // Menggunakan baseUrl langsung, tanpa kondisional isIOS
     return `${STREAM_CONFIG.baseUrl}/;stream.mp3?${randomCode}`;
   }, [STREAM_CONFIG.baseUrl]);
 
   // Detect if running on an iOS device (iPhone, iPod, iPad)
-  const isIOS =
-    typeof window !== "undefined" &&
-    /iP(hone|od|ad)/i.test(window.navigator.userAgent);
+  // isIOS tidak lagi digunakan untuk menentukan URL streaming
+  // const isIOS =
+  //   typeof window !== "undefined" &&
+  //   /iP(hone|od|ad)/i.test(window.navigator.userAgent);
 
   // Initialize stream URL
   useEffect(() => {
-    const url = isIOS ? "/api/stream" : generateStreamUrl();
+    // Selalu gunakan generateStreamUrl untuk semua perangkat
+    const url = generateStreamUrl();
     setStreamUrl(url);
     // eslint-disable-next-line
-  }, [generateStreamUrl, isIOS, config.defaultUrl]);
+  }, [generateStreamUrl, config.defaultUrl]); // Hapus isIOS dari dependencies
 
   // Refresh stream URL
   const refreshStream = useCallback(() => {
@@ -82,10 +86,10 @@ export const useRadioStream = () => {
     }
   }, [retryCount, generateStreamUrl, STREAM_CONFIG.fallbackUrl]);
 
-  // Get stream URL with fresh session (use fallback for iOS)
+  // Get stream URL with fresh session (tidak lagi menggunakan isIOS kondisional)
   const getStreamUrl = useCallback(() => {
-    return isIOS ? "/api/stream" : generateStreamUrl();
-  }, [isIOS, generateStreamUrl]);
+    return generateStreamUrl(); // Selalu panggil generateStreamUrl
+  }, [generateStreamUrl]);
 
   return {
     streamUrl,
