@@ -36,6 +36,9 @@ const instrumentSerif = Instrument_Serif({
 export const metadata = {
   title: "8EH Radio ITB",
   description: "Meresonansi & Berkarya",
+  icons: {
+    icon: "/8eh.ico",
+  },
 };
 
 export default function RootLayout({ children }) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useGlobalAudio } from "@/app/hooks/useGlobalAudio"; // Import hook yang baru kita buat
 
 const PodcastAudioPlayer = ({
@@ -18,6 +18,8 @@ const PodcastAudioPlayer = ({
 
   // Gunakan hook untuk mendapatkan referensi audio yang terjamin ada
   const audioRef = useGlobalAudio();
+  // Use a ref to track external pause
+  const externalPauseRef = useRef(false);
 
   // Efek utama untuk mengontrol audio
   useEffect(() => {
@@ -54,12 +56,22 @@ const PodcastAudioPlayer = ({
     const audio = audioRef.current;
     if (!audio) return;
 
-    const handleRadioPlay = () => setIsPlaying(false);
+    // Pause podcast if radio starts
+    const handleRadioPlay = () => {
+      setIsPlaying(false);
+      externalPauseRef.current = true;
+    };
+    window.addEventListener("radioPlayRequested", handleRadioPlay);
+
+    // When podcast starts playing, pause radio
+    if (isPlaying) {
+      window.dispatchEvent(new CustomEvent("podcastPlayRequested"));
+    }
+
     const handleTimeUpdate = () => setProgress(audio.currentTime);
     const handleLoadedMetadata = () => setDuration(audio.duration);
     const handleEnded = () => setIsPlaying(false);
 
-    window.addEventListener("radioPlayRequested", handleRadioPlay);
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
     audio.addEventListener("ended", handleEnded);
@@ -70,7 +82,17 @@ const PodcastAudioPlayer = ({
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("ended", handleEnded);
     };
-  }, [audioRef, setIsPlaying]);
+  }, [audioRef, setIsPlaying, isPlaying]);
+
+  // This effect must be at the top level, not inside another useEffect
+  useEffect(() => {
+    // Only hide player if pause was external (radio play)
+    if (!isPlaying && externalPauseRef.current) {
+      setShowPlayer(false);
+      externalPauseRef.current = false;
+    }
+    // If pause was user-initiated, keep player visible
+  }, [isPlaying]);
 
   // Efek untuk volume
   useEffect(() => {
