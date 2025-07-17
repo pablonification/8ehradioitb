@@ -1,75 +1,48 @@
-import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Handle short link redirects
-async function handleShortLinkRedirect(request: NextRequest) {
-  const url = request.nextUrl.clone();
-  const pathname = url.pathname;
+const RESERVED = [
+  "",
+  "api",
+  "dashboard",
+  "login",
+  "not-found",
+  "password",
+  "blog",
+  "about-us",
+  "agency",
+  "media-partner",
+  "podcast",
+  "programs",
+  "_next",
+  "favicon.ico",
+];
 
-  // Only handle paths that look like short links (single segment, not starting with /)
-  if (
-    pathname &&
-    pathname !== "/" &&
-    !pathname.startsWith("/") &&
-    !pathname.includes("/")
-  ) {
-    const slug = pathname.substring(1); // Remove leading slash
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const slug = pathname.split("/")[1];
 
-    // Skip if it's a known route
-    if (
-      [
-        "dashboard",
-        "api",
-        "login",
-        "password",
-        "blog",
-        "about-us",
-        "agency",
-        "media-partner",
-        "podcast",
-        "programs",
-      ].includes(slug)
-    ) {
-      return null;
+  // Shortlink rewrite
+  if (pathname !== "/" && slug && !RESERVED.includes(slug)) {
+    return NextResponse.rewrite(
+      new URL(`/api/redirect${pathname}`, request.url),
+    );
+  }
+
+  // Manual auth for dashboard
+  if (pathname.startsWith("/dashboard")) {
+    // Cek session token (NextAuth)
+    const token =
+      request.cookies.get("next-auth.session-token") ||
+      request.cookies.get("__Secure-next-auth.session-token");
+    if (!token) {
+      return NextResponse.redirect(new URL("/login", request.url));
     }
-
-    // Redirect to our API endpoint
-    const redirectUrl = new URL(`/api/redirect/${slug}`, request.url);
-    return NextResponse.rewrite(redirectUrl);
-  }
-
-  return null;
-}
-
-// Main middleware function
-export default async function middleware(request: NextRequest) {
-  const url = request.nextUrl.clone();
-
-  // Handle short link redirects first
-  const shortLinkRedirect = await handleShortLinkRedirect(request);
-  if (shortLinkRedirect) {
-    return shortLinkRedirect;
-  }
-
-  // Handle dashboard authentication
-  if (url.pathname.startsWith("/dashboard")) {
-    return withAuth({
-      pages: {
-        signIn: "/login",
-      },
-      callbacks: {
-        authorized: ({ token }) => !!token,
-      },
-    })(request);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    "/dashboard/:path*",
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
