@@ -26,6 +26,7 @@ model User {
   accounts  Account[]
   sessions  Session[]
   shortLinks ShortLink[]
+  podcasts  Podcast[]
 }
 
 model BlogPost {
@@ -120,4 +121,20 @@ model WhitelistedEmail {
   id    String @id @default(auto()) @map("_id") @db.ObjectId
   email String @unique
   createdAt DateTime @default(now())
+}
+
+model Podcast {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  subtitle    String?
+  description String
+  date        String?
+  duration    String?
+  audioUrl    String
+  image       String?
+  coverImage  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    String
 }

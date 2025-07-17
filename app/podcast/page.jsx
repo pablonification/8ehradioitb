@@ -5,66 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import ButtonPrimary from "../components/ButtonPrimary";
 import { Swiper, SwiperSlide } from "swiper/react";
+import SwiperCore, { Navigation, Pagination } from "swiper";
 import "swiper/css";
-import { useState, useRef } from "react";
-
-const podcasts = [
-  {
-    title: "GWS#13: Stereotype Battle! UKM Tersulit Digapai Se-ITB? 8EH VS LFM",
-    subtitle: "GWS : Gather With Us",
-    description:
-      "Emang bener masuk 8EH dan LFM penuh perjuangan?!🤔 GWS #14 bakal bongkar mitos, stereotype, dan cerita kocak dari dua UKM yang katanya cuma buat anak chosen ones. Penasaran siapa yang paling bikin ciut? Dengerin sampai habis ya, Kampus Mania !!",
-    date: "Dec 23, 2024",
-    duration: "31 min 34 sec",
-    image: "/pod1.png",
-  },
-  {
-    title: "GWS #14 : ITB! Kupu-Kupu VS Kura-Kura?",
-    subtitle: "GWS : Gather With Us",
-    description:
-      "GWS! Mahasiswa kupu-kupu tuh apa sih? Kalau mahasiswa kura-kura itu apa? Itu mahasiswa yang punya hewan ya? 🤔 Ga dong Kampus Mania! Tapi kalau penasaran, Kampus Mania wajib dengerin nih bareng Iam dan Ael tentang istilah-istilah stereotype mahasiswa beginian! 😉 Siapa tahu Kampus Mania kan ternyata masuk tipe-tipe yang bakal disebutkan nantinya! 😉",
-    date: "Dec 7, 2024",
-    duration: "33 min 40 sec",
-    image: "/pod2.png",
-  },
-  {
-    title: "GWS #15 : ITB! Kupu-Kupu VS Kura-Kura?",
-    subtitle: "GWS : Gather With Us",
-    description:
-      "GWS! Mahasiswa kupu-kupu tuh apa sih? Kalau mahasiswa kura-kura itu apa? Itu mahasiswa yang punya hewan ya? 🤔 Ga dong Kampus Mania! Tapi kalau penasaran, Kampus Mania wajib dengerin nih bareng Iam dan Ael tentang istilah-istilah stereotype mahasiswa beginian! 😉 Siapa tahu Kampus Mania kan ternyata masuk tipe-tipe yang bakal disebutkan nantinya! 😉",
-    date: "Dec 7, 2024",
-    duration: "33 min 40 sec",
-    image: "/pod2.png",
-  },
-  {
-    title: "GWS #16 : ITB! Kupu-Kupu VS Kura-Kura?",
-    subtitle: "GWS : Gather With Us",
-    description:
-      "GWS! Mahasiswa kupu-kupu tuh apa sih? Kalau mahasiswa kura-kura itu apa? Itu mahasiswa yang punya hewan ya? 🤔 Ga dong Kampus Mania! Tapi kalau penasaran, Kampus Mania wajib dengerin nih bareng Iam dan Ael tentang istilah-istilah stereotype mahasiswa beginian! 😉 Siapa tahu Kampus Mania kan ternyata masuk tipe-tipe yang bakal disebutkan nantinya! 😉",
-    date: "Dec 7, 2024",
-    duration: "33 min 40 sec",
-    image: "/pod2.png",
-  },
-  {
-    title: "GWS #17 : ITB! Kupu-Kupu VS Kura-Kura?",
-    subtitle: "GWS : Gather With Us",
-    description:
-      "GWS! Mahasiswa kupu-kupu tuh apa sih? Kalau mahasiswa kura-kura itu apa? Itu mahasiswa yang punya hewan ya? 🤔 Ga dong Kampus Mania! Tapi kalau penasaran, Kampus Mania wajib dengerin nih bareng Iam dan Ael tentang istilah-istilah stereotype mahasiswa beginian! 😉 Siapa tahu Kampus Mania kan ternyata masuk tipe-tipe yang bakal disebutkan nantinya! 😉",
-    date: "Dec 7, 2024",
-    duration: "33 min 40 sec",
-    image: "/pod2.png",
-  },
-  {
-    title: "GWS #18 : ITB! Kupu-Kupu VS Kura-Kura?",
-    subtitle: "GWS : Gather With Us",
-    description:
-      "GWS! Mahasiswa kupu-kupu tuh apa sih? Kalau mahasiswa kura-kura itu apa? Itu mahasiswa yang punya hewan ya? 🤔 Ga dong Kampus Mania! Tapi kalau penasaran, Kampus Mania wajib dengerin nih bareng Iam dan Ael tentang istilah-istilah stereotype mahasiswa beginian! 😉 Siapa tahu Kampus Mania kan ternyata masuk tipe-tipe yang bakal disebutkan nantinya! 😉",
-    date: "Dec 7, 2024",
-    duration: "33 min 40 sec",
-    image: "/pod2.png",
-  },
-];
-
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import { useEffect, useState } from "react";
 
 const programs = [
   {
@@ -289,125 +234,117 @@ const PodcastPrograms = () => {
   );
 };
 
+const PODCASTS_PER_PAGE = 3; // Easily change this value to adjust per page
+
 const PodcastEpisodes = () => {
-  // --- MULAI LOGIKA PAGINASI ---
-
+  const [podcasts, setPodcasts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const episodesPerPage = 3; // Tentukan berapa episode per halaman
-
-  // --- STATE BARU UNTUK ANIMASI ---
   const [isAnimating, setIsAnimating] = useState(false);
 
-  const totalPages = Math.ceil(podcasts.length / episodesPerPage);
-  const indexOfLastEpisode = currentPage * episodesPerPage;
-  const indexOfFirstEpisode = indexOfLastEpisode - episodesPerPage;
-  const currentEpisodes = podcasts.slice(
-    indexOfFirstEpisode,
-    indexOfLastEpisode,
-  );
+  useEffect(() => {
+    fetch("/api/podcast")
+      .then((res) => res.json())
+      .then((data) => {
+        setPodcasts(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Failed to load podcasts");
+        setLoading(false);
+      });
+  }, []);
 
-  // --- FUNGSI PAGINASI DIMODIFIKASI UNTUK MENTRIGGER ANIMASI ---
+  if (loading) return <div className="text-center py-8">Loading...</div>;
+  if (error) return <div className="text-center text-red-600 py-8">{error}</div>;
+
+  // Pagination logic
+  const totalPages = Math.ceil(podcasts.length / PODCASTS_PER_PAGE);
+  const indexOfLast = currentPage * PODCASTS_PER_PAGE;
+  const indexOfFirst = indexOfLast - PODCASTS_PER_PAGE;
+  const currentPodcasts = podcasts.slice(indexOfFirst, indexOfLast);
+
+  // Fade animation on page change
   const handlePageChange = (newPage) => {
-    // Jangan lakukan apa pun jika sudah dalam proses animasi atau halaman tidak valid
     if (isAnimating || newPage < 1 || newPage > totalPages) return;
-
-    setIsAnimating(true); // Mulai animasi fade-out
-
-    // Tunggu animasi fade-out selesai, lalu ganti halaman dan fade-in
+    setIsAnimating(true);
     setTimeout(() => {
       setCurrentPage(newPage);
-      setIsAnimating(false); // Selesaikan animasi, memicu fade-in
-    }, 200); // Durasi harus sama dengan durasi transisi di CSS (duration-200)
+      setIsAnimating(false);
+    }, 250); // duration matches transition
   };
 
-  // --- SELESAI LOGIKA PAGINASI ---
   return (
-    <>
-      {/* Bagian Latest Podcast Episodes */}
-      <section className="pt-24 bg-gradient-to-b from-black/0 from-0% to-black to-5% md:to-15% text-white relative overflow-hidden">
-        <div className="absolute top-0 md:top-1/3 right-0 md:right-0 w-100 md:w-180 opacity-20 -rotate-17">
-          <Image
-            src="/boombox-podcast.png"
-            alt="Decorative Checkmark"
-            width={1000}
-            height={1000}
-            className=""
-          />
-        </div>
-        <div className="absolute bottom-0 md:top-0 left-0 md:-translate-x-20 w-40 md:w-100 opacity-30 rotate-44">
-          <Image
-            src="/mic-podcast.png"
-            alt="Decorative Checkmark"
-            width={1000}
-            height={1000}
-            className=""
-          />
-        </div>
-        <div className="relative z-10 max-w-7xl mx-auto">
-          <p className="text-lg font-bold text-gray-100 mx-auto md:mx-0 mb-4 text-center drop-shadow-md">
-            Podcasts
-          </p>
-          <h2 className="text-6xl font-accent text-center mb-12 drop-shadow-md">
-            Latest Podcast Episodes
-          </h2>
-          <div className="bg-white/15 backdrop-blur-sm py-4 md:px-12 rounded-4xl px-4 mx-0 md:mx-4 border border-gray-200/20">
-            <div
-              className={`space-y-4 transition-opacity duration-200 ${isAnimating ? "opacity-0" : "opacity-100"}`}
-            >
-              {/* Podcasts List */}
-              <div className="space-y-4">
-                {currentEpisodes.map((pod, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-start gap-4 sm:gap-6 py-8 border-b border-gray-200/80 last:border-b-0"
-                  >
-                    {/* Image */}
-                    <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 relative flex-shrink-0">
-                      <Image
-                        src={pod.image}
-                        alt="Podcast Thumbnail"
-                        fill
-                        className="object-cover rounded-2xl shadow-md"
-                      />
-                    </div>
-                    {/* Details */}
-                    <div className="flex-1">
-                      <h3 className="font-heading text-lg sm:text-xl text-gray-200 font-bold mb-2">
-                        {pod.title}
-                      </h3>
-                      <p className="font-body text-sm text-gray-300 mb-2">
-                        {pod.subtitle}
-                      </p>
-                      <p className="font-body text-sm text-gray-300 mb-4 leading-relaxed">
-                        {pod.description}
-                      </p>
-                      <div className="flex justify-between items-center mt-4">
-                        <p className="font-body text-xs sm:text-sm text-gray-300">
-                          {pod.date} &bull; {pod.duration}
-                        </p>
-                        <ButtonPrimary className="!w-12 !h-12 !p-0 !rounded-full flex items-center justify-center flex-shrink-0">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5 text-white ml-0.5"
-                            fill="white"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <polygon points="6,4 20,12 6,20" fill="white" />
-                          </svg>
-                        </ButtonPrimary>
-                      </div>
-                    </div>
+    <section className="pt-24 bg-gradient-to-b from-black/0 from-0% to-black to-5% md:to-15% text-white relative overflow-hidden">
+      <div className="absolute top-0 md:top-1/3 right-0 md:right-0 w-100 md:w-180 opacity-20 -rotate-17">
+        <Image
+          src="/boombox-podcast.png"
+          alt="Decorative Checkmark"
+          width={1000}
+          height={1000}
+          className=""
+        />
+      </div>
+      <div className="absolute bottom-0 md:top-0 left-0 md:-translate-x-20 w-40 md:w-100 opacity-30 rotate-44">
+        <Image
+          src="/mic-podcast.png"
+          alt="Decorative Checkmark"
+          width={1000}
+          height={1000}
+          className=""
+        />
+      </div>
+      <div className="relative z-10 max-w-7xl mx-auto">
+        <p className="text-lg font-bold text-gray-100 mx-auto md:mx-0 mb-4 text-center drop-shadow-md">
+          Podcasts
+        </p>
+        <h2 className="text-6xl font-accent text-center mb-12 drop-shadow-md">
+          Latest Podcast Episodes
+        </h2>
+        <div className="bg-white/15 backdrop-blur-sm mb-12 py-4 md:px-12 rounded-4xl px-4 mx-0 md:mx-4 border border-gray-200/20">
+          <div className={`space-y-4 transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
+            {currentPodcasts.map((pod, idx) => (
+              <div
+                key={pod.id || idx}
+                className="flex items-start gap-4 sm:gap-6 py-8 border-b border-gray-200/80 last:border-b-0"
+              >
+                {/* Image */}
+                <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 relative flex-shrink-0">
+                  <img
+                    src={pod.image || pod.coverImage || "/8eh-real.svg"}
+                    alt="Podcast Thumbnail"
+                    className="object-cover rounded-2xl shadow-md w-full h-full"
+                  />
+                </div>
+                {/* Details */}
+                <div className="flex-1">
+                  <h3 className="font-heading text-lg sm:text-xl text-gray-200 font-bold mb-2">
+                    {pod.title}
+                  </h3>
+                  <p className="font-body text-sm text-gray-300 mb-2">
+                    {pod.subtitle}
+                  </p>
+                  <p className="font-body text-sm text-gray-300 mb-4 leading-relaxed">
+                    {pod.description}
+                  </p>
+                  <div className="flex justify-between items-center mt-4">
+                    <p className="font-body text-xs sm:text-sm text-gray-300">
+                      {pod.date} &bull; {pod.duration}
+                    </p>
+                    <audio controls src={pod.audioUrl} className="w-40" />
                   </div>
-                ))}
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-          {/* Kontrol Paginasi */}
+        </div>
+        {/* Swiper Pagination */}
+        {totalPages > 1 && (
           <div className="flex justify-center items-center my-12 space-x-4">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1 || isAnimating} // Nonaktifkan tombol saat animasi berjalan
+              disabled={currentPage === 1}
               className="w-12 h-12 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200/20"
             >
               <svg
@@ -432,7 +369,7 @@ const PodcastEpisodes = () => {
             </p>
             <button
               onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages || isAnimating} // Nonaktifkan tombol saat animasi berjalan
+              disabled={currentPage === totalPages}
               className="w-12 h-12 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200/20"
             >
               <svg
@@ -451,9 +388,9 @@ const PodcastEpisodes = () => {
               </svg>
             </button>
           </div>
-        </div>
-      </section>
-    </>
+        )}
+      </div>
+    </section>
   );
 };
 
@@ -464,7 +401,6 @@ export default function PodcastPage() {
       <PodcastHero />
       <PodcastPrograms />
       <PodcastEpisodes />
-      {/* Anda bisa menambahkan komponen lain seperti YoutubeCTA di sini jika perlu */}
       <FooterSection />
     </main>
   );
