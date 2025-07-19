@@ -1,0 +1,90 @@
+{
+  "name": "8EH Radio ITB",
+  "short_name": "8EH Radio",
+  "description": "Tempatnya semua informasi dan hiburan untuk Kampus Mania. Your Edutainment and Music Station!",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FDFBF6",
+  "theme_color": "#EA4A30",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "id",
+  "categories": ["entertainment", "music", "education"],
+  "icons": [
+    {
+      "src": "/8eh.ico",
+      "sizes": "16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/8eh.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/8eh-real-long.png",
+      "sizes": "300x100",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/8eh.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/8eh-real-long.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Listen Live",
+      "short_name": "Listen",
+      "description": "Listen to 8EH Radio ITB live stream",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/8eh.ico",
+          "sizes": "32x32"
+        }
+      ]
+    },
+    {
+      "name": "Podcasts",
+      "short_name": "Podcasts",
+      "description": "Browse our podcast collection",
+      "url": "/podcast",
+      "icons": [
+        {
+          "src": "/8eh.ico",
+          "sizes": "32x32"
+        }
+      ]
+    },
+    {
+      "name": "Blog",
+      "short_name": "Blog",
+      "description": "Read our latest articles",
+      "url": "/blog",
+      "icons": [
+        {
+          "src": "/8eh.ico",
+          "sizes": "32x32"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/8eh-real-long.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "8EH Radio ITB Homepage"
+    }
+  ]
+}
