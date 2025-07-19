@@ -62,7 +62,7 @@ export const metadata = {
   icons: {
     icon: [
       { url: "/8eh.ico", sizes: "32x32", type: "image/x-icon" },
-      { url: "/8eh-real.ico", sizes: "16x16", type: "image/x-icon" },
+      { url: "/8eh.ico", sizes: "16x16", type: "image/x-icon" },
     ],
     shortcut: "/8eh.ico",
     apple: "/8eh.ico",
