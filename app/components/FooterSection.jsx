@@ -4,19 +4,20 @@ import Link from "next/link";
 
 const footerLinks = {
   discover: [
-    { title: "Podcast", href: "#" },
-    { title: "Blog", href: "#" },
     { title: "Programs", href: "/programs" },
-    { title: "FAQ", href: "#" },
+    { title: "About Us", href: "/about-us" },
+    { title: "FAQ", href: "/faq" },
   ],
   partnership: [
-    { title: "Media Partner", href: "#" },
+    { title: "Media Partner", href: "/media-partner" },
     { title: "Agency", href: "/agency" },
-    { title: "Join Us", href: "#" },
+    // { title: "Join Us", href: "#" },
   ],
-  company: [
-    { title: "About Us", href: "/about-us" },
-    { title: "Contact", href: "#" },
+  pages: [
+    { title: "Home", href: "/" },
+    { title: "Podcast", href: "/podcast" },
+    { title: "Blog", href: "/blog" },
+
   ],
 };
 
@@ -97,6 +98,23 @@ export default function FooterSection() {
           <div className="lg:col-span-8 grid grid-cols-2 md:grid-cols-3 gap-8">
             <div>
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                Pages
+              </h3>
+              <ul className="space-y-3">
+                {footerLinks.pages.map((link) => (
+                  <li key={link.title}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-gray-600 hover:text-red-600 transition-colors"
+                    >
+                      {link.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
                 Discover
               </h3>
               <ul className="space-y-3">
@@ -118,23 +136,6 @@ export default function FooterSection() {
               </h3>
               <ul className="space-y-3">
                 {footerLinks.partnership.map((link) => (
-                  <li key={link.title}>
-                    <Link
-                      href={link.href}
-                      className="text-sm text-gray-600 hover:text-red-600 transition-colors"
-                    >
-                      {link.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                Profile
-              </h3>
-              <ul className="space-y-3">
-                {footerLinks.company.map((link) => (
                   <li key={link.title}>
                     <Link
                       href={link.href}

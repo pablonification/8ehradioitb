@@ -398,9 +398,15 @@ export function RateCard() {
 
               <ButtonPrimary
                 className="!bg-[#EA4A30] !text-white hover:!bg-[#D0402A] !px-8 !py-2"
-                onClick={() => {}}
+                onClick={() => {
+                  const subject = encodeURIComponent(`Permohonan Media Partner: ${plan.title}`);
+                  const body = encodeURIComponent(
+                    `Halo 8EH Radio ITB,\n\nSaya ingin mendaftar sebagai media partner dan memilih paket berikut:\n\nPaket: ${plan.title}\nHarga: ${plan.price}\n\nMohon informasikan langkah selanjutnya. Terima kasih!\n\n(Nama Anda)\n(Instansi/Organisasi)\n(Kontak yang bisa dihubungi)`
+                  );
+                  window.location.href = `mailto:teknik8ehradioitb@gmail.com?subject=${subject}&body=${body}`;
+                }}
               >
-                Learn More
+                Daftar Sekarang
               </ButtonPrimary>
             </div>
           ))}

@@ -8,69 +8,17 @@ import ButtonPrimary from "@/app/components/ButtonPrimary";
 import BoardSliderAnnouncer from "@/app/components/BoardSliderAnnouncer";
 import RadioPlayer from "@/app/components/RadioPlayer";
 import FooterSection from "@/app/components/FooterSection";
+import PodcastAudioPlayer from "@/app/components/PodcastAudioPlayer";
 
 // ---------------------------------------------------------------------------
 //  Placeholder data (to be replaced with real content later)
 // ---------------------------------------------------------------------------
 
-// Podcasts
-const podcasts = [
-  {
-    title: "GWS#14: Stereotype Battle! UKM Tersulit Digapai Se-ITB? 8EH VS LFM",
-    subtitle: "GWS : Gather With Us",
-    description:
-      "Emang bener masuk 8EH dan LFM penuh perjuangan?!🤔 GWS #14 bakal bongkar mitos, stereotype, dan cerita kocak dari dua UKM yang katanya cuma buat anak chosen ones. Penasaran siapa yang paling bikin ciut? Dengerin sampai habis ya, Kampus Mania !!",
-    date: "Dec 23, 2024",
-    duration: "31 min 34 sec",
-    image: "/pod1.png",
-  },
-  {
-    title: "GWS #13 : ITB! Kupu-Kupu VS Kura-Kura?",
-    subtitle: "GWS : Gather With Us",
-    description:
-      "GWS! Mahasiswa kupu-kupu tuh apa sih? Kalau mahasiswa kura-kura itu apa? Itu mahasiswa yang punya hewan ya? 🤔 Ga dong Kampus Mania! Tapi kalau penasaran, Kampus Mania wajib dengerin nih bareng Iam dan Ael tentang istilah-istilah stereotype mahasiswa beginian! 😉 Siapa tahu Kampus Mania kan ternyata masuk tipe-tipe yang bakal disebutkan nantinya! 😉",
-    date: "Dec 7, 2024",
-    duration: "33 min 40 sec",
-    image: "/pod2.png",
-  },
-];
+// Podcasts - will be fetched from API
+const podcasts = [];
 
-// News
-const newsItems = [
-  {
-    category: "Achievement",
-    title: "Work Life Balance 101 (Kru's Version)",
-    description:
-      "Dibalik siaran radio, ada para Kru yang diam-diam menjadi mahasiswa ambis. Hamzah salah satunya!",
-    author: "Aline",
-    date: "6 Juni 2025",
-    readTime: "5 min read",
-    image: "/placeholder-news1.png",
-    authorImage: "/8eh-real.svg",
-  },
-  {
-    category: "Events",
-    title: "Merakit Asa",
-    description:
-      "Aksi angkatan MERAKIT'24 SAPPK ITB menjadi bukti bahwa kolaborasi dan kepedulian sosial dapat tumbuh dari lingkungan kampus.",
-    author: "Abel",
-    date: "4 Juni 2025",
-    readTime: "5 min read",
-    image: "/placeholder-news2.png",
-    authorImage: "/8eh-real.svg",
-  },
-  {
-    category: "News",
-    title: "They Call It... The Last Paradise",
-    description:
-      "Menambang nikel di Raja Ampat adalah bentuk keserakahan yang dibungkus dalih kebutuhan.",
-    author: "Zahra, Mahar, & Ody",
-    date: "8 Juni 2025",
-    readTime: "5 min read",
-    image: "/placeholder-news3.png",
-    authorImage: "/8eh-real.svg",
-  },
-];
+// News - will be fetched from API
+const newsItems = [];
 
 // Programs
 const programs = [
@@ -197,12 +145,18 @@ function HeroSection() {
             >
               Listen
             </ButtonPrimary>
-            <ButtonPrimary
-              className="!bg-[#EFEAE6]/80 !text-[#444] hover:!bg-[#E5DED8] !px-8 !py-3"
-              onClick={() => {}}
+            <a
+              href="https://www.instagram.com/regenerasi8eh/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block"
             >
-              Join
-            </ButtonPrimary>
+              <ButtonPrimary
+                className="!bg-[#EFEAE6]/80 !text-[#444] hover:!bg-[#E5DED8] !px-8 !py-3"
+              >
+                Join
+              </ButtonPrimary>
+            </a>
           </div>
         </div>
       </div>
@@ -228,6 +182,47 @@ function HeroSection() {
 }
 
 function PodcastSection() {
+  const [podcasts, setPodcasts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPodcast, setCurrentPodcast] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/podcast")
+      .then((res) => res.json())
+      .then((data) => {
+        // Get only the 2 latest podcasts
+        const latestPodcasts = data.slice(0, 2);
+        console.log("Podcast data:", latestPodcasts); // Debug log
+        setPodcasts(latestPodcasts);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching podcast data:", error);
+        setLoading(false);
+      });
+  }, []);
+
+  const handlePlayPause = (pod) => {
+    console.log("Play/Pause clicked for podcast:", pod.title);
+    console.log("Current podcast:", currentPodcast?.title);
+    console.log("Audio URL:", pod.audioUrl);
+    
+    if (currentPodcast && currentPodcast.id === pod.id) {
+      // Same podcast - toggle play/pause
+      console.log("Toggling play/pause for same podcast");
+      setIsPlaying((prev) => !prev);
+    } else {
+      // Different podcast - switch to new one and play
+      console.log("Switching to new podcast and playing");
+      setCurrentPodcast(pod);
+      // Small delay to ensure state updates before playing
+      setTimeout(() => {
+        setIsPlaying(true);
+      }, 100);
+    }
+  };
+
   return (
     <section className="pt-12 pb-16 bg-white relative overflow-hidden">
       {/* Background decorative blob */}
@@ -247,65 +242,135 @@ function PodcastSection() {
         <div className="w-1/2 sm:w-1/3 border-t-2 border-gray-200 mb-10" />
 
         {/* Podcasts List */}
-        <div className="space-y-4">
-          {podcasts.map((pod, idx) => (
-            <div
-              key={idx}
-              className="flex items-start gap-4 sm:gap-6 py-8 border-b border-gray-200/80 last:border-b-0"
-            >
-              {/* Image */}
-              <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 relative flex-shrink-0">
-                <Image
-                  src={pod.image}
-                  alt="Podcast Thumbnail"
-                  fill
-                  className="object-cover rounded-2xl shadow-md"
-                />
-              </div>
-              {/* Details */}
-              <div className="flex-1">
-                <h3 className="font-heading text-lg sm:text-xl text-gray-900 font-bold mb-2">
-                  {pod.title}
-                </h3>
-                <p className="font-body text-sm text-gray-500 mb-2">
-                  {pod.subtitle}
-                </p>
-                <p className="font-body text-sm text-gray-600 mb-4 leading-relaxed">
-                  {pod.description}
-                </p>
-                <div className="flex justify-between items-center mt-4">
-                  <p className="font-body text-xs sm:text-sm text-gray-500">
-                    {pod.date} &bull; {pod.duration}
-                  </p>
-                  <ButtonPrimary className="!w-12 !h-12 !p-0 !rounded-full flex items-center justify-center flex-shrink-0">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-white ml-0.5"
-                      fill="white"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <polygon points="6,4 20,12 6,20" fill="white" />
-                    </svg>
-                  </ButtonPrimary>
+        {loading ? (
+          <div className="text-center py-8">Loading podcasts...</div>
+        ) : podcasts.length > 0 ? (
+          <div className="space-y-4">
+            {podcasts.map((pod, idx) => {
+              const playing = currentPodcast && currentPodcast.id === pod.id && isPlaying;
+              return (
+                <div
+                  key={pod.id || idx}
+                  className="flex items-start gap-4 sm:gap-6 py-8 border-b border-gray-200/80 last:border-b-0"
+                >
+                  {/* Image */}
+                  <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 relative flex-shrink-0">
+                    <img
+                      src={pod.image || pod.coverImage || "/8eh-real.svg"}
+                      alt="Podcast Thumbnail"
+                      className="object-cover rounded-2xl shadow-md w-full h-full"
+                    />
+                  </div>
+                  {/* Details */}
+                  <div className="flex-1">
+                    <h3 className="font-heading text-lg sm:text-xl text-gray-900 font-bold mb-2">
+                      {pod.title}
+                    </h3>
+                    <p className="font-body text-sm text-gray-500 mb-2">
+                      {pod.subtitle}
+                    </p>
+                    <p className="font-body text-sm text-gray-600 mb-4 leading-relaxed">
+                      {pod.description}
+                    </p>
+                    <div className="flex justify-between items-center mt-4">
+                      <p className="font-body text-xs sm:text-sm text-gray-500">
+                        {pod.date} &bull; {pod.duration}
+                      </p>
+                      <ButtonPrimary 
+                        className="!w-12 !h-12 !p-0 !rounded-full flex items-center justify-center flex-shrink-0"
+                        aria-label={playing ? "Pause Podcast" : "Play Podcast"}
+                        onClick={() => handlePlayPause(pod)}
+                      >
+                        {playing ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 text-white"
+                            fill="white"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <rect x="6" y="5" width="4" height="14" />
+                            <rect x="14" y="5" width="4" height="14" />
+                          </svg>
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 text-white"
+                            fill="white"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <polygon points="6,4 20,12 6,20" fill="white" />
+                          </svg>
+                        )}
+                      </ButtonPrimary>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">No podcasts available yet.</div>
+        )}
 
         {/* View All Button */}
         <div className="text-center mt-12">
-          <ButtonPrimary className="!bg-gray-100 !text-gray-800 hover:!bg-gray-200 !font-medium !px-8 !py-3">
+          <ButtonPrimary
+            className="!bg-gray-100 !text-gray-800 hover:!bg-gray-200 !font-medium !px-8 !py-3"
+            onClick={() => window.open('/podcast', '_self')}
+          >
             View all
           </ButtonPrimary>
         </div>
       </div>
+      
+      {/* Render PodcastAudioPlayer if a podcast is selected */}
+      {currentPodcast && (
+        <PodcastAudioPlayer
+          audioUrl={currentPodcast.audioUrl}
+          title={currentPodcast.title}
+          image={currentPodcast.image || currentPodcast.coverImage || "/8eh-real.svg"}
+          subtitle={currentPodcast.subtitle}
+          description={currentPodcast.description}
+          isPlaying={isPlaying}
+          setIsPlaying={setIsPlaying}
+        />
+      )}
     </section>
   );
 }
 
 function NewsSection() {
+  const [newsItems, setNewsItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/blog")
+      .then((res) => res.json())
+      .then((data) => {
+        // Get only the 3 latest blog posts
+        const latestPosts = data.slice(0, 3);
+        console.log("Blog data:", latestPosts); // Debug log
+        setNewsItems(latestPosts);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching blog data:", error);
+        setLoading(false);
+      });
+  }, []);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    });
+  };
+
   return (
     <section className="py-16 bg-white relative">
       <div className="absolute top-10 left-1/4 opacity-80 -translate-x-1/2">
@@ -333,54 +398,86 @@ function NewsSection() {
           Stay updated with campus happenings and insights.
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 text-left">
-          {newsItems.map((item, idx) => (
-            <Link href="#" key={idx} className="block group">
-              <div className="bg-gradient-to-b from-[#FEF9E7] to-[#F5E6A3] rounded-3xl shadow-sm overflow-hidden flex flex-col h-full p-4 transition-all duration-300 ease-in-out group-hover:shadow-xl group-hover:scale-[1.02]">
-                <div className="relative h-48 rounded-xl overflow-hidden">
-                  <Image
-                    src={item.image}
-                    alt={item.title}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="pt-6 px-2 flex flex-col flex-grow">
-                  <p className="font-body text-sm text-gray-500 mb-2 font-medium">
-                    {item.category}
-                  </p>
-                  <h3 className="font-heading text-xl text-gray-900 font-bold mb-3">
-                    {item.title}
-                  </h3>
-                  <p className="font-body text-sm text-gray-600 mb-6 flex-grow">
-                    {item.description}
-                  </p>
-                  <div className="flex items-center mt-auto">
-                    <div className="w-10 h-10 relative mr-3">
-                      <Image
-                        src={item.authorImage}
-                        alt={item.author}
-                        fill
-                        className="rounded-full"
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <p className="font-body font-semibold text-sm text-gray-800">
-                        {item.author}
-                      </p>
-                      <p className="font-body text-xs text-gray-500">
-                        {item.date} &bull; {item.readTime}
-                      </p>
+        {loading ? (
+          <div className="text-center py-8">Loading news...</div>
+        ) : newsItems.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 text-left">
+            {newsItems.map((item, idx) => (
+              <Link href={`/blog/${item.slug}`} key={item.id || idx} className="block group">
+                <div className="bg-gradient-to-b from-[#FEF9E7] to-[#F5E6A3] rounded-3xl shadow-sm overflow-hidden flex flex-col h-full p-4 transition-all duration-300 ease-in-out group-hover:shadow-xl group-hover:scale-[1.02]">
+                  <div className="relative h-48 rounded-xl overflow-hidden">
+                    <img
+                      src={item.mainImage || "/placeholder-news1.png"}
+                      alt={item.title}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                  <div className="pt-6 px-2 flex flex-col flex-grow">
+                    <p className="font-body text-sm text-gray-500 mb-2 font-medium">
+                      {item.category || "News"}
+                    </p>
+                    <h3 className="font-heading text-xl text-gray-900 font-bold mb-3">
+                      {item.title}
+                    </h3>
+                    <p className="font-body text-sm text-gray-600 mb-6 flex-grow line-clamp-3">
+                      {item.description || "No description available"}
+                    </p>
+                    <div className="flex items-center mt-auto">
+                      <div className="w-10 h-10 relative mr-3">
+                        <img
+                          src={
+                            item.authors?.[0]?.user?.image 
+                              ? (item.authors[0].user.image.includes('googleusercontent.com')
+                                  ? item.authors[0].user.image.replace(/=s\d+-c/, '=s150-c')
+                                  : item.authors[0].user.image.startsWith('http') 
+                                    ? item.authors[0].user.image 
+                                    : `${window.location.origin}${item.authors[0].user.image}`)
+                              : "/8eh-real.svg"
+                          }
+                          alt={item.authors?.[0]?.user?.name || "Author"}
+                          className="rounded-full w-full h-full object-cover"
+                          onError={(e) => {
+                            console.log("Image failed to load:", e.target.src);
+                            // Try alternative Google image size if it's a Google image
+                            if (e.target.src.includes('googleusercontent.com') && !e.target.src.includes('=s150-c')) {
+                              e.target.src = e.target.src.replace(/=s\d+-c/, '=s150-c');
+                            } else {
+                              e.target.src = "/8eh-real.svg";
+                              e.target.onerror = null; // Prevent infinite loop
+                            }
+                          }}
+                          onLoad={(e) => {
+                            console.log("Image loaded successfully:", e.target.src);
+                          }}
+                          crossOrigin="anonymous"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        <p className="font-body font-semibold text-sm text-gray-800">
+                          {item.authors?.[0]?.user?.name || "8EH Team"}
+                        </p>
+                        <p className="font-body text-xs text-gray-500">
+                          {formatDate(item.createdAt)} &bull; {item.readTime || "5 min read"}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">No news articles available yet.</div>
+        )}
 
         <div className="text-center mt-12">
-          <ButtonPrimary className="!bg-gray-200 !text-gray-800 hover:!bg-gray-300 !font-medium !px-6 !py-2.5">
+          <ButtonPrimary
+            className="!bg-gray-200 !text-gray-800 hover:!bg-gray-300 !font-medium !px-6 !py-2.5"
+            onClick={() => {
+              window.open('/blog', '_self');
+            }}
+          >
             View all
           </ButtonPrimary>
         </div>

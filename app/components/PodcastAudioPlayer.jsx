@@ -15,6 +15,7 @@ const PodcastAudioPlayer = ({
   const [showPlayer, setShowPlayer] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isRepeat, setIsRepeat] = useState(false);
 
   // Gunakan hook untuk mendapatkan referensi audio yang terjamin ada
   const audioRef = useGlobalAudio();
@@ -70,19 +71,40 @@ const PodcastAudioPlayer = ({
 
     const handleTimeUpdate = () => setProgress(audio.currentTime);
     const handleLoadedMetadata = () => setDuration(audio.duration);
-    const handleEnded = () => setIsPlaying(false);
 
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
-    audio.addEventListener("ended", handleEnded);
 
     return () => {
       window.removeEventListener("radioPlayRequested", handleRadioPlay);
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      audio.removeEventListener("ended", handleEnded);
     };
   }, [audioRef, setIsPlaying, isPlaying]);
+
+  // Separate effect for handling audio ended with current repeat state
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleEnded = () => {
+      if (isRepeat) {
+        audio.currentTime = 0;
+        audio.play().catch((e) => {
+          console.error("Audio repeat play error:", e);
+          setIsPlaying(false);
+        });
+      } else {
+        setIsPlaying(false);
+      }
+    };
+
+    audio.addEventListener("ended", handleEnded);
+
+    return () => {
+      audio.removeEventListener("ended", handleEnded);
+    };
+  }, [audioRef, isRepeat, setIsPlaying]);
 
   // This effect must be at the top level, not inside another useEffect
   useEffect(() => {
@@ -109,6 +131,24 @@ const PodcastAudioPlayer = ({
     if (audioRef.current)
       audioRef.current.currentTime = parseFloat(e.target.value);
   };
+  
+  // Skip functionality
+  const skipBackward = () => {
+    if (audioRef.current) {
+      const newTime = Math.max(0, audioRef.current.currentTime - 10);
+      audioRef.current.currentTime = newTime;
+    }
+  };
+  
+  const skipForward = () => {
+    if (audioRef.current) {
+      const newTime = Math.min(audioRef.current.duration, audioRef.current.currentTime + 10);
+      audioRef.current.currentTime = newTime;
+    }
+  };
+  
+  const toggleRepeat = () => setIsRepeat((r) => !r);
+  
   const formatTime = (sec) => {
     if (isNaN(sec) || !isFinite(sec)) return "0:00";
     const m = Math.floor(sec / 60);
@@ -120,11 +160,33 @@ const PodcastAudioPlayer = ({
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/15 to-transparent backdrop-blur-xs z-40 pointer-events-none" />
-      <div className="fixed bottom-0 left-0 right-0 z-50 p-2 md:p-4">
-        <div className="bg-white rounded-lg shadow-2xl max-w-full mx-auto p-3 flex flex-col md:flex-row items-center gap-3 md:gap-4 border border-gray-200/80">
-          <div className="flex items-center gap-3 w-full md:w-auto md:flex-shrink-0">
-            <div className="w-14 h-14 bg-gray-200 rounded-md relative overflow-hidden shadow-sm flex-shrink-0">
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <div className="bg-white shadow-2xl max-w-full mx-auto px-2 md:px-6 lg:px-60 py-1 md:py-2 flex flex-col md:flex-row items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto md:flex-shrink-0">
+            {/* Play button moved here for mobile */}
+            <button
+              onClick={togglePlay}
+              className="md:hidden w-8 h-8 rounded-full ring-1 ring-gray-300 hover:ring-gray-900 text-gray-800 flex items-center justify-center text-xl transition-all flex-shrink-0"
+            >
+              {isPlaying ? (
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="w-4 h-4"
+                >
+                  <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path>
+                </svg>
+              ) : (
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="w-4 h-4"
+                >
+                  <path d="M8 5v14l11-7z"></path>
+                </svg>
+              )}
+            </button>
+            <div className="w-10 h-10 md:w-14 md:h-14 bg-gray-200 rounded-md relative overflow-hidden shadow-sm flex-shrink-0">
               <img
                 src={image || "/8eh-real.svg"}
                 alt="cover"
@@ -132,8 +194,8 @@ const PodcastAudioPlayer = ({
               />
             </div>
             <div className="text-sm min-w-0 w-48 md:w-60 flex-shrink-0 overflow-hidden">
-              <p className="font-bold text-gray-800 truncate">{title}</p>
-              {subtitle && <p className="text-gray-500 truncate">{subtitle}</p>}
+              <p className="font-bold text-gray-800 truncate text-xs md:text-sm">{title}</p>
+              {subtitle && <p className="text-gray-500 truncate text-xs md:text-sm">{subtitle}</p>}
               {description && (
                 <p className="text-gray-400 truncate max-w-xs hidden md:block">
                   {description}
@@ -141,29 +203,29 @@ const PodcastAudioPlayer = ({
               )}
             </div>
           </div>
-          <div className="flex-1 flex flex-col items-center justify-center md:mx-2 min-w-0">
+          {/* Controls & Progress - Desktop only */}
+          <div className="hidden md:flex flex-1 flex-col items-center justify-center mx-2 min-w-0">
             <div className="flex items-center justify-center w-full gap-6">
               <button
-                className="text-gray-500 hover:text-black disabled:opacity-40 text-xl"
-                disabled
+                onClick={skipBackward}
+                className="text-gray-500 hover:text-black disabled:opacity-40 text-xl transition-all duration-200 hover:scale-110"
+                title="Skip backward 10 seconds"
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
+                <img
+                  src="/fb.svg"
+                  alt="Skip backward"
                   className="w-5 h-5"
-                >
-                  <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"></path>
-                </svg>
+                />
               </button>
               <button
                 onClick={togglePlay}
-                className="w-12 h-12 md:w-10 md:h-10 rounded-full ring-1 ring-gray-300 hover:ring-gray-900 text-gray-800 flex items-center justify-center text-xl transition-all"
+                className="w-10 h-10 rounded-full ring-1 ring-gray-300 hover:ring-gray-900 text-gray-800 flex items-center justify-center text-xl transition-all"
               >
                 {isPlaying ? (
                   <svg
                     viewBox="0 0 24 24"
                     fill="currentColor"
-                    className="w-6 h-6 md:w-5 md:h-5"
+                    className="w-5 h-5"
                   >
                     <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path>
                   </svg>
@@ -171,22 +233,38 @@ const PodcastAudioPlayer = ({
                   <svg
                     viewBox="0 0 24 24"
                     fill="currentColor"
-                    className="w-6 h-6 md:w-5 md:h-5 ml-1 md:ml-0.5"
+                    className="w-5 h-5"
                   >
                     <path d="M8 5v14l11-7z"></path>
                   </svg>
                 )}
               </button>
               <button
-                className="text-gray-500 hover:text-black disabled:opacity-40 text-xl"
-                disabled
+                onClick={skipForward}
+                className="text-gray-500 hover:text-black disabled:opacity-40 text-xl transition-all duration-200 hover:scale-110"
+                title="Skip forward 10 seconds"
+              >
+                <img
+                  src="/ff.svg"
+                  alt="Skip forward"
+                  className="w-5 h-5"
+                />
+              </button>
+              <button
+                onClick={toggleRepeat}
+                className={`text-xl transition-colors ${
+                  isRepeat 
+                    ? "text-blue-600 hover:text-blue-700" 
+                    : "text-gray-500 hover:text-black"
+                }`}
+                title={isRepeat ? "Repeat: On" : "Repeat: Off"}
               >
                 <svg
                   viewBox="0 0 24 24"
                   fill="currentColor"
                   className="w-5 h-5"
                 >
-                  <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"></path>
+                  <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
                 </svg>
               </button>
             </div>
@@ -201,7 +279,7 @@ const PodcastAudioPlayer = ({
                 step={0.1}
                 value={progress}
                 onChange={handleSeek}
-                className="flex-grow h-3 bg-gray-200 rounded-full min-w-0 accent-gray-500"
+                className="flex-grow h-3 bg-gray-200 rounded-full relative min-w-0"
               />
               <span className="w-8 text-left flex-shrink-0">
                 {formatTime(duration)}
