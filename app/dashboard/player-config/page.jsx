@@ -3,11 +3,12 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
+import { FiUpload, FiSave, FiTrash2 } from "react-icons/fi";
 
 export default function PlayerConfigPage() {
   const { data: session } = useSession();
   const [config, setConfig] = useState({ title: "", coverImage: "" });
-  const [coverImages, setCoverImages] = useState([]); // all covers
+  const [coverImages, setCoverImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -23,7 +24,6 @@ export default function PlayerConfigPage() {
           title: data?.title || "",
           coverImage: data?.coverImage || "/8eh.png",
         });
-        // Always include default as first option
         let covers = data?.coverImages || [];
         if (!covers.includes("/8eh.png")) covers = ["/8eh.png", ...covers];
         else covers = ["/8eh.png", ...covers.filter((c) => c !== "/8eh.png")];
@@ -55,12 +55,10 @@ export default function PlayerConfigPage() {
       });
       if (!res.ok) throw new Error("Failed to upload image");
       const data = await res.json();
-      // Add to gallery and select as active
       if (!coverImages.includes(data.url)) {
         setCoverImages((prev) => [...prev, data.url]);
       }
       setConfig((prev) => ({ ...prev, coverImage: data.url }));
-      // Persist to backend
       await fetch("/api/player-config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,7 +76,7 @@ export default function PlayerConfigPage() {
   };
 
   const handleDeleteCover = async (url) => {
-    if (url === "/8eh.png") return;
+    if (url === "/8eh.png" || !window.confirm("Are you sure you want to delete this image?")) return;
     setError("");
     setSuccess("");
     try {
@@ -89,7 +87,6 @@ export default function PlayerConfigPage() {
       });
       if (!res.ok) throw new Error("Failed to delete image");
       setCoverImages((prev) => prev.filter((img) => img !== url));
-      // If active cover deleted, fallback to default
       setConfig((prev) => ({ ...prev, coverImage: prev.coverImage === url ? "/8eh.png" : prev.coverImage }));
       setSuccess("Image deleted.");
     } catch (err) {
@@ -109,83 +106,85 @@ export default function PlayerConfigPage() {
         body: JSON.stringify(config),
       });
       if (!res.ok) throw new Error("Failed to save config");
-      setSaving(false);
-      setSuccess("Config saved!");
+      setSuccess("Config saved successfully!");
     } catch (err) {
       setError(err.message);
+    } finally {
       setSaving(false);
     }
   };
 
-  if (!isAdmin) return <div className="p-8 text-center font-body text-gray-700">Access denied.</div>;
-  if (loading) return <div className="p-8 text-center font-body text-gray-700">Loading...</div>;
+  if (!isAdmin) return <div className="p-8 text-center font-body text-red-500">Access Denied.</div>;
+  if (loading) return <div className="p-8 text-center font-body">Loading...</div>;
 
   return (
-    <div className="p-8 max-w-xl mx-auto">
-      <h1 className="text-2xl font-heading font-bold mb-4 text-gray-900">Player Config</h1>
-      <form onSubmit={handleSubmit} className="space-y-4 bg-gray-50 p-6 rounded-lg shadow-md border border-gray-200">
+    <div className="max-w-3xl mx-auto">
+      <h1 className="text-3xl font-heading font-bold mb-6 text-gray-800">Player Configuration</h1>
+      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-lg shadow-md">
         <div>
-          <label className="block font-semibold font-body text-gray-800 mb-2">Title</label>
+          <label htmlFor="title" className="block font-semibold font-body text-gray-700 mb-2">Title</label>
           <input
+            id="title"
             name="title"
             value={config.title}
             onChange={handleChange}
             className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            placeholder="e.g., Now Playing: Hits of the Week"
             required
           />
         </div>
         <div>
-          <label className="block font-semibold font-body text-gray-800 mb-2">Cover Images</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="w-full border border-gray-300 p-3 rounded-md mb-2 font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-          />
-          <div className="flex flex-wrap gap-4 mt-2">
+          <label className="block font-semibold font-body text-gray-700 mb-2">Cover Images</label>
+          <label htmlFor="cover-upload" className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-gray-300 p-4 rounded-md mb-4 cursor-pointer hover:bg-gray-50 hover:border-blue-500 transition-colors">
+             <FiUpload className="text-gray-500"/>
+             <span className="text-gray-600 font-body">Upload New Image</span>
+             <input id="cover-upload" type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+          </label>
+          
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
             {coverImages.map((url) => (
               <div
                 key={url}
                 className={clsx(
-                  "relative group border-2 rounded-lg p-1 bg-white shadow-sm hover:shadow-md transition-all",
-                  config.coverImage === url ? "border-blue-600 ring-2 ring-blue-200" : "border-gray-300 hover:border-gray-400"
+                  "relative group aspect-square rounded-lg p-1 bg-white shadow-sm hover:shadow-md transition-all cursor-pointer",
+                  config.coverImage === url ? "border-2 border-blue-600 ring-2 ring-blue-200" : "border border-gray-300 hover:border-gray-400"
                 )}
-                style={{ width: 80, height: 80 }}
+                onClick={() => handleSelectCover(url)}
               >
-                <img
-                  src={url}
-                  alt="cover"
-                  className="object-cover w-full h-full rounded cursor-pointer"
-                  onClick={() => handleSelectCover(url)}
-                />
+                <img src={url} alt="cover" className="object-cover w-full h-full rounded" />
                 {url !== "/8eh.png" && (
                   <button
                     type="button"
-                    onClick={() => handleDeleteCover(url)}
-                    className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-md"
+                    onClick={(e) => { e.stopPropagation(); handleDeleteCover(url); }}
+                    className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    ×
+                    <FiTrash2 size={12}/>
                   </button>
                 )}
-                {config.coverImage === url && (
-                  <span className="absolute bottom-1 left-1 bg-blue-600 text-white text-xs px-2 py-1 rounded-md font-body font-semibold shadow-sm">
-                    Active
-                  </span>
+                 {config.coverImage === url && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-md">
+                      <span className="text-white text-xs font-bold">Active</span>
+                  </div>
                 )}
               </div>
             ))}
           </div>
         </div>
-        <button
-          type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-body font-semibold transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={saving}
-        >
-          {saving ? "Saving..." : "Save Configuration"}
-        </button>
-        {error && <div className="text-red-700 mt-2 font-body bg-red-50 border border-red-200 rounded-md p-3">{error}</div>}
-        {success && <div className="text-green-700 mt-2 font-body bg-green-50 border border-green-200 rounded-md p-3">{success}</div>}
+        
+        {error && <div className="text-red-600 mt-2 font-body bg-red-50 p-3 rounded-md">{error}</div>}
+        {success && <div className="text-green-600 mt-2 font-body bg-green-50 p-3 rounded-md">{success}</div>}
+        
+        <div className="pt-4">
+          <button
+            type="submit"
+            className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-body font-semibold transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            disabled={saving}
+          >
+            <FiSave/>
+            {saving ? "Saving..." : "Save Configuration"}
+          </button>
+        </div>
       </form>
     </div>
   );
-} 
+}

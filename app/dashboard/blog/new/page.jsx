@@ -1,4 +1,3 @@
-
 import BlogForm from '@/app/components/BlogForm';
 
 export default function NewPostPage() {
@@ -8,4 +7,4 @@ export default function NewPostPage() {
       <BlogForm />
     </div>
   );
-} 
+}
