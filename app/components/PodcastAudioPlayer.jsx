@@ -17,6 +17,7 @@ const PodcastAudioPlayer = ({
   const [duration, setDuration] = useState(0);
   const [isRepeat, setIsRepeat] = useState(false);
   const [showMobileExpanded, setShowMobileExpanded] = useState(false);
+  const [hasLoadedPodcast, setHasLoadedPodcast] = useState(false);
 
   // Gunakan hook untuk mendapatkan referensi audio yang terjamin ada
   const audioRef = useGlobalAudio();
@@ -29,7 +30,9 @@ const PodcastAudioPlayer = ({
     if (!audio) return;
 
     if (audioUrl) {
+      // Always show player when audioUrl is provided
       setShowPlayer(true);
+      setHasLoadedPodcast(true);
       const fullUrl = audioUrl.startsWith("/")
         ? audioUrl
         : `/api/proxy-audio?key=${encodeURIComponent(audioUrl)}`;
@@ -48,7 +51,9 @@ const PodcastAudioPlayer = ({
         audio.pause();
       }
     } else {
+      // Only hide player when no audioUrl is provided
       setShowPlayer(false);
+      setHasLoadedPodcast(false);
       setIsPlaying(false);
     }
   }, [audioUrl, isPlaying, audioRef, setIsPlaying]);
@@ -109,13 +114,14 @@ const PodcastAudioPlayer = ({
 
   // This effect must be at the top level, not inside another useEffect
   useEffect(() => {
-    // Only hide player if pause was external (radio play)
-    if (!isPlaying && externalPauseRef.current) {
+    // Only hide player if pause was external (radio play) AND no podcast has been loaded
+    if (!isPlaying && externalPauseRef.current && !hasLoadedPodcast) {
       setShowPlayer(false);
       externalPauseRef.current = false;
     }
     // If pause was user-initiated, keep player visible
-  }, [isPlaying]);
+    // If podcast has been loaded, keep player visible even when paused
+  }, [isPlaying, hasLoadedPodcast]);
 
   // Efek untuk volume
   useEffect(() => {
@@ -150,6 +156,16 @@ const PodcastAudioPlayer = ({
   
   const toggleRepeat = () => setIsRepeat((r) => !r);
   const toggleMobileExpanded = () => setShowMobileExpanded((prev) => !prev);
+  
+  // Function to clear podcast state (can be called from parent component)
+  const clearPodcast = () => {
+    setShowPlayer(false);
+    setHasLoadedPodcast(false);
+    setIsPlaying(false);
+    setShowMobileExpanded(false);
+    setProgress(0);
+    setDuration(0);
+  };
   
   const formatTime = (sec) => {
     if (isNaN(sec) || !isFinite(sec)) return "0:00";
