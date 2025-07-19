@@ -186,7 +186,7 @@ const GlobalAudioPlayer = () => {
                 </div>
 
                 <div className="text-sm min-w-0 w-48 md:w-60 flex-shrink-0">
-                  <p className="font-bold text-gray-800 truncate font-body text-xs md:text-sm">
+                  <p className="font-heading font-bold text-gray-800 truncate text-xs md:text-sm">
                     {playerConfig.title || "8EH Radio ITB"}
                   </p>
                   <p className="text-gray-500 flex items-center gap-2 font-body text-xs md:text-sm">

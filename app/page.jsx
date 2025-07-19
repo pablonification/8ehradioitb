@@ -109,11 +109,11 @@ const tunes = [
 
 function HeroSection() {
   return (
-    <section className="relative bg-[#FDFBF6] pt-28 pb-0 overflow-hidden">
+    <section className="relative bg-[#FDFBF6] pt-28 pb-0 overflow-hidden" role="banner" aria-label="Welcome to 8EH Radio ITB">
       {/* Decorative gradient blob */}
       <Image
         src="/mastercard.png"
-        alt="Background Gradient"
+        alt="Abstract background gradient for 8EH Radio ITB hero section"
         width={2000}
         height={434}
         className="absolute -top-10 left-160 -translate-x-1/2 pointer-events-none select-none opacity-70 z-0"
@@ -142,6 +142,7 @@ function HeroSection() {
               onClick={() =>
                 window.dispatchEvent(new CustomEvent("triggerPlayerControl"))
               }
+              aria-label="Listen to 8EH Radio ITB live stream"
             >
               Listen
             </ButtonPrimary>
@@ -150,6 +151,7 @@ function HeroSection() {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block"
+              aria-label="Follow us on Instagram"
             >
               <ButtonPrimary
                 className="!bg-[#EFEAE6]/80 !text-[#444] hover:!bg-[#E5DED8] !px-8 !py-3"
@@ -165,7 +167,7 @@ function HeroSection() {
       <div className="relative -mt-36 md:-mt-60 flex justify-center">
         <Image
           src="/radio-home.png"
-          alt="Radio Illustration"
+          alt="8EH Radio ITB Studio Illustration"
           width={1200}
           height={700}
           className="[mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)] mix-blend-multiply"

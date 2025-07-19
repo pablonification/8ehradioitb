@@ -220,7 +220,7 @@ const PodcastAudioPlayer = ({
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-heading font-bold text-gray-800 text-base mb-1">{title}</h3>
-                {subtitle && <p className="text-gray-500 text-sm">{subtitle}</p>}
+                {subtitle && <p className="font-body text-gray-500 text-sm">{subtitle}</p>}
               </div>
             </div>
 
@@ -319,10 +319,10 @@ const PodcastAudioPlayer = ({
               />
             </div>
             <div className="text-sm min-w-0 w-48 md:w-60 flex-shrink-0 overflow-hidden">
-              <p className="font-bold text-gray-800 truncate text-xs md:text-sm">{title}</p>
-              {subtitle && <p className="text-gray-500 truncate text-xs md:text-sm">{subtitle}</p>}
+              <p className="font-heading font-bold text-gray-800 truncate text-xs md:text-sm">{title}</p>
+              {subtitle && <p className="font-body text-gray-500 truncate text-xs md:text-sm">{subtitle}</p>}
               {description && (
-                <p className="text-gray-400 truncate max-w-xs hidden md:block">
+                <p className="font-body text-gray-400 truncate max-w-xs hidden md:block">
                   {description}
                 </p>
               )}
@@ -408,7 +408,7 @@ const PodcastAudioPlayer = ({
               </button>
             </div>
             <div className="w-full flex items-center gap-2 text-[10px] text-gray-500 mt-2 min-w-0">
-              <span className="w-8 text-right flex-shrink-0">
+              <span className="font-body w-8 text-right flex-shrink-0">
                 {formatTime(progress)}
               </span>
               <input
@@ -420,7 +420,7 @@ const PodcastAudioPlayer = ({
                 onChange={handleSeek}
                 className="flex-grow h-3 bg-gray-200 rounded-full relative min-w-0"
               />
-              <span className="w-8 text-left flex-shrink-0">
+              <span className="font-body w-8 text-left flex-shrink-0">
                 {formatTime(duration)}
               </span>
             </div>
