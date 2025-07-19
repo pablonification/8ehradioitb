@@ -94,7 +94,15 @@ const PodcastHero = () => {
           </p>
           <ButtonPrimary
             className="!bg-[#EFEAE6]/80 !text-[#444] hover:!bg-[#E5DED8] !px-8 !py-3"
-            onClick={() => {}}
+            onClick={() => {
+              const element = document.getElementById('podcast-programs');
+              if (element) {
+                element.scrollIntoView({ 
+                  behavior: 'smooth',
+                  block: 'start'
+                });
+              }
+            }}
           >
             Explore
           </ButtonPrimary>
@@ -137,7 +145,7 @@ const PodcastHero = () => {
 
 const PodcastPrograms = () => {
   return (
-    <section className="relative py-16 overflow-hidden">
+    <section id="podcast-programs" className="relative py-16 overflow-hidden">
       <div className="absolute inset-0 top-1/8 left-0 w-40 md:w-60 opacity-70">
         <Image
           src="/vstock-programs-1.png"

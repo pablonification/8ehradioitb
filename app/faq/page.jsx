@@ -330,14 +330,10 @@ const ContactCTA = () => {
         {/* Sisi Kanan: Tombol */}
         <div className="flex flex-shrink-0 items-center space-x-4">
           <ButtonPrimary
-            className="!bg-[#EA4A30] !text-white hover:!bg-[#D0402A] !px-8 !py-3"
-            onClick={() => {}}
-          >
-            Contact
-          </ButtonPrimary>
-          <ButtonPrimary
             className="!bg-[#EFEAE6]/80 !text-[#444] hover:!bg-[#E5DED8] !px-8 !py-3"
-            onClick={() => {}}
+            onClick={() => {
+              window.open('/media-partner', '_self');
+            }}
           >
             Learn More
           </ButtonPrimary>
