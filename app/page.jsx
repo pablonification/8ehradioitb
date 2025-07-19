@@ -280,7 +280,7 @@ function PodcastSection() {
                   <ButtonPrimary className="!w-12 !h-12 !p-0 !rounded-full flex items-center justify-center flex-shrink-0">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-white ml-0.5"
+                      className="h-5 w-5 text-white"
                       fill="white"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
