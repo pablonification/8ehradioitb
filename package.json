@@ -16,6 +16,7 @@
     "@prisma/client": "^5.22.0",
     "cloudinary": "^1.41.3",
     "clsx": "^2.1.1",
+    "critters": "^0.0.23",
     "formidable": "^3.5.4",
     "icy": "^2.1.0",
     "nanoid": "^5.1.5",
