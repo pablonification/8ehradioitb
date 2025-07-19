@@ -172,7 +172,7 @@ const PodcastAudioPlayer = ({
         onClick={toggleMobileExpanded}
       >
         <div 
-          className={`absolute bottom-0 left-0 right-0 bg-white mb-12 rounded-t-3xl p-6 transition-all duration-300 ease-out ${
+          className={`absolute bottom-0 left-0 right-0 mb-4 bg-white rounded-t-3xl p-6 transition-all duration-300 ease-out ${
             showMobileExpanded 
               ? 'translate-y-0 opacity-100' 
               : 'translate-y-full opacity-0'
@@ -264,38 +264,6 @@ const PodcastAudioPlayer = ({
               >
                 <img src="/ff.svg" alt="Skip forward" className="w-6 h-6" />
               </button>
-            </div>
-
-            {/* Volume Control */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={toggleMute}
-                className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
-              >
-                {muted || volume === 0 ? (
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-gray-600">
-                    <path d="M16.5 12a6.5 6.5 0 0 0-6.5-6.5v2A4.5 4.5 0 0 1 14.5 12h2z" fill="#d1d5db"/>
-                    <path d="M3 9v6h4l5 5V4L7 9H3zm16.5 3a6.5 6.5 0 0 0-6.5-6.5v2A4.5 4.5 0 0 1 17.5 12h2z" />
-                    <line x1="19" y1="5" x2="5" y2="19" stroke="#ef4444" strokeWidth="2"/>
-                  </svg>
-                ) : (
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-gray-600">
-                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path>
-                  </svg>
-                )}
-              </button>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={muted ? 0 : volume}
-                onChange={handleVolumeChange}
-                className="flex-1 h-2 bg-gray-200 rounded-full appearance-none cursor-pointer"
-                style={{
-                  background: `linear-gradient(to right, #EA4A30 0%, #EA4A30 ${(muted ? 0 : volume) * 100}%, #e5e7eb ${(muted ? 0 : volume) * 100}%, #e5e7eb 100%)`
-                }}
-              />
             </div>
           </div>
         </div>
