@@ -117,40 +117,74 @@ export default function PlayerConfigPage() {
     }
   };
 
-  if (!isAdmin) return <div className="p-8 text-center">Access denied.</div>;
-  if (loading) return <div className="p-8 text-center">Loading...</div>;
+  if (!isAdmin) return <div className="p-8 text-center font-body text-gray-700">Access denied.</div>;
+  if (loading) return <div className="p-8 text-center font-body text-gray-700">Loading...</div>;
 
   return (
     <div className="p-8 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Player Config</h1>
-      <form onSubmit={handleSubmit} className="space-y-4 bg-white p-4 rounded shadow">
+      <h1 className="text-2xl font-heading font-bold mb-4 text-gray-900">Player Config</h1>
+      <form onSubmit={handleSubmit} className="space-y-4 bg-gray-50 p-6 rounded-lg shadow-md border border-gray-200">
         <div>
-          <label className="block font-semibold">Title</label>
-          <input name="title" value={config.title} onChange={handleChange} className="w-full border p-2 rounded" required />
+          <label className="block font-semibold font-body text-gray-800 mb-2">Title</label>
+          <input
+            name="title"
+            value={config.title}
+            onChange={handleChange}
+            className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            required
+          />
         </div>
         <div>
-          <label className="block font-semibold">Cover Images</label>
-          <input type="file" accept="image/*" onChange={handleFileChange} className="w-full border p-2 rounded mb-2" />
+          <label className="block font-semibold font-body text-gray-800 mb-2">Cover Images</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="w-full border border-gray-300 p-3 rounded-md mb-2 font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+          />
           <div className="flex flex-wrap gap-4 mt-2">
             {coverImages.map((url) => (
-              <div key={url} className={clsx("relative group border-2 rounded p-1", config.coverImage === url ? "border-blue-600" : "border-transparent")}
-                style={{ width: 80, height: 80 }}>
-                <img src={url} alt="cover" className="object-cover w-full h-full rounded cursor-pointer" onClick={() => handleSelectCover(url)} />
+              <div
+                key={url}
+                className={clsx(
+                  "relative group border-2 rounded-lg p-1 bg-white shadow-sm hover:shadow-md transition-all",
+                  config.coverImage === url ? "border-blue-600 ring-2 ring-blue-200" : "border-gray-300 hover:border-gray-400"
+                )}
+                style={{ width: 80, height: 80 }}
+              >
+                <img
+                  src={url}
+                  alt="cover"
+                  className="object-cover w-full h-full rounded cursor-pointer"
+                  onClick={() => handleSelectCover(url)}
+                />
                 {url !== "/8eh.png" && (
-                  <button type="button" onClick={() => handleDeleteCover(url)} className="absolute top-0 right-0 bg-white bg-opacity-80 rounded-full p-1 text-xs text-red-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                    &times;
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteCover(url)}
+                    className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-md"
+                  >
+                    ×
                   </button>
                 )}
                 {config.coverImage === url && (
-                  <span className="absolute bottom-1 left-1 bg-blue-600 text-white text-xs px-2 py-0.5 rounded">Active</span>
+                  <span className="absolute bottom-1 left-1 bg-blue-600 text-white text-xs px-2 py-1 rounded-md font-body font-semibold shadow-sm">
+                    Active
+                  </span>
                 )}
               </div>
             ))}
           </div>
         </div>
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded" disabled={saving}>{saving ? "Saving..." : "Save"}</button>
-        {error && <div className="text-red-600 mt-2">{error}</div>}
-        {success && <div className="text-green-600 mt-2">{success}</div>}
+        <button
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-body font-semibold transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={saving}
+        >
+          {saving ? "Saving..." : "Save Configuration"}
+        </button>
+        {error && <div className="text-red-700 mt-2 font-body bg-red-50 border border-red-200 rounded-md p-3">{error}</div>}
+        {success && <div className="text-green-700 mt-2 font-body bg-green-50 border border-green-200 rounded-md p-3">{success}</div>}
       </form>
     </div>
   );

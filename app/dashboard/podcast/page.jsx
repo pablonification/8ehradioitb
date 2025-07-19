@@ -124,80 +124,194 @@ function PodcastDashboard() {
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Podcast Dashboard</h1>
+      <h1 className="text-2xl font-heading font-bold mb-4 text-gray-900">Podcast Dashboard</h1>
       {isAdmin && (
-        <form onSubmit={handleSubmit} className="mb-8 space-y-4 bg-white p-4 rounded shadow">
+        <form onSubmit={handleSubmit} className="mb-8 space-y-4 bg-gray-50 p-6 rounded-lg shadow-md border border-gray-200">
           <div>
-            <label className="block font-semibold">Title</label>
-            <input name="title" value={form.title} onChange={handleChange} className="w-full border p-2 rounded" required />
+            <label className="block font-semibold font-body text-gray-800 mb-2">Title</label>
+            <input 
+              name="title" 
+              value={form.title} 
+              onChange={handleChange} 
+              className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+              required 
+            />
           </div>
           <div>
-            <label className="block font-semibold">Subtitle (optional)</label>
-            <input name="subtitle" value={form.subtitle} onChange={handleChange} className="w-full border p-2 rounded" />
+            <label className="block font-semibold font-body text-gray-800 mb-2">Subtitle (optional)</label>
+            <input 
+              name="subtitle" 
+              value={form.subtitle} 
+              onChange={handleChange} 
+              className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+            />
           </div>
           <div>
-            <label className="block font-semibold">Description</label>
-            <textarea name="description" value={form.description} onChange={handleChange} className="w-full border p-2 rounded" required />
+            <label className="block font-semibold font-body text-gray-800 mb-2">Description</label>
+            <textarea 
+              name="description" 
+              value={form.description} 
+              onChange={handleChange} 
+              className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+              required 
+            />
           </div>
           <div>
-            <label className="block font-semibold">Date (e.g. Dec 7, 2024)</label>
-            <input name="date" value={form.date} onChange={handleChange} className="w-full border p-2 rounded" />
+            <label className="block font-semibold font-body text-gray-800 mb-2">Date (e.g. Dec 7, 2024)</label>
+            <input 
+              name="date" 
+              value={form.date} 
+              onChange={handleChange} 
+              className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+            />
           </div>
           <div>
-            <label className="block font-semibold">Duration (e.g. 33 min 40 sec)</label>
-            <input name="duration" value={form.duration} onChange={handleChange} className="w-full border p-2 rounded" />
+            <label className="block font-semibold font-body text-gray-800 mb-2">Duration (e.g. 33 min 40 sec)</label>
+            <input 
+              name="duration" 
+              value={form.duration} 
+              onChange={handleChange} 
+              className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+            />
           </div>
           <div>
-            <label className="block font-semibold">Image URL (optional, overrides cover image)</label>
-            <input name="image" value={form.image} onChange={handleChange} className="w-full border p-2 rounded" />
+            <label className="block font-semibold font-body text-gray-800 mb-2">Image URL (optional, overrides cover image)</label>
+            <input 
+              name="image" 
+              value={form.image} 
+              onChange={handleChange} 
+              className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+            />
           </div>
           <div>
-            <label className="block font-semibold">Audio File</label>
-            <input name="audio" type="file" accept="audio/*" onChange={handleChange} className="w-full" required />
+            <label className="block font-semibold font-body text-gray-800 mb-2">Audio File</label>
+            <input 
+              name="audio" 
+              type="file" 
+              accept="audio/*" 
+              onChange={handleChange} 
+              className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-gray-100 hover:file:bg-gray-200" 
+              required 
+            />
           </div>
           <div>
-            <label className="block font-semibold">Cover Image (optional)</label>
-            <input name="coverImage" type="file" accept="image/*" onChange={handleChange} className="w-full" />
+            <label className="block font-semibold font-body text-gray-800 mb-2">Cover Image (optional)</label>
+            <input 
+              name="coverImage" 
+              type="file" 
+              accept="image/*" 
+              onChange={handleChange} 
+              className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-gray-100 hover:file:bg-gray-200" 
+            />
           </div>
-          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded" disabled={submitting}>{submitting ? "Adding..." : "Add Podcast"}</button>
-          {error && <div className="text-red-600 mt-2">{error}</div>}
+          <button 
+            type="submit" 
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-body font-semibold transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" 
+            disabled={submitting}
+          >
+            {submitting ? "Adding..." : "Add Podcast"}
+          </button>
+          {error && <div className="text-red-700 mt-2 font-body bg-red-50 border border-red-200 rounded-md p-3">{error}</div>}
         </form>
       )}
-      <h2 className="text-xl font-semibold mb-2">All Podcasts</h2>
+      <h2 className="text-xl font-heading font-semibold mb-4 text-gray-900">All Podcasts</h2>
       {loading ? (
-        <div>Loading...</div>
+        <div className="text-center font-body text-gray-700">Loading...</div>
       ) : error ? (
-        <div className="text-red-600">{error}</div>
+        <div className="text-red-700 font-body bg-red-50 border border-red-200 rounded-md p-3">{error}</div>
       ) : (
         <ul className="space-y-4">
           {podcasts.map((podcast) => (
-            <li key={podcast.id} className="border p-4 rounded bg-gray-50">
+            <li key={podcast.id} className="border border-gray-200 p-6 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow">
               {editId === podcast.id ? (
-                <div className="space-y-2">
-                  <input name="title" value={editForm.title} onChange={handleEditChange} className="w-full border p-2 rounded" />
-                  <input name="subtitle" value={editForm.subtitle} onChange={handleEditChange} className="w-full border p-2 rounded" />
-                  <textarea name="description" value={editForm.description} onChange={handleEditChange} className="w-full border p-2 rounded" />
-                  <input name="date" value={editForm.date} onChange={handleEditChange} className="w-full border p-2 rounded" />
-                  <input name="duration" value={editForm.duration} onChange={handleEditChange} className="w-full border p-2 rounded" />
-                  <input name="image" value={editForm.image} onChange={handleEditChange} className="w-full border p-2 rounded" />
-                  <div className="flex gap-2 mt-2">
-                    <button onClick={() => handleEditSave(podcast.id)} className="bg-green-600 text-white px-3 py-1 rounded" disabled={submitting}>Save</button>
-                    <button onClick={() => setEditId(null)} className="bg-gray-400 text-white px-3 py-1 rounded">Cancel</button>
+                <div className="space-y-3">
+                  <input 
+                    name="title" 
+                    value={editForm.title} 
+                    onChange={handleEditChange} 
+                    className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+                  />
+                  <input 
+                    name="subtitle" 
+                    value={editForm.subtitle} 
+                    onChange={handleEditChange} 
+                    className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+                  />
+                  <textarea 
+                    name="description" 
+                    value={editForm.description} 
+                    onChange={handleEditChange} 
+                    className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+                  />
+                  <input 
+                    name="date" 
+                    value={editForm.date} 
+                    onChange={handleEditChange} 
+                    className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+                  />
+                  <input 
+                    name="duration" 
+                    value={editForm.duration} 
+                    onChange={handleEditChange} 
+                    className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+                  />
+                  <input 
+                    name="image" 
+                    value={editForm.image} 
+                    onChange={handleEditChange} 
+                    className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+                  />
+                  <div className="flex gap-2 mt-3">
+                    <button 
+                      onClick={() => handleEditSave(podcast.id)} 
+                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-body font-semibold transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" 
+                      disabled={submitting}
+                    >
+                      Save
+                    </button>
+                    <button 
+                      onClick={() => setEditId(null)} 
+                      className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-md font-body font-semibold transition-colors duration-200 shadow-sm"
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </div>
               ) : (
                 <>
-                  <div className="font-bold text-lg">{podcast.title}</div>
-                  <div className="text-gray-700 mb-2">{podcast.description}</div>
-                  {(podcast.image || podcast.coverImage || "/8eh-real.svg") && (
-                    <img src={podcast.image || podcast.coverImage || "/8eh-real.svg"} alt="cover" className="w-32 h-32 object-cover rounded mb-2" />
+                  <div className="font-heading font-bold text-lg text-gray-900 mb-2">{podcast.title}</div>
+                  {podcast.subtitle && (
+                    <div className="font-body text-gray-600 mb-2">{podcast.subtitle}</div>
                   )}
-                  <audio controls src={podcast.audioUrl ? `/api/proxy-audio?url=${encodeURIComponent(podcast.audioUrl)}` : undefined} className="w-full" />
-                  <div className="text-xs text-gray-500 mt-1">By {podcast.author?.name || "Unknown"}</div>
+                  <div className="font-body text-gray-700 mb-3">{podcast.description}</div>
+                  {(podcast.image || podcast.coverImage || "/8eh-real.svg") && (
+                    <img 
+                      src={podcast.image || podcast.coverImage || "/8eh-real.svg"} 
+                      alt="cover" 
+                      className="w-32 h-32 object-cover rounded-md border border-gray-200 shadow-sm mb-3" 
+                    />
+                  )}
+                  <audio 
+                    controls 
+                    src={podcast.audioUrl ? `/api/proxy-audio?url=${encodeURIComponent(podcast.audioUrl)}` : undefined} 
+                    className="w-full rounded-md" 
+                  />
+                  <div className="font-body text-xs text-gray-500 mt-2">By {podcast.author?.name || "Unknown"}</div>
                   {isAdmin && (
-                    <div className="flex gap-2 mt-2">
-                      <button onClick={() => handleEdit(podcast)} className="bg-yellow-500 text-white px-3 py-1 rounded">Edit</button>
-                      <button onClick={() => handleDelete(podcast.id)} className="bg-red-600 text-white px-3 py-1 rounded" disabled={submitting}>Delete</button>
+                    <div className="flex gap-2 mt-3">
+                      <button 
+                        onClick={() => handleEdit(podcast)} 
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md font-body font-semibold transition-colors duration-200 shadow-sm"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(podcast.id)} 
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-body font-semibold transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" 
+                        disabled={submitting}
+                      >
+                        Delete
+                      </button>
                     </div>
                   )}
                 </>

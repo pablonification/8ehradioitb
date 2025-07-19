@@ -78,41 +78,41 @@ export default function StreamConfigPage() {
     }
   };
 
-  if (!isAdmin) return <div className="p-8 text-center">Access denied.</div>;
-  if (loading) return <div className="p-8 text-center">Loading...</div>;
+  if (!isAdmin) return <div className="p-8 text-center font-body">Access denied.</div>;
+  if (loading) return <div className="p-8 text-center font-body">Loading...</div>;
 
   return (
     <div className="p-8 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Stream Config</h1>
+      <h1 className="text-2xl font-heading font-bold mb-4 text-gray-900">Stream Config</h1>
       <form
         onSubmit={handleSubmit}
-        className="space-y-4 bg-white p-4 rounded shadow"
+        className="space-y-4 bg-gray-50 p-6 rounded-lg shadow-md border border-gray-200"
       >
         <div>
-          <label className="block font-semibold">Base URLs</label>
+          <label className="block font-semibold font-body text-gray-800 mb-2">Base URLs</label>
           <div className="flex gap-2 mb-2">
             <input
               value={newUrl}
               onChange={(e) => setNewUrl(e.target.value)}
-              className="border p-2 rounded flex-1"
+              className="border border-gray-300 p-3 rounded-md flex-1 font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               placeholder="https://s3.free-shoutcast.com/stream/18032"
             />
             <button
               type="button"
               onClick={handleAddUrl}
-              className="bg-green-600 text-white px-3 py-1 rounded"
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-md font-body font-semibold transition-colors duration-200 shadow-sm"
             >
               Add
             </button>
           </div>
-          <ul className="space-y-1">
+          <ul className="space-y-2 font-body">
             {config.baseUrls.map((url) => (
-              <li key={url} className="flex items-center gap-2">
-                <span className="flex-1">{url}</span>
+              <li key={url} className="flex items-center gap-2 p-3 bg-white border border-gray-200 rounded-md shadow-sm">
+                <span className="flex-1 text-gray-900 text-sm">{url}</span>
                 <button
                   type="button"
                   onClick={() => handleRemoveUrl(url)}
-                  className="text-red-600"
+                  className="text-red-600 hover:text-red-700 font-semibold text-sm transition-colors"
                 >
                   Remove
                 </button>
@@ -121,12 +121,12 @@ export default function StreamConfigPage() {
           </ul>
         </div>
         <div>
-          <label className="block font-semibold">Default URL</label>
+          <label className="block font-semibold font-body text-gray-800 mb-2">Default URL</label>
           <select
             name="defaultUrl"
             value={config.defaultUrl}
             onChange={handleChange}
-            className="w-full border p-2 rounded"
+            className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           >
             <option value="">Select default</option>
             {config.baseUrls.map((url) => (
@@ -137,12 +137,12 @@ export default function StreamConfigPage() {
           </select>
         </div>
         <div>
-          <label className="block font-semibold">Fallback URL</label>
+          <label className="block font-semibold font-body text-gray-800 mb-2">Fallback URL</label>
           <select
             name="fallbackUrl"
             value={config.fallbackUrl}
             onChange={handleChange}
-            className="w-full border p-2 rounded"
+            className="w-full border border-gray-300 p-3 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           >
             <option value="">Select fallback</option>
             {config.baseUrls.map((url) => (
@@ -153,10 +153,10 @@ export default function StreamConfigPage() {
           </select>
         </div>
         <div>
-          <label htmlFor="onAirToggle" className="block font-semibold">
+          <label htmlFor="onAirToggle" className="block font-semibold font-body text-gray-800 mb-2">
             Status Siaran
           </label>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-md">
             <span className="font-body text-gray-700">Radio sedang:</span>
             <button
               id="onAirToggle"
@@ -187,8 +187,8 @@ export default function StreamConfigPage() {
               <span className="sr-only">Toggle status siaran radio</span>
             </button>
             <span
-              className={`ml-2 font-body text-sm ${
-                config.onAir ? "text-green-600 font-bold" : "text-gray-500"
+              className={`ml-2 font-body text-sm font-semibold ${
+                config.onAir ? "text-green-600" : "text-gray-500"
               }`}
             >
               {config.onAir ? "On Air" : "Off Air"}
@@ -197,12 +197,12 @@ export default function StreamConfigPage() {
         </div>
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-body font-semibold transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={saving}
         >
-          {saving ? "Saving..." : "Save"}
+          {saving ? "Saving..." : "Save Configuration"}
         </button>
-        {error && <div className="text-red-600 mt-2">{error}</div>}
+        {error && <div className="text-red-700 mt-2 font-body bg-red-50 border border-red-200 rounded-md p-3">{error}</div>}
       </form>
     </div>
   );

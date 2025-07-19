@@ -101,41 +101,73 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
   };
 
   return (
-    <div className="bg-white rounded shadow p-4 flex flex-col md:flex-row gap-4 items-start">
-      <div className="w-8 text-2xl font-mono text-gray-400 pt-2">{String(entry.order).padStart(2, "0")}</div>
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 flex flex-col md:flex-row gap-4 items-start">
+      <div className="w-8 text-2xl font-mono text-gray-500 pt-2 font-bold">{String(entry.order).padStart(2, "0")}</div>
       <div className="flex-1">
         {/* Pesan status khusus untuk baris ini */}
-        {error && <div className="text-red-500 mb-2 text-sm">{error}</div>}
-        {success && <div className="text-green-600 mb-2 text-sm">{success}</div>}
+        {error && <div className="text-red-700 mb-2 text-sm font-body bg-red-50 border border-red-200 rounded-md p-2">{error}</div>}
+        {success && <div className="text-green-700 mb-2 text-sm font-body bg-green-50 border border-green-200 rounded-md p-2">{success}</div>}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-700">Song Title</label>
-            <input className="w-full border p-2 rounded mt-1" value={entry.title} onChange={(e) => handleChange("title", e.target.value)} required />
+            <label className="block text-sm font-semibold text-gray-800 font-body mb-2">Song Title</label>
+            <input 
+              className="w-full border border-gray-300 p-3 rounded-md mt-1 font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+              value={entry.title} 
+              onChange={(e) => handleChange("title", e.target.value)} 
+              required 
+            />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700">Artist</label>
-            <input className="w-full border p-2 rounded mt-1" value={entry.artist} onChange={(e) => handleChange("artist", e.target.value)} required />
+            <label className="block text-sm font-semibold text-gray-800 font-body mb-2">Artist</label>
+            <input 
+              className="w-full border border-gray-300 p-3 rounded-md mt-1 font-body text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+              value={entry.artist} 
+              onChange={(e) => handleChange("artist", e.target.value)} 
+              required 
+            />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-gray-700">Cover Image</label>
+            <label className="block text-sm font-semibold text-gray-800 font-body mb-2">Cover Image</label>
             <div className="flex items-center gap-2 mt-1">
-              <input type="file" accept="image/*" ref={fileInputRef} className="text-sm file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:bg-gray-100 hover:file:bg-gray-200" />
+              <input 
+                type="file" 
+                accept="image/*" 
+                ref={fileInputRef} 
+                className="text-sm file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-gray-100 hover:file:bg-gray-200 font-body border border-gray-300 p-2 rounded-md bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+              />
               {entry.coverImage && (
                 <>
-                  <img src={entry.coverImage} alt="cover" className="w-10 h-10 object-cover rounded" />
-                  <button type="button" className="text-red-600 font-bold" onClick={() => handleRemoveFile("coverImage")}>&times;</button>
+                  <img src={entry.coverImage} alt="cover" className="w-12 h-12 object-cover rounded-md border border-gray-200 shadow-sm" />
+                  <button 
+                    type="button" 
+                    className="text-red-600 hover:text-red-700 font-bold text-lg transition-colors" 
+                    onClick={() => handleRemoveFile("coverImage")}
+                  >
+                    ×
+                  </button>
                 </>
               )}
             </div>
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-gray-700">Audio Clip</label>
+            <label className="block text-sm font-semibold text-gray-800 font-body mb-2">Audio Clip</label>
             <div className="flex items-center gap-2 mt-1">
-              <input type="file" accept="audio/*" ref={audioInputRef} className="text-sm file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:bg-gray-100 hover:file:bg-gray-200" />
+              <input 
+                type="file" 
+                accept="audio/*" 
+                ref={audioInputRef} 
+                className="text-sm file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-gray-100 hover:file:bg-gray-200 font-body border border-gray-300 p-2 rounded-md bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+              />
               {entry.audioUrl && (
                 <>
-                  <audio src={entry.audioUrl} controls className="h-8" />
-                  <button type="button" className="text-red-600 font-bold" onClick={() => handleRemoveFile("audioUrl")}>&times;</button>
+                  <audio src={entry.audioUrl} controls className="h-10 rounded-md" />
+                  <button 
+                    type="button" 
+                    className="text-red-600 hover:text-red-700 font-bold text-lg transition-colors" 
+                    onClick={() => handleRemoveFile("audioUrl")}
+                  >
+                    ×
+                  </button>
                 </>
               )}
             </div>
@@ -143,8 +175,13 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
         </div>
       </div>
       <div className="w-full md:w-auto pt-2">
-        <button type="button" className="bg-green-600 text-white px-4 py-2 rounded font-semibold w-full md:w-auto disabled:bg-gray-400" onClick={handleSave} disabled={saving}>
-          {saving ? "Saving..." : "Save"}
+        <button 
+          type="button" 
+          className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-semibold w-full md:w-auto disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 shadow-sm" 
+          onClick={handleSave} 
+          disabled={saving}
+        >
+          {saving ? "Saving..." : "Save Entry"}
         </button>
       </div>
     </div>
@@ -185,15 +222,15 @@ export default function TuneTrackerDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!isMusic) return <div className="p-8 text-center text-red-500">Access Denied.</div>;
-  if (loading && entries.length === 0) return <div className="p-8 text-center">Loading entries...</div>;
+  if (!isMusic) return <div className="p-8 text-center text-red-500 font-body">Access Denied.</div>;
+  if (loading && entries.length === 0) return <div className="p-8 text-center font-body">Loading entries...</div>;
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-2">Tune Tracker Editor</h1>
-      <p className="mb-6 text-gray-600">Edit the top 10 music charts. Each entry is saved individually.</p>
+      <h1 className="text-3xl font-heading font-bold mb-2 text-gray-900">Tune Tracker Editor</h1>
+      <p className="mb-6 text-gray-600 font-body">Edit the top 10 music charts. Each entry is saved individually.</p>
       
-      {error && <div className="bg-red-100 text-red-700 p-3 rounded-md mb-4">{error}</div>}
+      {error && <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md mb-6 font-body">{error}</div>}
       
       <div className="space-y-6">
         {entries.map((entry) => (

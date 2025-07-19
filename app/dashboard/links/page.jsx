@@ -131,18 +131,14 @@ function AnalyticsModal({ shortLink, analytics, isOpen, onClose }) {
                 </div>
                 
                 <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="bg-gray-50 p-4 rounded-lg">
                             <h3 className="font-heading font-semibold text-gray-900">Total Clicks</h3>
-                            <p className="text-2xl font-bold text-pink-600">{analytics.totalClicks}</p>
-                        </div>
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                            <h3 className="font-heading font-semibold text-gray-900">Period</h3>
-                            <p className="text-lg text-gray-600">{analytics.period}</p>
+                            <p className="text-2xl font-bold text-pink-600 font-body">{analytics.totalClicks}</p>
                         </div>
                         <div className="bg-gray-50 p-4 rounded-lg">
                             <h3 className="font-heading font-semibold text-gray-900">Short URL</h3>
-                            <p className="text-sm text-gray-600 break-all">8eh.link/{shortLink.slug}</p>
+                            <p className="text-sm text-gray-600 break-all font-body">8eh.link/{shortLink.slug}</p>
                         </div>
                     </div>
 

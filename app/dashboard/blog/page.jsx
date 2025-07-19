@@ -42,8 +42,8 @@ function BlogManagement() {
     }
   };
 
-  if (error) return <div className="text-red-500">Failed to load posts.</div>;
-  if (!posts) return <div>Loading posts...</div>;
+  if (error) return <div className="text-red-500 font-body">Failed to load posts.</div>;
+  if (!posts) return <div className="font-body">Loading posts...</div>;
 
   return (
     <div>
@@ -57,13 +57,13 @@ function BlogManagement() {
         <table className="min-w-full leading-normal">
           <thead>
             <tr>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider font-body">
                 Title
               </th>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider font-body">
                 Category
               </th>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider font-body">
                 Date
               </th>
               <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100"></th>
@@ -73,13 +73,13 @@ function BlogManagement() {
             {posts.map((post) => (
               <tr key={post.id} className={post.isFeatured ? 'bg-indigo-50' : ''}>
                 <td className="px-5 py-4 border-b border-gray-200 bg-transparent text-sm">
-                  <p className="text-gray-900 whitespace-no-wrap">{post.title}</p>
+                  <p className="text-gray-900 whitespace-no-wrap font-body">{post.title}</p>
                 </td>
                 <td className="px-5 py-4 border-b border-gray-200 bg-transparent text-sm">
-                  <p className="text-gray-900 whitespace-no-wrap">{post.category}</p>
+                  <p className="text-gray-900 whitespace-no-wrap font-body">{post.category}</p>
                 </td>
                 <td className="px-5 py-4 border-b border-gray-200 bg-transparent text-sm">
-                  <p className="text-gray-900 whitespace-no-wrap">
+                  <p className="text-gray-900 whitespace-no-wrap font-body">
                     {new Date(post.createdAt).toLocaleDateString()}
                   </p>
                 </td>

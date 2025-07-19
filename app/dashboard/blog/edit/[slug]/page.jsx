@@ -11,8 +11,8 @@ export default function EditPostPage() {
   const { slug } = useParams();
   const { data: post, error } = useSWR(slug ? `/api/blog/${slug}` : null, fetcher);
 
-  if (error) return <div>Failed to load post</div>;
-  if (!post) return <div>Loading...</div>;
+  if (error) return <div className="font-body">Failed to load post</div>;
+  if (!post) return <div className="font-body">Loading...</div>;
 
   return (
     <div>
