@@ -167,3 +167,13 @@ model TuneTrackerEntry {
   audioUrl   String?  // R2 URL
   updatedAt  DateTime @updatedAt
 }
+
+model ProgramVideo {
+  id          String   @id @default(cuid()) @map("_id")
+  title       String
+  link        String
+  thumbnail   String
+  thumbnailKey String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

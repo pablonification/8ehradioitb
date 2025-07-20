@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import ButtonPrimary from "./ButtonPrimary";
 import { useState } from 'react';
-import { FiHome, FiEdit, FiMic, FiLink, FiUsers, FiCheckSquare, FiLogOut, FiSettings, FiBarChart2, FiMusic, FiChevronLeft, FiChevronRight, FiPlus } from 'react-icons/fi';
+import { FiHome, FiEdit, FiMic, FiLink, FiUsers, FiCheckSquare, FiLogOut, FiSettings, FiBarChart2, FiMusic, FiChevronLeft, FiChevronRight, FiPlus, FiVideo } from 'react-icons/fi';
 
 const navItems = [
   { href: "/dashboard", label: "Home", icon: FiHome, roles: ["MUSIC", "DEVELOPER", "TECHNIC", "REPORTER", "KRU"] },
@@ -14,6 +14,7 @@ const navItems = [
   { href: "/dashboard/podcast", label: "Podcast", icon: FiMic, roles: ["DEVELOPER", "TECHNIC"] },
   { href: "/dashboard/links", label: "Links", icon: FiLink, roles: ["MUSIC", "DEVELOPER", "TECHNIC", "REPORTER", "KRU"] },
   { href: "/dashboard/tune-tracker", label: "Tune Tracker", icon: FiMusic, roles: ["MUSIC", "DEVELOPER"] },
+  { href: "/dashboard/program-videos", label: "Program Videos", icon: FiVideo, roles: ["DEVELOPER", "TECHNIC"] },
   { href: "/dashboard/player-config", label: "Player Config", icon: FiBarChart2, roles: ["DEVELOPER", "TECHNIC"] },
   { href: "/dashboard/stream-config", label: "Stream Config", icon: FiSettings, roles: ["DEVELOPER", "TECHNIC"] },
   { href: "/dashboard/users", label: "Users", icon: FiUsers, roles: ["DEVELOPER"] },

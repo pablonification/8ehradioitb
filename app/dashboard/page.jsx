@@ -54,6 +54,31 @@ const QuickAction = ({ icon, label, href }) => (
 export default function DashboardHome() {
     const { data: session } = useSession();
 
+    const actions = [
+        {
+            icon: <FiPlus className="text-blue-500"/>,
+            label: "New Blog Post",
+            href: "/dashboard/blog/new",
+            roles: ["DEVELOPER", "REPORTER"]
+        },
+        {
+            icon: <FiPlus className="text-green-500"/>,
+            label: "Upload Podcast",
+            href: "/dashboard/podcast",
+            roles: ["DEVELOPER", "TECHNIC"]
+        },
+        {
+            icon: <FiPlus className="text-purple-500"/>,
+            label: "Create Short Link",
+            href: "/dashboard/links",
+            roles: ["MUSIC", "DEVELOPER", "TECHNIC", "REPORTER", "KRU"]
+        }
+    ];
+
+    const visibleActions = actions.filter(action =>
+        action.roles.includes(session?.user?.role)
+    );
+
     const { data: posts, error: postsError } = useSWR('/api/blog', fetcher);
     const { data: podcasts, error: podcastsError } = useSWR('/api/podcast', fetcher);
     const { data: links, error: linksError } = useSWR('/api/shortlinks', fetcher);
@@ -92,9 +117,9 @@ export default function DashboardHome() {
                 <div className="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                     <h2 className="font-heading font-bold text-xl text-gray-800 mb-4">Quick Actions</h2>
                     <div className="space-y-3">
-                        <QuickAction icon={<FiPlus className="text-blue-500"/>} label="New Blog Post" href="/dashboard/blog/new" />
-                        <QuickAction icon={<FiPlus className="text-green-500"/>} label="Upload Podcast" href="/dashboard/podcast" />
-                        <QuickAction icon={<FiPlus className="text-purple-500"/>} label="Create Short Link" href="/dashboard/links" />
+                        {visibleActions.map((action, index) => (
+                            <QuickAction key={index} {...action} />
+                        ))}
                     </div>
                 </div>
 

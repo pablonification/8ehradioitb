@@ -107,21 +107,15 @@ function BlogManagement() {
 
 export default function BlogDashboardPage() {
   const { data: session, status } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === 'authenticated' && !['DEVELOPER', 'REPORTER'].includes(session.user.role)) {
-      router.replace('/dashboard');
-    }
-  }, [session, status, router]);
 
   if (status === 'loading') {
-    return <div>Loading...</div>
+    return <div className="p-8 text-center font-body">Loading...</div>;
   }
   
-  if (status === 'authenticated' && ['DEVELOPER', 'REPORTER'].includes(session.user.role)) {
-    return <BlogManagement />;
+  const authorizedRoles = ["DEVELOPER", "REPORTER"];
+  if (!session || !authorizedRoles.includes(session.user?.role)) {
+    return <div className="p-8 text-center text-red-500 font-body">Access Denied. You do not have permission to view this page.</div>;
   }
 
-  return null;
+  return <BlogManagement />;
 }

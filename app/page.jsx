@@ -195,7 +195,6 @@ function PodcastSection() {
       .then((data) => {
         // Get only the 2 latest podcasts
         const latestPodcasts = data.slice(0, 2);
-        console.log("Podcast data:", latestPodcasts); // Debug log
         setPodcasts(latestPodcasts);
         setLoading(false);
       })
@@ -206,17 +205,12 @@ function PodcastSection() {
   }, []);
 
   const handlePlayPause = (pod) => {
-    console.log("Play/Pause clicked for podcast:", pod.title);
-    console.log("Current podcast:", currentPodcast?.title);
-    console.log("Audio URL:", pod.audioUrl);
     
     if (currentPodcast && currentPodcast.id === pod.id) {
       // Same podcast - toggle play/pause
-      console.log("Toggling play/pause for same podcast");
       setIsPlaying((prev) => !prev);
     } else {
       // Different podcast - switch to new one and play
-      console.log("Switching to new podcast and playing");
       setCurrentPodcast(pod);
       // Small delay to ensure state updates before playing
       setTimeout(() => {
@@ -353,7 +347,6 @@ function NewsSection() {
       .then((data) => {
         // Get only the 3 latest blog posts
         const latestPosts = data.slice(0, 3);
-        console.log("Blog data:", latestPosts); // Debug log
         setNewsItems(latestPosts);
         setLoading(false);
       })
@@ -439,7 +432,6 @@ function NewsSection() {
                           alt={item.authors?.[0]?.user?.name || "Author"}
                           className="rounded-full w-full h-full object-cover"
                           onError={(e) => {
-                            console.log("Image failed to load:", e.target.src);
                             // Try alternative Google image size if it's a Google image
                             if (e.target.src.includes('googleusercontent.com') && !e.target.src.includes('=s150-c')) {
                               e.target.src = e.target.src.replace(/=s\d+-c/, '=s150-c');
@@ -449,7 +441,6 @@ function NewsSection() {
                             }
                           }}
                           onLoad={(e) => {
-                            console.log("Image loaded successfully:", e.target.src);
                           }}
                           crossOrigin="anonymous"
                           referrerPolicy="no-referrer"
@@ -616,7 +607,7 @@ function TuneTrackerSection() {
     } else {
       setNowPlaying(idx);
       if (tunes[idx].audioUrl) {
-        audioRef.current.src = `/api/proxy-audio?url=${encodeURIComponent(tunes[idx].audioUrl)}`;
+        audioRef.current.src = `/api/proxy-audio?key=${encodeURIComponent(tunes[idx].audioUrl)}`;
         audioRef.current.play();
       }
     }

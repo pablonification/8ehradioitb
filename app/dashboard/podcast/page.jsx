@@ -333,7 +333,7 @@ function PodcastDashboard() {
                       <div className="space-y-3 mt-4">
                         <audio 
                           controls 
-                          src={podcast.audioUrl ? `/api/proxy-audio?url=${encodeURIComponent(podcast.audioUrl)}` : undefined} 
+                          src={podcast.audioUrl ? `/api/proxy-audio?key=${encodeURIComponent(podcast.audioUrl)}` : undefined} 
                           className="w-full rounded-lg" 
                         />
                         <div className="font-body text-sm text-gray-500">

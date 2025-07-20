@@ -56,7 +56,7 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
     const res = await fetch("/api/tune-tracker/upload", { method: "POST", body: formData });
     if (!res.ok) throw new Error(`Upload ${type} failed.`);
     const data = await res.json();
-    return data.url;
+    return data.key;
   };
 
   const handleSave = async () => {
@@ -154,7 +154,7 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
               </label>
               {typeof entry.audioUrl === 'string' && entry.audioUrl && (
                 <>
-                  <audio src={entry.audioUrl} controls className="h-10 rounded-md" />
+                  <audio src={`/api/proxy-audio?key=${encodeURIComponent(entry.audioUrl)}`} controls className="h-10 rounded-md" />
                   <button type="button" className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full cursor-pointer" onClick={() => handleRemoveFile("audioUrl")}><FiX /></button>
                 </>
               )}
