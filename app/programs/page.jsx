@@ -6,6 +6,9 @@ import { useRef, useState } from "react";
 import "swiper/css";
 import Navbar from "../components/Navbar";
 import FooterSection from "../components/FooterSection";
+import useSWR from 'swr';
+
+const fetcher = url => fetch(url).then(res => res.json());
 
 const programs = [
   {
@@ -19,34 +22,6 @@ const programs = [
     title: "GWS: Gather With Us",
     description: "Gather With Us adalah ...",
     link: "/programs/on-air",
-  },
-];
-
-const podcast = [
-  {
-    title: "Dulu VS Sekarang! | Gather With Us Special Podcast",
-    link: "",
-    image: "/placeholder-program.png",
-  },
-  {
-    title: "Vibes of Belief | Gather With Us #21",
-    link: "",
-    image: "/placeholder-program.png",
-  },
-  {
-    title: "#6ET2GETHER : Hias Kue Ultah ke-42 8EH!",
-    link: "",
-    image: "/placeholder-program.png",
-  },
-  {
-    title: "Night Drive",
-    link: "",
-    image: "/placeholder-program.png",
-  },
-  {
-    title: "Morning Brew",
-    link: "",
-    image: "/placeholder-program.png",
   },
 ];
 
@@ -194,6 +169,8 @@ const ProgramHero = () => {
 const PodcastSection = () => {
   const scrollContainerRef = useRef(null);
 
+  const { data: videos, isLoading } = useSWR('/api/program-videos', fetcher);
+
   const scroll = (direction) => {
     if (scrollContainerRef.current) {
       const { current } = scrollContainerRef;
@@ -319,45 +296,58 @@ const PodcastSection = () => {
         {/* Horizontal scroll container */}
         <div
           ref={scrollContainerRef}
-          className="flex flex-wrap md:flex-nowrap overflow-x-auto scroll-smooth space-x-6 pb-4 -mx-4 px-8 -my-4 py-8 snap-x snap-mandatory hide-scrollbar bg-gradient-to-b from-white/60 to-yellow-300/30 rounded-4xl backdrop-blur-xs transition-all duration-300 border hover:border-gray-300 border-gray-200/80"
+          className="flex font-body flex-wrap md:flex-nowrap overflow-x-auto scroll-smooth space-x-6 pb-4 -mx-4 px-8 -my-4 py-8 snap-x snap-mandatory hide-scrollbar bg-gradient-to-b from-white/60 to-yellow-300/30 rounded-4xl backdrop-blur-xs transition-all duration-300 border hover:border-gray-300 border-gray-200/80"
         >
-          {podcast.map((prog, idx) => (
-            <div
-              key={idx}
-              className="flex-shrink-0 w-full md:w-[calc(33.9%-1.125rem)] snap-center group"
-            >
-              <div className="relative w-full h-48 sm:h-48 rounded-2xl mb-4 bg-gray-200/80 overflow-hidden transition-all duration-300 group-hover:scale-105">
-                {/* Image will go here */}
+          {isLoading ? (
+            Array.from({length:3}).map((_, idx)=>(
+              <div key={idx} className="flex-shrink-0 w-full md:w-[calc(33.9%-1.125rem)] snap-center animate-pulse">
+                <div className="w-full h-48 rounded-2xl mb-4 bg-gray-200" />
+                <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto" />
               </div>
-              <div className="text-center px-2 justify-center">
-                <h4 className="font-heading text-xl font-semibold text-gray-800 mb-1">
-                  {prog.title}
-                </h4>
-                <p className="font-body text-sm text-gray-500">
-                  <Link
-                    href={prog.link}
-                    className="text-red-600 hover:text-red-800 my-4 font-semibold justify-center text-sm flex items-center"
-                  >
-                    Listen
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 ml-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+            ))
+          ) : videos && videos.length>0 ? (
+            videos.map((prog, idx) => (
+              <div
+                key={idx}
+                className="flex-shrink-0 w-full md:w-[calc(33.9%-1.125rem)] snap-center group"
+              >
+                <div className="relative w-full h-48 sm:h-48 rounded-2xl mb-4 bg-gray-200/80 overflow-hidden transition-all duration-300 group-hover:scale-105">
+                  <Image src={prog.thumbnail} alt={prog.title} fill className="object-cover" />
+                </div>
+                <div className="text-center px-2 justify-center">
+                  <h4 className="font-heading text-xl font-semibold text-gray-800 mb-1">
+                    {prog.title}
+                  </h4>
+                  <p className="font-body text-sm text-gray-500">
+                    <Link
+                      href={prog.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-red-600 hover:text-red-800 my-4 font-semibold justify-center text-sm flex items-center"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </Link>
-                </p>
+                      Watch
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 ml-1"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </Link>
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-gray-500 -translate-y-1.5">No videos available.</p>
+          )}
         </div>
       </div>
     </section>

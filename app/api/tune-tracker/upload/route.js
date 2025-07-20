@@ -45,8 +45,7 @@ export async function POST(req) {
       ContentType: file.type,
       ACL: "public-read",
     }));
-    const url = `${R2_PUBLIC_DEV_URL}/${key}`;
-    return NextResponse.json({ url });
+    return NextResponse.json({ key });
   } catch (error) {
     console.error("Error uploading to R2:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

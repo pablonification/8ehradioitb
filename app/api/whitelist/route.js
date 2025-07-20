@@ -36,7 +36,15 @@ export async function POST(req) {
   if (error) return NextResponse.json({ error }, { status });
 
   try {
-    const { emails } = await req.json();
+    let { emails } = await req.json();
+
+    // Accept either an array or a single string containing separators (\n,;, ,)
+    if (typeof emails === "string") {
+      emails = emails
+        .split(/[\n,;]+/)
+        .map(e => e.trim())
+        .filter(e => e.length > 0);
+    }
 
     if (!emails || !Array.isArray(emails) || emails.length === 0) {
       return NextResponse.json(
@@ -45,16 +53,19 @@ export async function POST(req) {
       );
     }
 
-    // --- Manually check for duplicates since skipDuplicates isn't supported on MongoDB ---
+    // Normalize to lowercase and deduplicate within the batch
+    const lowercasedEmails = Array.from(new Set(emails.map(e => e.toLowerCase())));
+
+    // --- Check against existing records ---
     const existingEmails = (await prisma.whitelistedEmail.findMany({
-      where: { email: { in: emails } },
+      where: { email: { in: lowercasedEmails } },
       select: { email: true },
     })).map(e => e.email);
 
-    const newEmails = emails.filter(email => !existingEmails.includes(email));
+    const newEmails = lowercasedEmails.filter(email => !existingEmails.includes(email));
 
     if (newEmails.length === 0) {
-      return NextResponse.json({ message: "All provided emails already exist in the whitelist.", count: 0 }, { status: 200 });
+      return NextResponse.json({ message: "All provided emails already exist in the whitelist or are duplicates.", count: 0 }, { status: 200 });
     }
     // --- END ---
 

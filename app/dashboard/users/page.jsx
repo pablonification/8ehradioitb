@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import Image from 'next/image';
 
 const ROLE_OPTIONS = [
   { value: "DEVELOPER", label: "Developer" },
@@ -10,6 +11,17 @@ const ROLE_OPTIONS = [
   { value: "KRU", label: "Kru" },
   { value: "MUSIC", label: "Music" },
 ];
+
+const getRoleClass = (role) => {
+    switch (role) {
+        case 'DEVELOPER': return 'bg-red-100 text-red-800';
+        case 'TECHNIC': return 'bg-blue-100 text-blue-800';
+        case 'REPORTER': return 'bg-green-100 text-green-800';
+        case 'MUSIC': return 'bg-purple-100 text-purple-800';
+        case 'KRU':
+        default: return 'bg-gray-100 text-gray-800';
+    }
+};
 
 export default function UsersPage() {
   const { data: session, status } = useSession();
@@ -27,9 +39,7 @@ export default function UsersPage() {
     setLoading(true);
     try {
       const res = await fetch('/api/users');
-      if (!res.ok) {
-        throw new Error('Failed to fetch users');
-      }
+      if (!res.ok) throw new Error('Failed to fetch users');
       const data = await res.json();
       setUsers(data);
     } catch (err) {
@@ -47,9 +57,7 @@ export default function UsersPage() {
         body: JSON.stringify({ userId, role: newRole }),
       });
 
-      if (!res.ok) {
-        throw new Error('Failed to update role');
-      }
+      if (!res.ok) throw new Error('Failed to update role');
 
       setUsers(users.map(user => 
         user.id === userId ? { ...user, role: newRole } : user
@@ -59,71 +67,72 @@ export default function UsersPage() {
     }
   };
 
-  if (status === 'loading') {
-    return <div className="p-8 text-center">Loading session...</div>;
+  if (status === 'loading' || loading) {
+    return <div className="p-8 text-center font-body">Loading...</div>;
   }
 
   if (status === 'unauthenticated' || (status === 'authenticated' && session.user.role !== 'DEVELOPER')) {
-    return <div className="p-8 text-center text-red-500">Access Denied. You must be a developer to view this page.</div>;
+    return <div className="p-8 text-center text-red-500 font-body">Access Denied. You must be a developer to view this page.</div>;
   }
 
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6 font-heading text-gray-900">User Management</h1>
+    <div className="p-4 sm:p-8">
+      <h1 className="text-3xl font-heading font-bold mb-6 text-gray-900">User Management</h1>
       
-      {loading && <p>Loading users...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-red-500 font-body mb-4">{error}</p>}
       
-      {!loading && !error && (
-        <div className="bg-white shadow-md rounded-lg overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {users.map(user => (
-                <tr key={user.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="text-sm font-medium text-gray-900">{user.name}</div>
+      <div className="bg-white shadow-md rounded-lg overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-body">User</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-body">Role</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-body">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {users.map(user => (
+              <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 h-10 w-10">
+                      <Image
+                        className="h-10 w-10 rounded-full"
+                        src={user.image || `https://ui-avatars.com/api/?name=${user.name}&background=random`}
+                        alt={user.name}
+                        width={40}
+                        height={40}
+                      />
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{user.email}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        user.role === 'DEVELOPER' ? 'bg-red-100 text-red-800' :
-                        user.role === 'TECHNIC' ? 'bg-blue-100 text-blue-800' :
-                        user.role === 'REPORTER' ? 'bg-green-100 text-green-800' :
-                        'bg-gray-100 text-gray-800'
-                    }`}>
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <select
-                      value={user.role}
-                      onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                      className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md text-gray-900"
-                      disabled={user.email === session.user.email} // Disable changing own role
-                    >
-                      {ROLE_OPTIONS.map(role => (
-                        <option key={role.value} value={role.value} style={{ fontFamily: 'var(--font-body), ui-sans-serif, system-ui, sans-serif' }} className="text-gray-900">{role.label}</option>
-                      ))}
-                    </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+                    <div className="ml-4">
+                      <div className="text-sm font-medium text-gray-900 font-heading">{user.name}</div>
+                      <div className="text-sm text-gray-500 font-body">{user.email}</div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleClass(user.role)}`}>
+                    {user.role}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <select
+                    value={user.role}
+                    onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                    className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md text-gray-900 cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
+                    disabled={user.email === session.user.email}
+                    title={user.email === session.user.email ? "You cannot change your own role." : "Change user role"}
+                  >
+                    {ROLE_OPTIONS.map(role => (
+                      <option key={role.value} value={role.value} className="font-body">{role.label}</option>
+                    ))}
+                  </select>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
-} 
+}

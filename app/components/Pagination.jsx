@@ -19,18 +19,18 @@ function PaginationContent({ totalPages, basePath }) {
   return (
     <nav className="flex justify-center items-center space-x-2 mt-12">
       {/* Previous Button */}
-      <Link
-        href={createPageURL(currentPage - 1)}
-        className={`px-4 py-2 rounded-md text-sm font-body font-medium ${
-          currentPage === 1
-            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-            : "bg-gray-100 text-gray-700 hover:bg-gray-50"
-        }`}
-        aria-disabled={currentPage === 1}
-        tabIndex={currentPage === 1 ? -1 : undefined}
-      >
-        Previous
-      </Link>
+      {currentPage === 1 ? (
+        <span className="px-4 py-2 rounded-md text-sm font-body font-medium bg-gray-100 text-gray-400 cursor-not-allowed">
+          Previous
+        </span>
+      ) : (
+        <Link
+          href={createPageURL(currentPage - 1)}
+          className="px-4 py-2 rounded-md text-sm font-body font-medium bg-gray-100 text-gray-700 hover:bg-gray-50"
+        >
+          Previous
+        </Link>
+      )}
 
       {/* Page Numbers */}
       {pages.map((page) => (
@@ -48,18 +48,18 @@ function PaginationContent({ totalPages, basePath }) {
       ))}
 
       {/* Next Button */}
-      <Link
-        href={createPageURL(currentPage + 1)}
-        className={`px-4 py-2 rounded-md text-sm font-body font-medium ${
-          currentPage === totalPages
-            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-            : "bg-gray-100 text-gray-700 hover:bg-gray-50"
-        }`}
-        aria-disabled={currentPage === totalPages}
-        tabIndex={currentPage === totalPages ? -1 : undefined}
-      >
-        Next
-      </Link>
+      {currentPage === totalPages ? (
+        <span className="px-4 py-2 rounded-md text-sm font-body font-medium bg-gray-100 text-gray-400 cursor-not-allowed">
+          Next
+        </span>
+      ) : (
+        <Link
+          href={createPageURL(currentPage + 1)}
+          className="px-4 py-2 rounded-md text-sm font-body font-medium bg-gray-100 text-gray-700 hover:bg-gray-50"
+        >
+          Next
+        </Link>
+      )}
     </nav>
   );
 }
@@ -75,6 +75,8 @@ function PaginationFallback() {
 }
 
 export default function Pagination({ totalPages, basePath }) {
+  if (totalPages <= 1) return null; // No need to render pagination
+
   return (
     <Suspense fallback={<PaginationFallback />}>
       <PaginationContent totalPages={totalPages} basePath={basePath} />

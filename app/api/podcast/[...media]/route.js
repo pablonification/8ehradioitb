@@ -20,7 +20,7 @@ const s3 = new S3Client({
 export async function GET(req, { params }) {
   // Menggabungkan segmen path menjadi satu key untuk R2
   // Contoh: /api/podcast/podcasts/audio.mp3 -> 'podcasts/audio.mp3'
-  const media = await params.media;
+  const media = params.media;
   const key = media.join('/');
 
   if (!key) {

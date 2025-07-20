@@ -3,6 +3,8 @@ import { Plus_Jakarta_Sans, Arimo, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import GlobalAudioPlayer from "@/app/components/GlobalAudioPlayer";
 import AuthProvider from "@/app/components/AuthProvider";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import StructuredData from "@/app/components/StructuredData";
 
 const geistSans = Geist({
@@ -119,7 +121,9 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="en">
       <head>
@@ -128,7 +132,7 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} ${arimo.variable} ${instrumentSerif.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider session={session}>{children}</AuthProvider>
         <div>
           <GlobalAudioPlayer />
         </div>
