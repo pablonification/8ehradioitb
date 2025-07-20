@@ -2,6 +2,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { FiPlus, FiTrash2, FiSave } from "react-icons/fi";
+import { hasAnyRole } from '@/lib/roleUtils';
 
 export default function StreamConfigPage() {
   const { data: session } = useSession();
@@ -17,8 +18,7 @@ export default function StreamConfigPage() {
   const [saving, setSaving] = useState(false);
   const [newUrl, setNewUrl] = useState("");
 
-  const isAdmin =
-    session && ["DEVELOPER", "TECHNIC"].includes(session.user.role);
+  const isAdmin = session && hasAnyRole(session.user.role, ["DEVELOPER", "TECHNIC"]);
 
   useEffect(() => {
     fetch("/api/stream-config")

@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { FiUpload, FiSave, FiTrash2 } from "react-icons/fi";
+import { hasAnyRole } from '@/lib/roleUtils';
 
 export default function PlayerConfigPage() {
   const { data: session } = useSession();
@@ -14,7 +15,7 @@ export default function PlayerConfigPage() {
   const [success, setSuccess] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const isAdmin = session && ["DEVELOPER", "TECHNIC"].includes(session.user.role);
+  const isAdmin = session && hasAnyRole(session.user.role, ["DEVELOPER", "TECHNIC"]);
 
   useEffect(() => {
     fetch("/api/player-config")

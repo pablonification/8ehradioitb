@@ -2,6 +2,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState, useRef } from "react";
 import { FiSave, FiUpload, FiX, FiMusic } from "react-icons/fi";
+import { hasAnyRole } from '@/lib/roleUtils';
 
 const MAX_ENTRIES = 10;
 
@@ -185,7 +186,7 @@ export default function TuneTrackerDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const isMusic = session && ["MUSIC", "DEVELOPER"].includes(session.user.role);
+  const isMusic = session && hasAnyRole(session.user.role, ["MUSIC", "DEVELOPER"]);
 
   const fetchEntries = async () => {
     if (!loading) setLoading(true);

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { hasRole } from '@/lib/roleUtils';
 import { FiPlus, FiRefreshCw, FiTrash2 } from 'react-icons/fi';
 
 function WhitelistForm({ onWhitelistAdded }) {
@@ -139,7 +140,7 @@ export default function WhitelistPage() {
   };
 
   useEffect(() => {
-    if (status === 'authenticated' && session.user.role === 'DEVELOPER') {
+    if (status === 'authenticated' && hasRole(session.user.role, 'DEVELOPER')) {
       fetchWhitelist();
     }
   }, [status, session]);
@@ -163,7 +164,7 @@ export default function WhitelistPage() {
     return <div className="p-8 text-center font-body">Loading...</div>;
   }
 
-  if (status !== 'authenticated' || session.user.role !== 'DEVELOPER') {
+  if (status !== 'authenticated' || !hasRole(session.user.role, 'DEVELOPER')) {
     return <div className="p-8 text-center text-red-500 font-body">Access Denied. You must be a developer.</div>;
   }
 

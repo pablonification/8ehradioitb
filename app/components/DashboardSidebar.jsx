@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { hasAnyRole } from "@/lib/roleUtils";
 import ButtonPrimary from "./ButtonPrimary";
 import { useState } from 'react';
 import { FiHome, FiEdit, FiMic, FiLink, FiUsers, FiCheckSquare, FiLogOut, FiSettings, FiBarChart2, FiMusic, FiChevronLeft, FiChevronRight, FiPlus, FiVideo } from 'react-icons/fi';
@@ -27,7 +28,7 @@ export default function DashboardSidebar() {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const visibleNavItems = navItems.filter(item =>
-    item.roles.includes(session?.user?.role)
+    hasAnyRole(session?.user?.role, item.roles)
   );
 
   return (

@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { FiPlus, FiEdit, FiTrash2, FiSave, FiX } from 'react-icons/fi';
+import { hasAnyRole } from '@/lib/roleUtils';
 
 function PodcastDashboard() {
   const { data: session } = useSession();
@@ -21,7 +22,7 @@ function PodcastDashboard() {
       .catch(() => { setError("Failed to load podcasts"); setLoading(false); });
   }, []);
 
-  const isAdmin = session && ["DEVELOPER", "TECHNIC"].includes(session.user.role);
+  const isAdmin = session && hasAnyRole(session.user.role, ["DEVELOPER", "TECHNIC"]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
