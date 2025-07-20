@@ -64,7 +64,7 @@ export default function LoginPage() {
             </p>
 
             <ButtonPrimary
-              onClick={() => signIn("google")}
+              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
               className="w-full flex items-center justify-center py-3 text-base"
             >
               <Image

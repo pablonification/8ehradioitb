@@ -409,7 +409,7 @@ export default function LinksDashboardPage() {
 
             {shortLinks.length > 0 && (
                 <div>
-                    <h2 className="text-xl font-heading font-bold mb-6 text-gray-800">Your Short Links</h2>
+                    <h2 className="text-xl font-heading font-bold mb-6 text-gray-800">All Short Links</h2>
                     <div className="space-y-4">
                         {shortLinks.map((shortLink) => (
                             <ShortLinkCard

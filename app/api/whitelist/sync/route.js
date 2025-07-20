@@ -22,10 +22,10 @@ export async function POST(req) {
 
         const existingWhitelistedEmails = (await prisma.whitelistedEmail.findMany({
             select: { email: true }
-        })).map(e => e.email);
+        })).map(e => e.email.toLowerCase());
 
         const usersToWhitelist = allUsers.filter(user => 
-            user.email && !existingWhitelistedEmails.includes(user.email)
+            user.email && !existingWhitelistedEmails.includes(user.email.toLowerCase())
         );
 
         if (usersToWhitelist.length === 0) {
@@ -34,7 +34,7 @@ export async function POST(req) {
 
         const result = await prisma.whitelistedEmail.createMany({
             data: usersToWhitelist.map(user => ({
-                email: user.email,
+                email: user.email.toLowerCase(),
             })),
         });
 
