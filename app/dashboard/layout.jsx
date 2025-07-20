@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState } from "react";
 import DashboardSidebar from "@/app/components/DashboardSidebar";
@@ -30,7 +30,7 @@ export default function DashboardLayout({ children }) {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         <header className="flex justify-between lg:justify-end items-center p-4 border-b border-gray-200 bg-white shadow-sm">
           <button
             className="lg:hidden p-2 text-gray-700"
@@ -44,7 +44,8 @@ export default function DashboardLayout({ children }) {
           {children}
         </main>
         <footer className="text-xs text-gray-500 font-body text-center py-4">
-          © {new Date().getFullYear()} Technic 8EH Radio ITB. All rights reserved.
+          © {new Date().getFullYear()} Technic 8EH Radio ITB. All rights
+          reserved.
         </footer>
       </div>
     </div>

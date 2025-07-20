@@ -126,58 +126,62 @@ export default function UsersPage() {
       
       {error && <p className="text-red-500 font-body mb-4">{error}</p>}
       
-      <div className="bg-white shadow-md rounded-lg overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+      <div className="bg-white shadow-md rounded-lg overflow-x-auto w-full">
+        <table className="min-w-full divide-y divide-gray-200 w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-body">User</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-body">Roles</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-body">Assign</th>
+              <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-body">User</th>
+              <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-body">Roles</th>
+              <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-body">Assign</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {users.map(user => (
               <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    <div className="flex-shrink-0 h-10 w-10">
+                    <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
                       <Image
-                        className="h-10 w-10 rounded-full"
+                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-full"
                         src={user.image || `https://ui-avatars.com/api/?name=${user.name}&background=random`}
                         alt={user.name}
                         width={40}
                         height={40}
                       />
                     </div>
-                    <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900 font-heading">{user.name}</div>
-                      <div className="text-sm text-gray-500 font-body">{user.email}</div>
+                    <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+                      <div className="text-sm font-medium text-gray-900 font-heading truncate">{user.name}</div>
+                      <div className="text-xs sm:text-sm text-gray-500 font-body truncate">{user.email}</div>
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                   {(editingMap[user.id] || splitRoles(user.role)).map(r => (
-                      <span key={r} className={`px-2 mr-1 mb-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleClass(r)}`}>{r}</span>
+                <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                  <div className="flex flex-wrap gap-1">
+                    {(editingMap[user.id] || splitRoles(user.role)).map(r => (
+                      <span key={r} className={`px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded-full ${getRoleClass(r)}`}>{r}</span>
                     ))}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                   {editingMap[user.id] ? (
-                     <>
-                       <div className="flex flex-wrap gap-1 mb-2">
-                         {BASE_ROLES.map(base => {
-                           const active = editingMap[user.id].includes(base);
-                           return (
-                             <button key={base} onClick={() => toggleLocalRole(user.id, base)} className={`px-2 py-1 rounded-full text-xs font-semibold border ${active ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-600'}`}>{base}</button>
-                           );
-                         })}
-                       </div>
-                       <button onClick={() => saveEdit(user.id)} className="mr-2 text-green-600 hover:underline">Save</button>
-                       <button onClick={() => cancelEdit(user.id)} className="text-gray-600 hover:underline">Cancel</button>
-                     </>
-                   ) : (
-                     <button onClick={() => startEdit(user.id)} disabled={user.email === session.user.email} className="text-blue-600 hover:underline disabled:opacity-50">Edit</button>
-                   )}
-                  </td>
+                  </div>
+                </td>
+                <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  {editingMap[user.id] ? (
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-1">
+                        {BASE_ROLES.map(base => {
+                          const active = editingMap[user.id].includes(base);
+                          return (
+                            <button key={base} onClick={() => toggleLocalRole(user.id, base)} className={`px-2 py-1 rounded-full text-xs font-semibold border ${active ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-600'}`}>{base}</button>
+                          );
+                        })}
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => saveEdit(user.id)} className="text-green-600 hover:underline text-sm">Save</button>
+                        <button onClick={() => cancelEdit(user.id)} className="text-gray-600 hover:underline text-sm">Cancel</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button onClick={() => startEdit(user.id)} disabled={user.email === session.user.email} className="text-blue-600 hover:underline disabled:opacity-50 text-sm">Edit</button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
