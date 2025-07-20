@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { hasAnyRole } from "@/lib/roleUtils";
 
-function isMusic(role) {
-  return role === "MUSIC" || role === "DEVELOPER";
+function isMusic(roleString) {
+  return hasAnyRole(roleString, ["MUSIC", "DEVELOPER"]);
 }
 
 // GET: List all 10 entries, sorted by order

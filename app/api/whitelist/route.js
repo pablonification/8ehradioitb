@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { hasRole } from "@/lib/roleUtils";
 
 async function checkDeveloper(req) {
   const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "DEVELOPER") {
+  if (!session || !hasRole(session.user.role, "DEVELOPER")) {
     return { error: "Forbidden", status: 403 };
   }
   return { session };

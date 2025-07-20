@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { hasAnyRole } from "@/lib/roleUtils";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const R2_ENDPOINT = process.env.R2_ENDPOINT;
@@ -18,8 +19,8 @@ const s3 = new S3Client({
   },
 });
 
-function isMusic(role) {
-  return role === "MUSIC" || role === "DEVELOPER";
+function isMusic(roleString) {
+  return hasAnyRole(roleString, ["MUSIC", "DEVELOPER"]);
 }
 
 export async function POST(req) {

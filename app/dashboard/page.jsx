@@ -1,6 +1,7 @@
 'use client';
 
 import { useSession } from "next-auth/react";
+import { hasAnyRole } from "@/lib/roleUtils";
 import useSWR from 'swr';
 import Link from 'next/link';
 import { FiEdit, FiMic, FiLink, FiBarChart2, FiArrowRight, FiPlus, FiActivity } from 'react-icons/fi';
@@ -76,7 +77,7 @@ export default function DashboardHome() {
     ];
 
     const visibleActions = actions.filter(action =>
-        action.roles.includes(session?.user?.role)
+        hasAnyRole(session?.user?.role, action.roles)
     );
 
     const { data: posts, error: postsError } = useSWR('/api/blog', fetcher);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { hasAnyRole } from "@/lib/roleUtils";
 
 const R2_ENDPOINT = process.env.R2_ENDPOINT;
 const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
@@ -18,8 +19,8 @@ const s3 = new S3Client({
   },
 });
 
-function isAdmin(role) {
-  return ["DEVELOPER", "TECHNIC"].includes(role);
+function isAdmin(roleString) {
+  return hasAnyRole(roleString, ["DEVELOPER", "TECHNIC"]);
 }
 
 export async function POST(req) {
