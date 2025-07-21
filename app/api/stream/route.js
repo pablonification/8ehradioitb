@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { NextResponse } from "next/server";
 import icy from "icy";
 import { PassThrough } from "stream";

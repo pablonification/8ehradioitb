@@ -6,6 +6,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { hasAnyRole } from "@/lib/roleUtils";
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
   try {
@@ -27,7 +28,12 @@ export async function GET() {
         },
       },
     });
-    return NextResponse.json(posts);
+    
+    const response = NextResponse.json(posts);
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
   } catch (error) {
     console.error("Error fetching posts:", error);
     return NextResponse.json(
@@ -82,7 +88,11 @@ export async function POST(req) {
       },
     });
 
-    return NextResponse.json(newPost, { status: 201 });
+    const response = NextResponse.json(newPost, { status: 201 });
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
   } catch (error) {
     console.error("Error creating post:", error);
     if (error.code === 'P2002' && error.meta?.target?.includes('slug')) {

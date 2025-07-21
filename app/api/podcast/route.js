@@ -1,5 +1,8 @@
 // File: app/api/podcast/route.js
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";

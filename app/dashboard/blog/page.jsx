@@ -6,16 +6,15 @@ import { useEffect } from "react";
 import useSWR from 'swr';
 import Link from 'next/link';
 import { FiPlus, FiStar, FiEdit, FiTrash2 } from 'react-icons/fi';
-
-const fetcher = (...args) => fetch(...args).then(res => res.json());
+import { noCacheFetch, noCacheFetcher } from '@/lib/noCacheFetch';
 
 function BlogManagement() {
-  const { data: posts, error, mutate } = useSWR('/api/blog', fetcher);
+  const { data: posts, error, mutate } = useSWR('/api/blog', noCacheFetcher);
   const router = useRouter();
 
   const handleFeature = async (slug) => {
     try {
-      await fetch(`/api/blog/feature/${slug}`, { method: 'PUT' });
+      await noCacheFetch(`/api/blog/feature/${slug}`, { method: 'PUT' });
       mutate();
     } catch (err) {
       alert(err.message);
@@ -25,7 +24,7 @@ function BlogManagement() {
   const handleDelete = async (slug) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
       try {
-        await fetch(`/api/blog/${slug}`, { method: 'DELETE' });
+        await noCacheFetch(`/api/blog/${slug}`, { method: 'DELETE' });
         mutate();
       } catch (err) {
         alert(err.message);

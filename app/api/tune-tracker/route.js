@@ -5,6 +5,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { hasAnyRole } from "@/lib/roleUtils";
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 function isMusic(roleString) {
   return hasAnyRole(roleString, ["MUSIC", "DEVELOPER"]);
@@ -15,7 +16,11 @@ export async function GET() {
   const entries = await prisma.tuneTrackerEntry.findMany({
     orderBy: { order: "asc" },
   });
-  return NextResponse.json(entries);
+  const response = NextResponse.json(entries);
+  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  response.headers.set('Pragma', 'no-cache');
+  response.headers.set('Expires', '0');
+  return response;
 }
 
 // POST: Create or update one entry (by order)

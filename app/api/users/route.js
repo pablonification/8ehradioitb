@@ -6,21 +6,37 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { hasRole } from "@/lib/roleUtils";
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+async function checkDeveloper(req) {
+  const session = await getServerSession(authOptions);
+  if (!session || !hasRole(session.user.role, "DEVELOPER")) {
+    return { error: "Forbidden", status: 403 };
+  }
+  return { session };
+}
 
 export async function GET(req) {
-  const session = await getServerSession(authOptions);
-
-  if (!session || !hasRole(session.user.role, "DEVELOPER")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const { error, status } = await checkDeveloper(req);
+  if (error) return NextResponse.json({ error }, { status });
 
   try {
     const users = await prisma.user.findMany({
-      orderBy: {
-        createdAt: "desc",
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
       },
+      orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json(users);
+    
+    const response = NextResponse.json(users);
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
   } catch (error) {
     console.error("Error fetching users:", error);
     return NextResponse.json(
