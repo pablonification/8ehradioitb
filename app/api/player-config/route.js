@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { hasAnyRole } from "@/lib/roleUtils";
 
-function isAdmin(role) {
-  return ["DEVELOPER", "TECHNIC"].includes(role);
+function isAdmin(roleString) {
+  return hasAnyRole(roleString, ["DEVELOPER", "TECHNIC"]);
 }
 
 export async function GET() {

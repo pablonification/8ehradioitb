@@ -3,11 +3,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { hasRole } from "@/lib/roleUtils";
 
 export async function GET(req) {
   const session = await getServerSession(authOptions);
 
-  if (!session || session.user.role !== "DEVELOPER") {
+  if (!session || !hasRole(session.user.role, "DEVELOPER")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -30,7 +31,7 @@ export async function GET(req) {
 export async function PATCH(req) {
   const session = await getServerSession(authOptions);
 
-  if (!session || session.user.role !== "DEVELOPER") {
+  if (!session || !hasRole(session.user.role, "DEVELOPER")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -44,11 +45,7 @@ export async function PATCH(req) {
       );
     }
     
-    // Optional: Check if the role is a valid enum value
-    const validRoles = ["DEVELOPER", "TECHNIC", "REPORTER", "KRU", "MUSIC"];
-    if (!validRoles.includes(role)) {
-        return NextResponse.json({ error: "Invalid role" }, { status: 400 });
-    }
+    // No strict validation – allow combined roles like "DEVELOPER-TECHNIC"
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },

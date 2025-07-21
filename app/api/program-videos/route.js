@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { hasAnyRole } from "@/lib/roleUtils";
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 const R2_ENDPOINT = process.env.R2_ENDPOINT;
@@ -19,8 +20,8 @@ const s3 = new S3Client({
 });
 
 
-function isAdmin(role) {
-  return ["DEVELOPER", "TECHNIC"].includes(role);
+function isAdmin(roleString) {
+  return hasAnyRole(roleString, ["DEVELOPER", "TECHNIC"]);
 }
 
 export async function GET() {

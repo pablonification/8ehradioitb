@@ -2,6 +2,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState, useRef } from "react";
 import { FiSave, FiUpload, FiX, FiMusic } from "react-icons/fi";
+import { hasAnyRole } from '@/lib/roleUtils';
 
 const MAX_ENTRIES = 10;
 
@@ -144,19 +145,25 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
 
           <div className="md:col-span-2">
             <label className="block text-sm font-semibold text-gray-700 font-body mb-1">Audio Clip (Preview)</label>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-2">
               <label className="flex-1">
                 <input type="file" accept="audio/*" onChange={(e) => handleFileChange(e, "audioUrl")} className="hidden"/>
-                 <div className="w-full border border-gray-300 p-2 rounded-md font-body text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2 cursor-pointer">
-                    <FiMusic />
-                    <span className="truncate text-sm">{entry.audioUrl instanceof File ? entry.audioUrl.name : 'Choose file...'}</span>
+                <div className="w-full border border-gray-300 p-2 rounded-md font-body text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2 cursor-pointer">
+                  <FiMusic />
+                  <span className="truncate text-sm">{entry.audioUrl instanceof File ? entry.audioUrl.name : 'Choose file...'}</span>
                 </div>
               </label>
               {typeof entry.audioUrl === 'string' && entry.audioUrl && (
-                <>
+                <div className="flex items-center gap-3 mt-1">
                   <audio src={`/api/proxy-audio?key=${encodeURIComponent(entry.audioUrl)}`} controls className="h-10 rounded-md" />
-                  <button type="button" className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full cursor-pointer" onClick={() => handleRemoveFile("audioUrl")}><FiX /></button>
-                </>
+                  <button
+                    type="button"
+                    className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full cursor-pointer"
+                    onClick={() => handleRemoveFile("audioUrl")}
+                  >
+                    <FiX />
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -185,7 +192,7 @@ export default function TuneTrackerDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const isMusic = session && ["MUSIC", "DEVELOPER"].includes(session.user.role);
+  const isMusic = session && hasAnyRole(session.user.role, ["MUSIC", "DEVELOPER"]);
 
   const fetchEntries = async () => {
     if (!loading) setLoading(true);
