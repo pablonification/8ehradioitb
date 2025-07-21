@@ -14,7 +14,7 @@ export async function GET(req, { params }) {
   }
 
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const shortLink = await prisma.shortLink.findFirst({
       where: {
@@ -56,7 +56,7 @@ export async function DELETE(req, { params }) {
   }
 
   try {
-    const { id } = await params;
+    const { id } = params;
 
     // Check if the short link belongs to the user
     const shortLink = await prisma.shortLink.findFirst({
