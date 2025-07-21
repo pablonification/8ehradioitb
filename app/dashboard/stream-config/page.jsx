@@ -1,12 +1,14 @@
-"use client";
+'use client';
+
+export const dynamic = 'force-dynamic';
+
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { FiPlus, FiTrash2, FiSave } from "react-icons/fi";
 import { hasAnyRole } from '@/lib/roleUtils';
-import { noCacheFetch } from '@/lib/noCacheFetch';
 
 export default function StreamConfigPage() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [config, setConfig] = useState({
     baseUrls: [],
     defaultUrl: "",
@@ -22,7 +24,12 @@ export default function StreamConfigPage() {
   const isAdmin = session && hasAnyRole(session.user.role, ["DEVELOPER", "TECHNIC"]);
 
   useEffect(() => {
-    noCacheFetch("/api/stream-config")
+    fetch("/api/stream-config", {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    })
       .then((res) => res.json())
       .then((data) => {
         setConfig({
@@ -77,7 +84,7 @@ export default function StreamConfigPage() {
     setError("");
     setSuccess("");
     try {
-      const res = await noCacheFetch("/api/stream-config", {
+      const res = await fetch("/api/stream-config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(config),

@@ -1,4 +1,7 @@
 "use client";
+
+export const dynamic = 'force-dynamic';
+
 import { useSession } from "next-auth/react";
 import { useEffect, useState, useRef } from "react";
 import { FiSave, FiUpload, FiX, FiMusic } from "react-icons/fi";
@@ -198,7 +201,12 @@ export default function TuneTrackerDashboard() {
     if (!loading) setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/tune-tracker");
+      const res = await fetch("/api/tune-tracker", {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
       const data = await res.json();
       const filled = Array.from({ length: MAX_ENTRIES }, (_, i) => {
         const found = data.find((e) => e.order === i + 1);

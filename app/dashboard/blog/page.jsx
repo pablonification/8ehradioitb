@@ -1,20 +1,28 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import useSWR from 'swr';
 import Link from 'next/link';
 import { FiPlus, FiStar, FiEdit, FiTrash2 } from 'react-icons/fi';
-import { noCacheFetch, noCacheFetcher } from '@/lib/noCacheFetch';
+
+const fetcher = (...args) => fetch(...args, {
+  cache: 'no-store',
+  headers: {
+    'Cache-Control': 'no-cache'
+  }
+}).then(res => res.json());
 
 function BlogManagement() {
-  const { data: posts, error, mutate } = useSWR('/api/blog', noCacheFetcher);
+  const { data: posts, error, mutate } = useSWR('/api/blog', fetcher);
   const router = useRouter();
 
   const handleFeature = async (slug) => {
     try {
-      await noCacheFetch(`/api/blog/feature/${slug}`, { method: 'PUT' });
+      await fetch(`/api/blog/feature/${slug}`, { method: 'PUT' });
       mutate();
     } catch (err) {
       alert(err.message);
@@ -24,7 +32,7 @@ function BlogManagement() {
   const handleDelete = async (slug) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
       try {
-        await noCacheFetch(`/api/blog/${slug}`, { method: 'DELETE' });
+        await fetch(`/api/blog/${slug}`, { method: 'DELETE' });
         mutate();
       } catch (err) {
         alert(err.message);

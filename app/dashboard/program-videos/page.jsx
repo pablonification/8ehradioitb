@@ -1,10 +1,17 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState } from 'react';
 import useSWR from 'swr';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 
-const fetcher = url => fetch(url).then(r => r.json());
+const fetcher = url => fetch(url, {
+  cache: 'no-store',
+  headers: {
+    'Cache-Control': 'no-cache'
+  }
+}).then(r => r.json());
 
 export default function ProgramVideosPage() {
   const { data: videos, mutate, isLoading } = useSWR('/api/program-videos', fetcher);

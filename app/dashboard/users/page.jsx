@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { hasRole, splitRoles } from '@/lib/roleUtils';
@@ -56,7 +58,12 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/users');
+      const res = await fetch('/api/users', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
       if (!res.ok) throw new Error('Failed to fetch users');
       const data = await res.json();
       setUsers(data);
@@ -141,10 +148,12 @@ export default function UsersPage() {
                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
-                      <img
-                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover"
+                      <Image
+                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-full"
                         src={user.image || `https://ui-avatars.com/api/?name=${user.name}&background=random`}
                         alt={user.name}
+                        width={40}
+                        height={40}
                       />
                     </div>
                     <div className="ml-3 sm:ml-4 min-w-0 flex-1">

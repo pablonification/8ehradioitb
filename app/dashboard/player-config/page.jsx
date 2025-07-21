@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
@@ -18,7 +20,12 @@ export default function PlayerConfigPage() {
   const isAdmin = session && hasAnyRole(session.user.role, ["DEVELOPER", "TECHNIC"]);
 
   useEffect(() => {
-    fetch("/api/player-config")
+    fetch("/api/player-config", {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    })
       .then((res) => res.json())
       .then((data) => {
         setConfig({

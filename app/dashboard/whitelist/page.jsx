@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { hasRole } from '@/lib/roleUtils';
@@ -128,7 +130,12 @@ export default function WhitelistPage() {
   const fetchWhitelist = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/whitelist');
+      const res = await fetch('/api/whitelist', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
       if (!res.ok) throw new Error('Failed to fetch whitelist.');
       const data = await res.json();
       setWhitelist(data);

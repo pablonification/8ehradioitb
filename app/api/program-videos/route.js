@@ -6,7 +6,6 @@ import { hasAnyRole } from "@/lib/roleUtils";
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 const R2_ENDPOINT = process.env.R2_ENDPOINT;
 const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
@@ -31,11 +30,7 @@ export async function GET() {
   const videos = await prisma.programVideo.findMany({
     orderBy: { createdAt: "desc" },
   });
-  const response = NextResponse.json(videos);
-  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  response.headers.set('Pragma', 'no-cache');
-  response.headers.set('Expires', '0');
-  return response;
+  return NextResponse.json(videos);
 }
 
 export async function POST(req) {

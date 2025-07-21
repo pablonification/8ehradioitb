@@ -1,9 +1,10 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from "react";
 import ButtonPrimary from "@/app/components/ButtonPrimary";
 import { FiCopy, FiEdit, FiTrash2, FiEye, FiLink, FiCalendar, FiBarChart2, FiLock, FiPlus, FiX } from "react-icons/fi";
-import { noCacheFetch, noCacheFetcher } from '@/lib/noCacheFetch';
 
 function FormInput({ label, type = "text", placeholder, value, onChange, name, error }) {
     return (
@@ -192,7 +193,12 @@ export default function LinksDashboardPage() {
 
     const fetchShortLinks = async () => {
         try {
-            const response = await noCacheFetch('/api/shortlinks');
+            const response = await fetch('/api/shortlinks', {
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache'
+                }
+            });
             if (response.ok) {
                 const data = await response.json();
                 setShortLinks(data);
@@ -243,7 +249,7 @@ export default function LinksDashboardPage() {
             const method = isEditing ? 'PUT' : 'POST';
             const body = isEditing ? { ...formData, id: editingId } : formData;
 
-            const response = await noCacheFetch(url, {
+            const response = await fetch(url, {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
@@ -287,7 +293,7 @@ export default function LinksDashboardPage() {
         if (!confirm('Are you sure you want to delete this short link?')) return;
 
         try {
-            const response = await noCacheFetch(`/api/shortlinks/${id}`, {
+            const response = await fetch(`/api/shortlinks/${id}`, {
                 method: 'DELETE',
             });
 
@@ -303,7 +309,7 @@ export default function LinksDashboardPage() {
 
     const handleViewAnalytics = async (shortLink) => {
         try {
-            const response = await noCacheFetch(`/api/shortlinks/${shortLink.id}/analytics`);
+            const response = await fetch(`/api/shortlinks/${shortLink.id}/analytics`);
             if (response.ok) {
                 const analytics = await response.json();
                 setAnalyticsModal({ isOpen: true, shortLink, analytics });

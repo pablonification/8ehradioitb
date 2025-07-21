@@ -5,7 +5,6 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { nanoid } from "nanoid";
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 // Generate a unique slug
 async function generateUniqueSlug() {
@@ -50,11 +49,7 @@ export async function GET(req) {
       }
     });
 
-    const response = NextResponse.json(shortLinks);
-    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    response.headers.set('Pragma', 'no-cache');
-    response.headers.set('Expires', '0');
-    return response;
+    return NextResponse.json(shortLinks);
   } catch (error) {
     console.error("Error fetching short links:", error);
     return NextResponse.json(

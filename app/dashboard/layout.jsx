@@ -1,5 +1,7 @@
-"use client";
 
+
+"use client";
+export const dynamic = 'force-dynamic';
 import { useState } from "react";
 import DashboardSidebar from "@/app/components/DashboardSidebar";
 import UserDropdown from "@/app/components/UserDropdown";

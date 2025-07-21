@@ -5,7 +5,6 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { hasAnyRole } from "@/lib/roleUtils";
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 function isAdmin(roleString) {
   return hasAnyRole(roleString, ["DEVELOPER", "TECHNIC"]);
@@ -13,11 +12,7 @@ function isAdmin(roleString) {
 
 export async function GET() {
   const config = await prisma.streamConfig.findFirst();
-  const response = NextResponse.json(config || {});
-  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  response.headers.set('Pragma', 'no-cache');
-  response.headers.set('Expires', '0');
-  return response;
+  return NextResponse.json(config || {});
 }
 
 export async function POST(req) {
@@ -37,9 +32,5 @@ export async function POST(req) {
       data: { baseUrls, defaultUrl, fallbackUrl, onAir },
     });
   }
-  const response = NextResponse.json(config);
-  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  response.headers.set('Pragma', 'no-cache');
-  response.headers.set('Expires', '0');
-  return response;
+  return NextResponse.json(config);
 } 

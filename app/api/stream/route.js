@@ -1,9 +1,8 @@
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 import { NextResponse } from "next/server";
 import icy from "icy";
 import { PassThrough } from "stream";
+
+export const dynamic = 'force-dynamic';
 
 export const runtime = "nodejs"; // ensure Node runtime (not edge) so we can use TCP sockets
 

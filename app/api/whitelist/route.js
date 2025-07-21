@@ -5,7 +5,6 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { hasRole } from "@/lib/roleUtils";
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 async function checkDeveloper(req) {
   const session = await getServerSession(authOptions);
@@ -21,15 +20,10 @@ export async function GET(req) {
   if (error) return NextResponse.json({ error }, { status });
 
   try {
-    const whitelistedEmails = await prisma.whitelistedEmail.findMany({
-      orderBy: { createdAt: 'desc' },
+    const whitelist = await prisma.whitelistedEmail.findMany({
+      orderBy: { createdAt: "desc" },
     });
-
-    const response = NextResponse.json(whitelistedEmails);
-    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    response.headers.set('Pragma', 'no-cache');
-    response.headers.set('Expires', '0');
-    return response;
+    return NextResponse.json(whitelist);
   } catch (err) {
     console.error("Error fetching whitelist:", err);
     return NextResponse.json(

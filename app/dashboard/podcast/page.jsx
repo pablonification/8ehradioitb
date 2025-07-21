@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { FiPlus, FiEdit, FiTrash2, FiSave, FiX } from 'react-icons/fi';
@@ -16,7 +18,12 @@ function PodcastDashboard() {
   const [editForm, setEditForm] = useState({});
 
   useEffect(() => {
-    fetch("/api/podcast")
+    fetch("/api/podcast", {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    })
       .then((res) => res.json())
       .then((data) => { setPodcasts(data); setLoading(false); })
       .catch(() => { setError("Failed to load podcasts"); setLoading(false); });

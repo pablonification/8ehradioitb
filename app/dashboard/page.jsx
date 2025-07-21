@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 'use client';
 
 import { useSession } from "next-auth/react";
@@ -6,7 +8,12 @@ import useSWR from 'swr';
 import Link from 'next/link';
 import { FiEdit, FiMic, FiLink, FiBarChart2, FiArrowRight, FiPlus, FiActivity } from 'react-icons/fi';
 
-const fetcher = url => fetch(url).then(res => res.json());
+const fetcher = url => fetch(url, {
+  cache: 'no-store',
+  headers: {
+    'Cache-Control': 'no-cache'
+  }
+}).then(res => res.json());
 
 // Komponen Kartu Statistik (Versi Refined)
 const StatCard = ({ icon, title, value, isLoading, color, href }) => {
