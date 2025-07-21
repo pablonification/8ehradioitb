@@ -3,6 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
+import useSWR from 'swr';
 import { useSession } from 'next-auth/react';
 import { hasRole, splitRoles } from '@/lib/roleUtils';
 import Image from 'next/image';
@@ -42,37 +43,18 @@ const getRoleClass = (roleString) => {
     }
 };
 
+const fetcher = (url) => fetch(url, { cache: 'no-store' }).then((res) => res.json());
+
 export default function UsersPage() {
   const { data: session, status } = useSession();
-  const [users, setUsers] = useState([]);
+  const { data: users, error, mutate } = useSWR(
+    status === 'authenticated' && hasRole(session?.user?.role, 'DEVELOPER')
+      ? '/api/users'
+      : null,
+    fetcher
+  );
+  
   const [editingMap, setEditingMap] = useState({}); // { userId: string[] }
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (status === 'authenticated' && hasRole(session.user.role, 'DEVELOPER')) {
-      fetchUsers();
-    }
-  }, [status, session]);
-
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/users', {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache'
-        }
-      });
-      if (!res.ok) throw new Error('Failed to fetch users');
-      const data = await res.json();
-      setUsers(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const toggleLocalRole = (userId, baseRole) => {
     setEditingMap(prev => {
@@ -112,14 +94,14 @@ export default function UsersPage() {
         body: JSON.stringify({ userId, role: newRoleString }),
       });
       if (!res.ok) throw new Error('Failed to update role');
-      setUsers(users.map(u => u.id === userId ? { ...u, role: newRoleString } : u));
+      mutate(); // Re-fetch the data
       cancelEdit(userId);
     } catch (err) {
       alert(`Error updating role: ${err.message}`);
     }
   };
 
-  if (status === 'loading' || loading) {
+  if (status === 'loading') {
     return <div className="p-8 text-center font-body">Loading...</div>;
   }
 
@@ -131,7 +113,7 @@ export default function UsersPage() {
     <div className="p-4 sm:p-8">
       <h1 className="text-3xl font-heading font-bold mb-6 text-gray-900">User Management</h1>
       
-      {error && <p className="text-red-500 font-body mb-4">{error}</p>}
+      {error && <p className="text-red-500 font-body mb-4">Failed to load users.</p>}
       
       <div className="bg-white shadow-md rounded-lg overflow-x-auto w-full">
         <table className="min-w-full divide-y divide-gray-200 w-full">
@@ -143,7 +125,7 @@ export default function UsersPage() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {users.map(user => (
+            {users && users.map(user => (
               <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">

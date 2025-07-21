@@ -3,31 +3,21 @@
 export const dynamic = 'force-dynamic';
 
 import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import useSWR from 'swr';
 import { FiPlus, FiEdit, FiTrash2, FiSave, FiX } from 'react-icons/fi';
 import { hasAnyRole } from '@/lib/roleUtils';
 
+const fetcher = (url) => fetch(url, { cache: 'no-store' }).then((res) => res.json());
+
 function PodcastDashboard() {
-  const { data: session } = useSession();
-  const [podcasts, setPodcasts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { data: session, status } = useSession();
+  const { data: podcasts, error, mutate, isLoading } = useSWR('/api/podcast', fetcher);
+  
   const [form, setForm] = useState({ title: "", subtitle: "", description: "", date: "", duration: "", audio: null, coverImage: null, image: "" });
   const [submitting, setSubmitting] = useState(false);
   const [editId, setEditId] = useState(null);
   const [editForm, setEditForm] = useState({});
-
-  useEffect(() => {
-    fetch("/api/podcast", {
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache'
-      }
-    })
-      .then((res) => res.json())
-      .then((data) => { setPodcasts(data); setLoading(false); })
-      .catch(() => { setError("Failed to load podcasts"); setLoading(false); });
-  }, []);
 
   const isAdmin = session && hasAnyRole(session.user.role, ["DEVELOPER", "TECHNIC"]);
 
@@ -47,7 +37,7 @@ function PodcastDashboard() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    setError("");
+    setFormError(null);
     try {
       const formData = new FormData();
       formData.append("title", form.title);
@@ -63,11 +53,10 @@ function PodcastDashboard() {
         body: formData,
       });
       if (!res.ok) throw new Error("Failed to add podcast");
-      const newPodcast = await res.json();
-      setPodcasts((prev) => [newPodcast, ...prev]);
       setForm({ title: "", subtitle: "", description: "", date: "", duration: "", audio: null, coverImage: null, image: "" });
+      mutate(); // Re-fetch data
     } catch (err) {
-      setError(err.message);
+      setFormError(err.message);
     } finally {
       setSubmitting(false);
     }
@@ -87,7 +76,7 @@ function PodcastDashboard() {
 
   const handleEditSave = async (id) => {
     setSubmitting(true);
-    setError("");
+    setFormError(null);
     try {
       const res = await fetch("/api/podcast", {
         method: "PATCH",
@@ -95,12 +84,11 @@ function PodcastDashboard() {
         body: JSON.stringify({ id, ...editForm }),
       });
       if (!res.ok) throw new Error("Failed to update podcast");
-      const updated = await res.json();
-      setPodcasts((prev) => prev.map((p) => (p.id === id ? updated : p)));
+      mutate(); // Re-fetch data
       setEditId(null);
       setEditForm({});
     } catch (err) {
-      setError(err.message);
+      setFormError(err.message);
     } finally {
       setSubmitting(false);
     }
@@ -109,7 +97,7 @@ function PodcastDashboard() {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this podcast?")) return;
     setSubmitting(true);
-    setError("");
+    setFormError(null);
     try {
       const res = await fetch("/api/podcast", {
         method: "DELETE",
@@ -117,13 +105,17 @@ function PodcastDashboard() {
         body: JSON.stringify({ id }),
       });
       if (!res.ok) throw new Error("Failed to delete podcast");
-      setPodcasts((prev) => prev.filter((p) => p.id !== id));
+      mutate(); // Re-fetch data
     } catch (err) {
-      setError(err.message);
+      setFormError(err.message);
     } finally {
       setSubmitting(false);
     }
   };
+
+  const [formError, setFormError] = useState(null);
+
+  if (status === 'loading') return <div className="p-8 text-center font-body">Loading...</div>;
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -222,19 +214,19 @@ function PodcastDashboard() {
             <FiPlus size={18} />
             {submitting ? "Adding..." : "Add Podcast"}
           </button>
-          {error && <div className="text-red-700 mt-2 font-body bg-red-50 border border-red-200 p-3 rounded-lg">{error}</div>}
+          {formError && <div className="text-red-700 mt-2 font-body bg-red-50 border border-red-200 p-3 rounded-lg">{formError}</div>}
         </form>
       )}
 
       <div className="bg-white p-6 sm:p-8 rounded-xl shadow-md border border-gray-200">
         <h2 className="text-xl font-heading font-semibold mb-6 text-gray-900">All Podcasts</h2>
-        {loading ? (
+        {isLoading ? (
           <div className="text-center font-body text-gray-700 py-8">Loading...</div>
         ) : error ? (
-          <div className="text-red-700 font-body bg-red-50 border border-red-200 p-3 rounded-lg">{error}</div>
+          <div className="text-red-700 font-body bg-red-50 border border-red-200 p-3 rounded-lg">Failed to load podcasts.</div>
         ) : (
           <ul className="space-y-6">
-            {podcasts.map((podcast) => (
+            {podcasts && podcasts.map((podcast) => (
               <li key={podcast.id} className="border border-gray-200 p-6 rounded-lg bg-gray-50 hover:shadow-md transition-shadow">
                 {editId === podcast.id ? (
                   <div className="space-y-4">

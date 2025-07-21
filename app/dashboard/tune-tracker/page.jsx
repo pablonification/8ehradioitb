@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { useSession } from "next-auth/react";
 import { useEffect, useState, useRef } from "react";
+import useSWR from 'swr';
 import { FiSave, FiUpload, FiX, FiMusic } from "react-icons/fi";
 import { hasAnyRole } from '@/lib/roleUtils';
 
@@ -188,51 +189,32 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
   );
 }
 
+const fetcher = (url) => fetch(url, { cache: 'no-store' }).then((res) => res.json());
+
 // Komponen utama halaman
 export default function TuneTrackerDashboard() {
-  const { data: session } = useSession();
-  const [entries, setEntries] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { data: session, status } = useSession();
+  const { data: entries, error, mutate } = useSWR(
+    status === 'authenticated' && hasAnyRole(session?.user?.role, ["MUSIC", "DEVELOPER"])
+      ? '/api/tune-tracker'
+      : null,
+    fetcher
+  );
 
   const isMusic = session && hasAnyRole(session.user.role, ["MUSIC", "DEVELOPER"]);
 
-  const fetchEntries = async () => {
-    if (!loading) setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/tune-tracker", {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache'
-        }
-      });
-      const data = await res.json();
-      const filled = Array.from({ length: MAX_ENTRIES }, (_, i) => {
-        const found = data.find((e) => e.order === i + 1);
-        return found || { order: i + 1, title: "", artist: "", coverImage: null, audioUrl: null, id: undefined };
-      });
-      setEntries(filled);
-    } catch (err) {
-      setError("Failed to load entries. Please refresh the page.");
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    if (isMusic) {
-      fetchEntries();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMusic]);
+  if (status === 'loading') {
+    return <div className="p-8 text-center font-body">Loading...</div>;
+  }
 
   if (!isMusic) {
       return <div className="p-8 text-center text-red-500 font-body">Access Denied.</div>;
   }
-
-  if (loading) {
-      return <div className="p-8 text-center font-body">Loading entries...</div>;
-  }
+  
+  const filledEntries = Array.from({ length: MAX_ENTRIES }, (_, i) => {
+    const found = entries?.find((e) => e.order === i + 1);
+    return found || { order: i + 1, title: "", artist: "", coverImage: null, audioUrl: null, id: undefined };
+  });
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -241,14 +223,15 @@ export default function TuneTrackerDashboard() {
           <p className="text-gray-600 font-body">Edit the top 10 music charts. Each entry is saved individually.</p>
       </div>
       
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md mb-6 font-body">{error}</div>}
+      {error && <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md mb-6 font-body">Failed to load entries. Please refresh the page.</div>}
       
       <div className="space-y-6">
-        {entries.map((entry) => (
+        {!entries && !error && <div className="p-4 text-center font-body">Loading entries...</div>}
+        {entries && filledEntries.map((entry) => (
           <TuneEntryForm
             key={entry.order}
             initialEntry={entry}
-            onSaveSuccess={fetchEntries}
+            onSaveSuccess={mutate}
           />
         ))}
       </div>

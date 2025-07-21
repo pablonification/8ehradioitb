@@ -4,15 +4,19 @@ export const dynamic = 'force-dynamic';
 
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import useSWR from 'swr';
 import clsx from "clsx";
 import { FiUpload, FiSave, FiTrash2 } from "react-icons/fi";
 import { hasAnyRole } from '@/lib/roleUtils';
 
+const fetcher = (url) => fetch(url, { cache: 'no-store' }).then((res) => res.json());
+
 export default function PlayerConfigPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const { data: initialData, error: initialError, mutate } = useSWR('/api/player-config', fetcher);
+
   const [config, setConfig] = useState({ title: "", coverImage: "" });
   const [coverImages, setCoverImages] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [saving, setSaving] = useState(false);
@@ -20,29 +24,17 @@ export default function PlayerConfigPage() {
   const isAdmin = session && hasAnyRole(session.user.role, ["DEVELOPER", "TECHNIC"]);
 
   useEffect(() => {
-    fetch("/api/player-config", {
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache'
-      }
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setConfig({
-          title: data?.title || "",
-          coverImage: data?.coverImage || "/8eh.png",
-        });
-        let covers = data?.coverImages || [];
-        if (!covers.includes("/8eh.png")) covers = ["/8eh.png", ...covers];
-        else covers = ["/8eh.png", ...covers.filter((c) => c !== "/8eh.png")];
-        setCoverImages(covers);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to load config");
-        setLoading(false);
+    if (initialData) {
+      setConfig({
+        title: initialData.title || "",
+        coverImage: initialData.coverImage || "/8eh.png",
       });
-  }, []);
+      let covers = initialData.coverImages || [];
+      if (!covers.includes("/8eh.png")) covers = ["/8eh.png", ...covers];
+      else covers = ["/8eh.png", ...covers.filter((c) => c !== "/8eh.png")];
+      setCoverImages(covers);
+    }
+  }, [initialData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -73,6 +65,7 @@ export default function PlayerConfigPage() {
         body: JSON.stringify({ addCoverImage: data.url, title: config.title, coverImage: data.url }),
       });
       setSuccess("Image uploaded!");
+      mutate(); // Re-fetch data
     } catch (err) {
       setError(err.message);
     }
@@ -97,6 +90,7 @@ export default function PlayerConfigPage() {
       setCoverImages((prev) => prev.filter((img) => img !== url));
       setConfig((prev) => ({ ...prev, coverImage: prev.coverImage === url ? "/8eh.png" : prev.coverImage }));
       setSuccess("Image deleted.");
+      mutate(); // Re-fetch data
     } catch (err) {
       setError(err.message);
     }
@@ -115,6 +109,7 @@ export default function PlayerConfigPage() {
       });
       if (!res.ok) throw new Error("Failed to save config");
       setSuccess("Config saved successfully!");
+      mutate(); // Re-fetch data
     } catch (err) {
       setError(err.message);
     } finally {
@@ -122,8 +117,10 @@ export default function PlayerConfigPage() {
     }
   };
 
+  if (status === 'loading' || !initialData && !initialError) {
+    return <div className="p-8 text-center font-body">Loading...</div>;
+  }
   if (!isAdmin) return <div className="p-8 text-center font-body text-red-500">Access Denied.</div>;
-  if (loading) return <div className="p-8 text-center font-body">Loading...</div>;
 
   return (
     <div className="max-w-3xl mx-auto">

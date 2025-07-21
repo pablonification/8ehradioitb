@@ -4,11 +4,16 @@ export const dynamic = 'force-dynamic';
 
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import useSWR from 'swr';
 import { FiPlus, FiTrash2, FiSave } from "react-icons/fi";
 import { hasAnyRole } from '@/lib/roleUtils';
 
+const fetcher = (url) => fetch(url, { cache: 'no-store' }).then((res) => res.json());
+
 export default function StreamConfigPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const { data: initialData, error: initialError, mutate } = useSWR('/api/stream-config', fetcher);
+
   const [config, setConfig] = useState({
     baseUrls: [],
     defaultUrl: "",
@@ -24,28 +29,15 @@ export default function StreamConfigPage() {
   const isAdmin = session && hasAnyRole(session.user.role, ["DEVELOPER", "TECHNIC"]);
 
   useEffect(() => {
-    fetch("/api/stream-config", {
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache'
-      }
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setConfig({
-          baseUrls: data?.baseUrls || [],
-          defaultUrl: data?.defaultUrl || "",
-          fallbackUrl: data?.fallbackUrl || "",
-          onAir: typeof data?.onAir === "boolean" ? data.onAir : true,
-        });
-      })
-      .catch(() => {
-        setError("Failed to load configuration. Please try again.");
-      })
-      .finally(() => {
-        setLoading(false);
+    if (initialData) {
+      setConfig({
+        baseUrls: initialData.baseUrls || [],
+        defaultUrl: initialData.defaultUrl || "",
+        fallbackUrl: initialData.fallbackUrl || "",
+        onAir: typeof initialData.onAir === "boolean" ? initialData.onAir : true,
       });
-  }, []);
+    }
+  }, [initialData]);
 
   const handleAddUrl = () => {
     if (newUrl && !config.baseUrls.includes(newUrl)) {
@@ -90,6 +82,8 @@ export default function StreamConfigPage() {
         body: JSON.stringify(config),
       });
       if (!res.ok) throw new Error("Failed to save configuration.");
+      const updatedConfig = await res.json();
+      mutate(updatedConfig, false); // Update local data immediately, don't re-fetch
       setSuccess("Configuration saved successfully!");
     } catch (err) {
       setError(err.message);
@@ -98,7 +92,7 @@ export default function StreamConfigPage() {
     }
   };
 
-  if (status === 'loading' || loading) {
+  if (status === 'loading' || !initialData && !initialError) {
     return <div className="p-8 text-center font-body">Loading...</div>;
   }
   

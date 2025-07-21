@@ -14,10 +14,10 @@ const fetcher = url => fetch(url, {
 }).then(r => r.json());
 
 export default function ProgramVideosPage() {
-  const { data: videos, mutate, isLoading } = useSWR('/api/program-videos', fetcher);
+  const { data: videos, error, mutate, isLoading } = useSWR('/api/program-videos', fetcher);
   const [form, setForm] = useState({ title: '', link: '', thumbnail: null });
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [formError, setFormError] = useState('');
 
   const handleChange = (field) => (e) => {
       if (e.target.files) {
@@ -28,9 +28,9 @@ export default function ProgramVideosPage() {
   }
 
   const save = async () => {
-    setError('');
+    setFormError('');
     if (!form.title || !form.link || !form.thumbnail) {
-      setError('All fields are required');
+      setFormError('All fields are required');
       return;
     }
     setSaving(true);
@@ -46,7 +46,7 @@ export default function ProgramVideosPage() {
     });
 
     if (!res.ok) {
-      setError('Failed to save');
+      setFormError('Failed to save');
     } else {
       setForm({ title: '', link: '', thumbnail: null });
       mutate();
@@ -101,7 +101,7 @@ export default function ProgramVideosPage() {
             </div>
         </div>
 
-        {error && <div className="text-red-700 mt-2 font-body bg-red-50 border border-red-200 p-3 rounded-lg">{error}</div>}
+        {formError && <div className="text-red-700 mt-2 font-body bg-red-50 border border-red-200 p-3 rounded-lg">{formError}</div>}
         <button
           onClick={save}
           className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-body font-semibold transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
@@ -117,6 +117,8 @@ export default function ProgramVideosPage() {
         <h2 className="text-xl font-heading font-semibold mb-6 text-gray-900">All Videos</h2>
         {isLoading ? (
           <div className="text-center font-body text-gray-700 py-8">Loading...</div>
+        ) : error ? (
+          <div className="text-center font-body text-red-500 py-8">Failed to load videos.</div>
         ) : (
           <ul className="space-y-6">
             {videos && videos.length > 0 ? (

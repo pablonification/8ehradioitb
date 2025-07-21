@@ -2,7 +2,8 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
 import { useSession } from 'next-auth/react';
 import { hasRole } from '@/lib/roleUtils';
 import { FiPlus, FiRefreshCw, FiTrash2 } from 'react-icons/fi';
@@ -79,6 +80,41 @@ function WhitelistForm({ onWhitelistAdded }) {
   );
 }
 
+function WhitelistTable({ data, onDelete }) {
+    if (!data || data.length === 0) {
+        return (
+            <div className="text-center py-10 text-gray-500 font-body">
+                No emails have been whitelisted yet.
+            </div>
+        );
+    }
+
+    return (
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-body">Whitelisted Email</th>
+              <th scope="col" className="relative px-6 py-3">
+                <span className="sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {data.map(item => (
+              <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-body">{item.email}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <button onClick={() => onDelete(item.id)} className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-full cursor-pointer transition-colors" title="Delete">
+                    <FiTrash2 />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+    );
+}
+
 function SyncUsersButton({ onSyncComplete }) {
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -121,36 +157,16 @@ function SyncUsersButton({ onSyncComplete }) {
   );
 }
 
+const fetcher = (url) => fetch(url, { cache: 'no-store' }).then((res) => res.json());
+
 export default function WhitelistPage() {
   const { data: session, status } = useSession();
-  const [whitelist, setWhitelist] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const fetchWhitelist = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/whitelist', {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache'
-        }
-      });
-      if (!res.ok) throw new Error('Failed to fetch whitelist.');
-      const data = await res.json();
-      setWhitelist(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (status === 'authenticated' && hasRole(session.user.role, 'DEVELOPER')) {
-      fetchWhitelist();
-    }
-  }, [status, session]);
+  const { data: whitelist, error, mutate } = useSWR(
+    status === 'authenticated' && hasRole(session?.user?.role, 'DEVELOPER') 
+      ? '/api/whitelist' 
+      : null,
+    fetcher
+  );
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to remove this email from the whitelist?')) return;
@@ -161,13 +177,13 @@ export default function WhitelistPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id }),
         });
-        fetchWhitelist(); // Refresh list
+        mutate(); // Re-fetch the data
     } catch (err) {
         alert(`Error: ${err.message}`);
     }
   };
 
-  if (status === 'loading' || loading) {
+  if (status === 'loading') {
     return <div className="p-8 text-center font-body">Loading...</div>;
   }
 
@@ -182,41 +198,16 @@ export default function WhitelistPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Left Column for Actions */}
         <div className="lg:col-span-1 flex flex-col gap-8">
-          <WhitelistForm onWhitelistAdded={fetchWhitelist} />
-          <SyncUsersButton onSyncComplete={fetchWhitelist} />
+          <WhitelistForm onWhitelistAdded={mutate} />
+          <SyncUsersButton onSyncComplete={mutate} />
         </div>
         
         {/* Right Column for Table */}
         <div className="lg:col-span-2">
           <div className="bg-white shadow-md rounded-lg overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-body">Whitelisted Email</th>
-                  <th scope="col" className="relative px-6 py-3">
-                    <span className="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {whitelist.length > 0 ? whitelist.map(item => (
-                  <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-body">{item.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button onClick={() => handleDelete(item.id)} className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-full cursor-pointer transition-colors" title="Delete">
-                        <FiTrash2 />
-                      </button>
-                    </td>
-                  </tr>
-                )) : (
-                    <tr>
-                        <td colSpan="2" className="text-center py-10 text-gray-500 font-body">
-                            No emails have been whitelisted yet.
-                        </td>
-                    </tr>
-                )}
-              </tbody>
-            </table>
+            {error && <div className="p-4 text-red-500 font-body">Failed to load whitelist.</div>}
+            {!whitelist && !error && <div className="p-4 text-center font-body">Loading whitelist...</div>}
+            {whitelist && <WhitelistTable data={whitelist} onDelete={handleDelete} />}
           </div>
         </div>
       </div>

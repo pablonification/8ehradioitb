@@ -2,7 +2,8 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import useSWR from 'swr';
 import ButtonPrimary from "@/app/components/ButtonPrimary";
 import { FiCopy, FiEdit, FiTrash2, FiEye, FiLink, FiCalendar, FiBarChart2, FiLock, FiPlus, FiX } from "react-icons/fi";
 
@@ -178,35 +179,17 @@ function AnalyticsModal({ shortLink, analytics, isOpen, onClose }) {
     );
 }
 
+const fetcher = (url) => fetch(url, { cache: 'no-store' }).then((res) => res.json());
+
 export default function LinksDashboardPage() {
+    const { data: shortLinks, error: linksError, mutate } = useSWR('/api/shortlinks', fetcher);
+
     const [formData, setFormData] = useState({ destination: '', title: '', slug: '', password: '' });
-    const [shortLinks, setShortLinks] = useState([]);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
     const [isEditing, setIsEditing] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [analyticsModal, setAnalyticsModal] = useState({ isOpen: false, shortLink: null, analytics: null });
-
-    useEffect(() => {
-        fetchShortLinks();
-    }, []);
-
-    const fetchShortLinks = async () => {
-        try {
-            const response = await fetch('/api/shortlinks', {
-                cache: 'no-store',
-                headers: {
-                    'Cache-Control': 'no-cache'
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setShortLinks(data);
-            }
-        } catch (error) {
-            console.error('Error fetching short links:', error);
-        }
-    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -258,8 +241,7 @@ export default function LinksDashboardPage() {
             });
 
             if (response.ok) {
-                const result = await response.json();
-                await fetchShortLinks();
+                mutate(); // Re-fetch data
                 resetForm();
             } else {
                 const errorData = await response.json();
@@ -298,7 +280,7 @@ export default function LinksDashboardPage() {
             });
 
             if (response.ok) {
-                await fetchShortLinks();
+                mutate(); // Re-fetch data
             } else {
                 console.error('Error deleting short link');
             }
@@ -414,7 +396,9 @@ export default function LinksDashboardPage() {
                 </form>
             </div>
 
-            {shortLinks.length > 0 && (
+            {linksError && <div className="text-red-500 font-body">Failed to load links.</div>}
+            {!shortLinks && !linksError && <div className="text-center font-body">Loading links...</div>}
+            {shortLinks && shortLinks.length > 0 && (
                 <div>
                     <h2 className="text-xl font-heading font-bold mb-6 text-gray-800">All Short Links</h2>
                     <div className="space-y-4">

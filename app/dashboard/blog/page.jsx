@@ -18,7 +18,6 @@ const fetcher = (...args) => fetch(...args, {
 
 function BlogManagement() {
   const { data: posts, error, mutate } = useSWR('/api/blog', fetcher);
-  const router = useRouter();
 
   const handleFeature = async (slug) => {
     try {
@@ -63,7 +62,7 @@ function BlogManagement() {
             </tr>
           </thead>
           <tbody>
-            {posts.map((post) => (
+            {posts && posts.map((post) => (
               <tr key={post.id} className="hover:bg-gray-50">
                 <td className="px-5 py-4 border-b border-gray-200 bg-transparent text-sm">
                   <p className="text-gray-900 whitespace-no-wrap font-body font-semibold">{post.title}</p>
