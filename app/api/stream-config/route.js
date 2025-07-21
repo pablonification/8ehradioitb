@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { hasAnyRole } from "@/lib/roleUtils";
 
+export const dynamic = 'force-dynamic';
+
 function isAdmin(roleString) {
   return hasAnyRole(roleString, ["DEVELOPER", "TECHNIC"]);
 }

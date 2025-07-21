@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { nanoid } from "nanoid";
 
+export const dynamic = 'force-dynamic';
+
 // Generate a unique slug
 async function generateUniqueSlug() {
   let slug;

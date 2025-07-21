@@ -5,6 +5,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { hasAnyRole } from "@/lib/roleUtils";
 
+export const dynamic = 'force-dynamic';
+
 // GET a single post by slug
 export async function GET(req, { params }) {
   try {
