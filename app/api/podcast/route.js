@@ -48,54 +48,16 @@ export async function POST(req) {
   }
 
   try {
-    const formData = await req.formData();
-    const title = formData.get("title");
-    const subtitle = formData.get("subtitle");
-    const description = formData.get("description");
-    const audioFile = formData.get("audio");
-    const coverImage = formData.get("coverImage");
-    const date = formData.get("date");
-    const duration = formData.get("duration");
-    const image = formData.get("image");
-
-    if (!title || !description || !audioFile) {
+    // Accept JSON, not formData
+    const data = await req.json();
+    const { title, subtitle, description, date, duration, audioKey, coverImageKey, image } = data;
+    if (!title || !description || !audioKey) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 },
       );
     }
-
-    const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
-    const audioKey = `podcasts/${Date.now()}_${audioFile.name.replace(/\s/g, "_")}`;
-
-    await s3.send(
-      new PutObjectCommand({
-        Bucket: R2_BUCKET,
-        Key: audioKey,
-        Body: audioBuffer,
-        ContentType: audioFile.type,
-      }),
-    );
-
-    // Simpan hanya KEY-nya ke database
-    const audioUrl = audioKey;
-
-    let coverImageUrl = null;
-    let coverImageKey = null;
-    if (coverImage) {
-      const coverBuffer = Buffer.from(await coverImage.arrayBuffer());
-      coverImageKey = `podcasts/covers/${Date.now()}_${coverImage.name.replace(/\s/g, "_")}`;
-      await s3.send(
-        new PutObjectCommand({
-          Bucket: R2_BUCKET,
-          Key: coverImageKey,
-          Body: coverBuffer,
-          ContentType: coverImage.type,
-        }),
-      );
-      coverImageUrl = coverImageKey;
-    }
-
+    // Save only the R2 keys/URLs
     const podcast = await prisma.podcast.create({
       data: {
         title,
@@ -103,17 +65,12 @@ export async function POST(req) {
         description,
         date: date || undefined,
         duration: duration || undefined,
-        audioUrl, // Menyimpan audioKey
-        image:
-          image ||
-          (coverImageUrl ? `/api/proxy-audio?key=${coverImageUrl}` : undefined),
-        coverImage: coverImageUrl
-          ? `/api/proxy-audio?key=${coverImageUrl}`
-          : undefined,
+        audioUrl: audioKey,
+        image: image || (coverImageKey ? `/api/proxy-audio?key=${coverImageKey}` : undefined),
+        coverImage: coverImageKey ? `/api/proxy-audio?key=${coverImageKey}` : undefined,
         authorId: session.user.id,
       },
     });
-
     return NextResponse.json(podcast, { status: 201 });
   } catch (error) {
     console.error("Error creating podcast:", error);

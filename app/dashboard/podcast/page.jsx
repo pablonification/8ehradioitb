@@ -37,23 +37,53 @@ function PodcastDashboard() {
     setEditForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const uploadToR2 = async (file, type) => {
+    const res = await fetch("/api/podcast/upload-url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fileName: file.name,
+        fileType: file.type,
+        type,
+      }),
+    });
+    if (!res.ok) throw new Error(`Failed to get upload URL for ${type}`);
+    const { uploadUrl, key } = await res.json();
+    const uploadRes = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": file.type },
+      body: file,
+    });
+    if (!uploadRes.ok) throw new Error(`Direct upload to R2 failed for ${type}`);
+    return key;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     setError("");
     try {
-      const formData = new FormData();
-      formData.append("title", form.title);
-      formData.append("subtitle", form.subtitle);
-      formData.append("description", form.description);
-      formData.append("date", form.date);
-      formData.append("duration", form.duration);
-      if (form.image) formData.append("image", form.image);
-      if (form.audio) formData.append("audio", form.audio);
-      if (form.coverImage) formData.append("coverImage", form.coverImage);
+      let audioKey = null;
+      let coverImageKey = null;
+      if (form.audio) {
+        audioKey = await uploadToR2(form.audio, "audio");
+      }
+      if (form.coverImage) {
+        coverImageKey = await uploadToR2(form.coverImage, "cover");
+      }
       const res = await fetch("/api/podcast", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: form.title,
+          subtitle: form.subtitle,
+          description: form.description,
+          date: form.date,
+          duration: form.duration,
+          image: form.image,
+          audioKey,
+          coverImageKey,
+        }),
       });
       if (!res.ok) throw new Error("Failed to add podcast");
       const newPodcast = await res.json();
