@@ -35,6 +35,11 @@ export async function GET(req) {
     }
   }
 
+  // Normalize key: remove leading slash and any /api/proxy-audio/ or /api/podcast/ prefix
+  key = key.replace(/^\/+/, ''); // remove leading slashes
+  key = key.replace(/^api\/proxy-audio\//, ''); // remove api/proxy-audio/ prefix
+  key = key.replace(/^api\/podcast\//, ''); // remove api/podcast/ prefix
+
   try {
     const command = new GetObjectCommand({
       Bucket: R2_BUCKET,
