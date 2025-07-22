@@ -36,30 +36,12 @@ export async function POST(req) {
   if (!session || !isAdmin(session.user.role)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const formData = await req.formData();
-  const title = formData.get("title");
-  const link = formData.get("link");
-  const thumbnailFile = formData.get("thumbnail");
-
-  if (!title || !link || !thumbnailFile) {
+  const data = await req.json();
+  const { title, link, thumbnailKey } = data;
+  if (!title || !link || !thumbnailKey) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
-
-  const thumbnailBuffer = Buffer.from(await thumbnailFile.arrayBuffer());
-  const thumbnailKey = `program-videos/thumbnails/${Date.now()}_${thumbnailFile.name.replace(/\s/g, "_")}`;
-
-  await s3.send(
-    new PutObjectCommand({
-      Bucket: R2_BUCKET,
-      Key: thumbnailKey,
-      Body: thumbnailBuffer,
-      ContentType: thumbnailFile.type,
-    }),
-  );
-
   const thumbnailUrl = `/api/proxy-audio?key=${thumbnailKey}`;
-
   const video = await prisma.programVideo.create({
     data: { 
         title, 
@@ -68,7 +50,6 @@ export async function POST(req) {
         thumbnailKey: thumbnailKey 
     },
   });
-
   return NextResponse.json(video, { status: 201 });
 }
 

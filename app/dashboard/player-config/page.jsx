@@ -47,28 +47,34 @@ export default function PlayerConfigPage() {
     if (!file) return;
     setError("");
     setSuccess("");
-    const formData = new FormData();
-    formData.append("file", file);
-    try {
-      const res = await fetch("/api/player-config/upload", {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) throw new Error("Failed to upload image");
-      const data = await res.json();
-      if (!coverImages.includes(data.url)) {
-        setCoverImages((prev) => [...prev, data.url]);
-      }
-      setConfig((prev) => ({ ...prev, coverImage: data.url }));
-      await fetch("/api/player-config", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ addCoverImage: data.url, title: config.title, coverImage: data.url }),
-      });
-      setSuccess("Image uploaded!");
-    } catch (err) {
-      setError(err.message);
+    // Step 1: Get pre-signed URL from API
+    const res = await fetch("/api/player-config/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fileName: file.name,
+        fileType: file.type,
+      }),
+    });
+    if (!res.ok) throw new Error("Failed to get upload URL");
+    const { uploadUrl, url } = await res.json();
+    // Step 2: Upload file directly to R2
+    const uploadRes = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": file.type },
+      body: file,
+    });
+    if (!uploadRes.ok) throw new Error("Direct upload to R2 failed");
+    if (!coverImages.includes(url)) {
+      setCoverImages((prev) => [...prev, url]);
     }
+    setConfig((prev) => ({ ...prev, coverImage: url }));
+    await fetch("/api/player-config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ addCoverImage: url, title: config.title, coverImage: url }),
+    });
+    setSuccess("Image uploaded!");
   };
 
   const handleSelectCover = (url) => {

@@ -51,13 +51,27 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
   };
 
   const uploadFile = async (file, type) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("type", type);
-    const res = await fetch("/api/tune-tracker/upload", { method: "POST", body: formData });
-    if (!res.ok) throw new Error(`Upload ${type} failed.`);
-    const data = await res.json();
-    return data.key;
+    // Step 1: Get pre-signed URL from API
+    const res = await fetch("/api/tune-tracker/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fileName: file.name,
+        fileType: file.type,
+        type,
+      }),
+    });
+    if (!res.ok) throw new Error(`Failed to get upload URL for ${type}`);
+    const { uploadUrl, key } = await res.json();
+
+    // Step 2: Upload file directly to R2
+    const uploadRes = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": file.type },
+      body: file,
+    });
+    if (!uploadRes.ok) throw new Error(`Direct upload to R2 failed for ${type}`);
+    return key;
   };
 
   const handleSave = async () => {

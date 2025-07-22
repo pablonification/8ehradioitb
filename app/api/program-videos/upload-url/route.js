@@ -10,7 +10,6 @@ const R2_ENDPOINT = process.env.R2_ENDPOINT;
 const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
 const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
 const R2_BUCKET = process.env.R2_BUCKET;
-const R2_PUBLIC_DEV_URL = process.env.R2_PUBLIC_DEV_URL;
 
 const s3 = new S3Client({
   region: "auto",
@@ -21,28 +20,26 @@ const s3 = new S3Client({
   },
 });
 
-function isMusic(roleString) {
-  return hasAnyRole(roleString, ["MUSIC", "DEVELOPER"]);
+function isAdmin(roleString) {
+  return hasAnyRole(roleString, ["DEVELOPER", "TECHNIC"]);
 }
 
 export async function POST(req) {
   const session = await getServerSession(authOptions);
-  if (!session || !isMusic(session.user.role)) {
+  if (!session || !isAdmin(session.user.role)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const { fileName, fileType, type } = await req.json();
-    if (!fileName || !fileType || !type) {
-      return NextResponse.json({ error: "Missing fileName, fileType, or type" }, { status: 400 });
+    const { fileName, fileType } = await req.json();
+    if (!fileName || !fileType) {
+      return NextResponse.json({ error: "Missing fileName or fileType" }, { status: 400 });
     }
-    const ext = fileName.split('.').pop();
-    const key = `tune-tracker/${type}s/${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const key = `program-videos/thumbnails/${Date.now()}_${fileName.replace(/\s/g, "_")}`;
     const command = new PutObjectCommand({
       Bucket: R2_BUCKET,
       Key: key,
       ContentType: fileType,
-      ACL: "public-read",
     });
     const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
     return NextResponse.json({ uploadUrl, key });

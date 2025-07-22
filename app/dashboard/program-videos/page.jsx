@@ -20,6 +20,26 @@ export default function ProgramVideosPage() {
       }
   }
 
+  const uploadToR2 = async (file) => {
+    const res = await fetch("/api/program-videos/upload-url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fileName: file.name,
+        fileType: file.type,
+      }),
+    });
+    if (!res.ok) throw new Error("Failed to get upload URL");
+    const { uploadUrl, key } = await res.json();
+    const uploadRes = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": file.type },
+      body: file,
+    });
+    if (!uploadRes.ok) throw new Error("Direct upload to R2 failed");
+    return key;
+  };
+
   const save = async () => {
     setError('');
     if (!form.title || !form.link || !form.thumbnail) {
@@ -27,17 +47,19 @@ export default function ProgramVideosPage() {
       return;
     }
     setSaving(true);
-
-    const formData = new FormData();
-    formData.append('title', form.title);
-    formData.append('link', form.link);
-    formData.append('thumbnail', form.thumbnail);
-
+    let thumbnailKey = null;
+    if (form.thumbnail) {
+      thumbnailKey = await uploadToR2(form.thumbnail);
+    }
     const res = await fetch('/api/program-videos', {
       method: 'POST',
-      body: formData,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: form.title,
+        link: form.link,
+        thumbnailKey,
+      }),
     });
-
     if (!res.ok) {
       setError('Failed to save');
     } else {
