@@ -22,7 +22,7 @@ function PodcastDashboard() {
       .catch(() => { setError("Failed to load podcasts"); setLoading(false); });
   }, []);
 
-  const isAdmin = session && hasAnyRole(session.user.role, ["DEVELOPER", "TECHNIC"]);
+  const isAdmin = session && hasAnyRole(session.user.role, ["DEVELOPER", "MUSIC"]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;

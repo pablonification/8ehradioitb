@@ -12,7 +12,7 @@ import { FiHome, FiEdit, FiMic, FiLink, FiUsers, FiCheckSquare, FiLogOut, FiSett
 const navItems = [
   { href: "/dashboard", label: "Home", icon: FiHome, roles: ["MUSIC", "DEVELOPER", "TECHNIC", "REPORTER", "KRU"] },
   { href: "/dashboard/blog", label: "Blog", icon: FiEdit, roles: ["DEVELOPER", "REPORTER"] },
-  { href: "/dashboard/podcast", label: "Podcast", icon: FiMic, roles: ["DEVELOPER", "TECHNIC"] },
+  { href: "/dashboard/podcast", label: "Podcast", icon: FiMic, roles: ["DEVELOPER", "MUSIC"] },
   { href: "/dashboard/links", label: "Links", icon: FiLink, roles: ["MUSIC", "DEVELOPER", "TECHNIC", "REPORTER", "KRU"] },
   { href: "/dashboard/tune-tracker", label: "Tune Tracker", icon: FiMusic, roles: ["MUSIC", "DEVELOPER"] },
   { href: "/dashboard/program-videos", label: "Program Videos", icon: FiVideo, roles: ["DEVELOPER", "TECHNIC"] },
