@@ -15,6 +15,7 @@ const RESERVED = [
   "podcast",
   "programs",
   "faq",
+  "proxy-audio",
   "_next",
   "favicon.ico",
 ];

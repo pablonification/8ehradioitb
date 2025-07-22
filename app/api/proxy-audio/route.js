@@ -25,7 +25,6 @@ export async function GET(req) {
     return NextResponse.json({ error: "File key is missing" }, { status: 400 });
   }
 
-  // If a full URL is passed, extract only the pathname (object key)
   if (key.startsWith('http')) {
     try {
       const url = new URL(key);
@@ -34,15 +33,6 @@ export async function GET(req) {
       console.error("Invalid URL passed as key:", key);
       return NextResponse.json({ error: "Invalid key format" }, { status: 400 });
     }
-  }
-
-  // NEW: Allow keys that were mistakenly prefixed with our API route, e.g. "/api/podcast/podcasts/xyz.mp3"
-  // Strip the leading "/api/podcast/" segment (with or without the initial slash)
-  key = key.replace(/^\/?api\/podcast\//, "");
-
-  // Ensure no leading slash remains before sending to R2
-  if (key.startsWith('/')) {
-    key = key.substring(1);
   }
 
   try {
