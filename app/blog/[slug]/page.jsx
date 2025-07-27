@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
 import FooterSection from "@/app/components/FooterSection";
 import { prisma } from "@/lib/prisma";
+import ArticleStructuredData from "@/app/components/ArticleStructuredData";
 
 async function getPost(slug) {
   const post = await prisma.blogPost.findUnique({
@@ -29,7 +30,7 @@ async function getPost(slug) {
 export async function generateMetadata({ params }) {
   const slug = await params.slug;
   const post = await getPost(slug);
-  
+
   if (!post) {
     return {
       title: "Post Not Found",
@@ -40,6 +41,10 @@ export async function generateMetadata({ params }) {
   return {
     title: post.title,
     description: post.description,
+    keywords: post.tags,
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/blog/${post.slug}`,
+    },
     openGraph: {
       title: post.title,
       description: post.description,
@@ -336,6 +341,7 @@ export default async function BlogPostPage({ params }) {
         </article>
       </main>
       <FooterSection />
+      <ArticleStructuredData post={post} />
     </div>
   );
 }
