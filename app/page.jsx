@@ -413,7 +413,7 @@ function NewsSection() {
                 <div className="bg-gradient-to-b from-[#FEF9E7] to-[#F5E6A3] rounded-3xl shadow-sm overflow-hidden flex flex-col h-full p-4 transition-all duration-300 ease-in-out group-hover:shadow-xl group-hover:scale-[1.02]">
                   <div className="relative h-48 rounded-xl overflow-hidden">
                     <img
-                      src={item.mainImage || "/placeholder-news1.png"}
+                      src={item.mainImage || "/og-image.png"}
                       alt={item.title}
                       className="object-cover w-full h-full"
                     />
