@@ -233,74 +233,80 @@ const OfferedService = () => {
         <div className="mb-8">
           <h1 className="text-6xl font-accent text-black">Offered Services</h1>
         </div>
-        <div className="bg-gradient-to-br from-orange-600/80 via-yellow-500/50 to-yellow-100/30 transition-all duration-300 border hover:border-gray-300 border-gray-200/80 rounded-4xl md:shadow-xl px-10 py-6 mb-4 md:px-16 grid md:grid-cols-1 gap-8 items-center backdrop-blur-xs">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 justify-content-center lg:w-2/3 mx-auto">
-            <div className="grid grid-cols-6 items-start space-x-4">
-              <Image
-                src="/icon-medpart-1.png"
-                alt="GPS Icon"
-                width={36}
-                height={36}
-                className="justify-self-center self-center col-span-1"
-              />
-              <div className="self-center col-span-5">
-                <h3 className="text-lg font-body font-semibold text-black">
-                  Siaran / Live IG / Podcast
-                </h3>
-                <p className="text-black font-body text-sm">
-                  Live IG atau podcast bareng tim 8EH
-                </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 justify-content-center lg:w-full mx-auto">
+          <div className="bg-gradient-to-br from-orange-600/80 via-yellow-500/50 to-yellow-100/30 transition-all duration-300 border hover:border-gray-300 border-gray-200/80 rounded-4xl md:shadow-xl px-10 py-6 mb-4 md:px-16 grid md:grid-cols-1 gap-8 items-center backdrop-blur-xs">
+            <div className="grid grid-cols-1 gap-x-12 gap-y-6 justify-content-center lg:w-full mx-auto">
+              <div className="grid grid-cols-6 items-start space-x-4">
+                <Image
+                  src="/icon-medpart-1.png"
+                  alt="GPS Icon"
+                  width={36}
+                  height={36}
+                  className="justify-self-center self-center col-span-1"
+                />
+                <div className="self-center col-span-5">
+                  <h3 className="text-lg font-body font-semibold text-black">
+                    Siaran / Live IG / Podcast
+                  </h3>
+                  <p className="text-black font-body text-sm">
+                    Live IG atau podcast bareng tim 8EH
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-6 items-start space-x-4">
+                <Image
+                  src="/icon-medpart-2.png"
+                  alt="GPS Icon"
+                  width={36}
+                  height={36}
+                  className="justify-self-center self-center col-span-1"
+                />
+                <div className="self-center col-span-5">
+                  <h3 className="text-lg font-body font-semibold text-black">
+                    Live Report
+                  </h3>
+                  <p className="text-black font-body text-sm">
+                    Liputan langsung saat event berlangsung
+                  </p>
+                </div>
               </div>
             </div>
-            <div className="grid grid-cols-6 items-start space-x-4">
-              <Image
-                src="/icon-medpart-2.png"
-                alt="GPS Icon"
-                width={36}
-                height={36}
-                className="justify-self-center self-center col-span-1"
-              />
-              <div className="self-center col-span-5">
-                <h3 className="text-lg font-body font-semibold text-black">
-                  Live Report
-                </h3>
-                <p className="text-black font-body text-sm">
-                  Liputan langsung saat event berlangsung
-                </p>
+          </div>
+          <div className="bg-gradient-to-br from-orange-600/80 via-yellow-500/50 to-yellow-100/30 transition-all duration-300 border hover:border-gray-300 border-gray-200/80 rounded-4xl md:shadow-xl px-10 py-6 mb-4 md:px-16 grid md:grid-cols-1 gap-8 items-center backdrop-blur-xs">
+            <div className="grid grid-cols-1 gap-x-12 gap-y-6 justify-content-center lg:w-full mx-auto">
+              <div className="grid grid-cols-6 items-start space-x-4">
+                <Image
+                  src="/icon-medpart-3.png"
+                  alt="GPS Icon"
+                  width={36}
+                  height={36}
+                  className="justify-self-center self-center col-span-1"
+                />
+                <div className="self-center col-span-5">
+                  <h3 className="text-lg font-body font-semibold text-black">
+                    Artikel / Iklan
+                  </h3>
+                  <p className="text-black font-body text-sm">
+                    Iklan di feed & story Instagram 8EH
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="grid grid-cols-6 items-start space-x-4">
-              <Image
-                src="/icon-medpart-3.png"
-                alt="GPS Icon"
-                width={36}
-                height={36}
-                className="justify-self-center self-center col-span-1"
-              />
-              <div className="self-center col-span-5">
-                <h3 className="text-lg font-body font-semibold text-black">
-                  Artikel / Iklan
-                </h3>
-                <p className="text-black font-body text-sm">
-                  Iklan di feed & story Instagram 8EH
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-6 items-start space-x-4">
-              <Image
-                src="/icon-medpart-4.png"
-                alt="GPS Icon"
-                width={36}
-                height={36}
-                className="justify-self-center self-center col-span-1"
-              />
-              <div className="self-center col-span-5">
-                <h3 className="text-lg font-body font-semibold text-black">
-                  Infografis
-                </h3>
-                <p className="text-black font-body text-sm">
-                  Konten visual post-event di IG
-                </p>
+              <div className="grid grid-cols-6 items-start space-x-4">
+                <Image
+                  src="/icon-medpart-4.png"
+                  alt="GPS Icon"
+                  width={36}
+                  height={36}
+                  className="justify-self-center self-center col-span-1"
+                />
+                <div className="self-center col-span-5">
+                  <h3 className="text-lg font-body font-semibold text-black">
+                    Infografis
+                  </h3>
+                  <p className="text-black font-body text-sm">
+                    Konten visual post-event di IG
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -399,9 +405,11 @@ export function RateCard() {
               <ButtonPrimary
                 className="!bg-[#EA4A30] !text-white hover:!bg-[#D0402A] !px-8 !py-2"
                 onClick={() => {
-                  const subject = encodeURIComponent(`Permohonan Media Partner: ${plan.title}`);
+                  const subject = encodeURIComponent(
+                    `Permohonan Media Partner: ${plan.title}`,
+                  );
                   const body = encodeURIComponent(
-                    `Halo 8EH Radio ITB,\n\nSaya ingin mendaftar sebagai media partner dan memilih paket berikut:\n\nPaket: ${plan.title}\nHarga: ${plan.price}\n\nMohon informasikan langkah selanjutnya. Terima kasih!\n\n(Nama Anda)\n(Instansi/Organisasi)\n(Kontak yang bisa dihubungi)`
+                    `Halo 8EH Radio ITB,\n\nSaya ingin mendaftar sebagai media partner dan memilih paket berikut:\n\nPaket: ${plan.title}\nHarga: ${plan.price}\n\nMohon informasikan langkah selanjutnya. Terima kasih!\n\n(Nama Anda)\n(Instansi/Organisasi)\n(Kontak yang bisa dihubungi)`,
                   );
                   window.location.href = `mailto:teknik8ehradioitb@gmail.com?subject=${subject}&body=${body}`;
                 }}
@@ -561,7 +569,6 @@ const PartnerMarquee = () => {
         - md:h-24 untuk tinggi spesifik di desktop
       */}
       <div className="flex w-full flex-col items-center overflow-hidden rounded-3xl bg-gradient-to-r from-orange-500 to-yellow-400 shadow-lg md:flex-row md:h-24">
-        
         {/* 2. Bagian Teks Statis:
           - Padding dan perataan teks diatur untuk mobile dan desktop
         */}
@@ -580,13 +587,13 @@ const PartnerMarquee = () => {
               <div
                 key={`p1-${index}`}
                 // Margin horizontal diperkecil untuk mobile
-                className="mx-4 flex flex-shrink-0 items-center space-x-3" 
+                className="mx-4 flex flex-shrink-0 items-center space-x-3"
               >
                 <Image
                   src={partner.src}
                   alt={partner.name}
                   // Ukuran logo diperkecil agar pas di layar mobile
-                  width={100} 
+                  width={100}
                   height={20}
                   className="object-contain"
                 />
@@ -599,125 +606,121 @@ const PartnerMarquee = () => {
   );
 };
 
-
 const GetInTouch = () => {
   return (
     <section className="relative py-24 bg-gradient-to-b from-white via-yellow-100 to-orange-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-5xl md:text-6xl font-heading text-gray-900 mb-4">
-            Get in Touch
-          </h2>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-5xl md:text-6xl font-heading text-gray-900 mb-4">
+          Get in Touch
+        </h2>
 
-          <p className="font-body text-gray-600 mb-16">
-            We'd love to hear from you! Reach out for inquiries or
-            collaborations.
-          </p>
+        <p className="font-body text-gray-600 mb-16">
+          We'd love to hear from you! Reach out for inquiries or collaborations.
+        </p>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-            {/* Contact details */}
-            <div className="space-y-8">
-              <div className="flex items-start space-x-4">
-                <div className="w-6 h-6 mt-1 flex-shrink-0 text-gray-600">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    className="w-6 h-6"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-body font-bold text-lg text-gray-900 mb-1">
-                    Email
-                  </h3>
-                  <p className="font-body text-gray-700">
-                    info@8ehradioitb.com
-                  </p>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+          {/* Contact details */}
+          <div className="space-y-8">
+            <div className="flex items-start space-x-4">
+              <div className="w-6 h-6 mt-1 flex-shrink-0 text-gray-600">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  className="w-6 h-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
               </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="w-6 h-6 mt-1 flex-shrink-0 text-gray-600">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    className="w-6 h-6"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-body font-bold text-lg text-gray-900 mb-1">
-                    Phone
-                  </h3>
-                  <p className="font-body text-gray-700">+62 812 3456 7890</p>
-                </div>
+              <div>
+                <h3 className="font-body font-bold text-lg text-gray-900 mb-1">
+                  Email
+                </h3>
+                <p className="font-body text-gray-700">info@8ehradioitb.com</p>
               </div>
+            </div>
 
-              <div className="flex items-start space-x-4">
-                <div className="w-6 h-6 mt-1 flex-shrink-0 text-gray-600">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    className="w-6 h-6"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-body font-bold text-lg text-gray-900 mb-1">
-                    Office
-                  </h3>
-                  <p className="font-body text-gray-700">
-                    Jl. Ganesha No. 10, Bandung, Indonesia
-                  </p>
-                </div>
+            <div className="flex items-start space-x-4">
+              <div className="w-6 h-6 mt-1 flex-shrink-0 text-gray-600">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  className="w-6 h-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-body font-bold text-lg text-gray-900 mb-1">
+                  Phone
+                </h3>
+                <p className="font-body text-gray-700">+62 812 3456 7890</p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-4">
+              <div className="w-6 h-6 mt-1 flex-shrink-0 text-gray-600">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  className="w-6 h-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-body font-bold text-lg text-gray-900 mb-1">
+                  Office
+                </h3>
+                <p className="font-body text-gray-700">
+                  Jl. Ganesha No. 10, Bandung, Indonesia
+                </p>
               </div>
             </div>
           </div>
-
-          {/* Google Maps iframe */}
-          <div className="relative rounded-3xl overflow-hidden h-150 w-full mt-10">
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63374.86072097309!2d107.53145050717926!3d-6.89911962316508!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e6578d4253e7%3A0x136b7b51bcb1002d!2sSunken%20Court%2C%20ITB!5e0!3m2!1sid!2sid!4v1751814179388!5m2!1sid!2sid"
-              width="600"
-              height="450"
-              style={{ border: 0 }}
-              allowFullScreen=""
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              className="absolute inset-0 w-full h-full"
-            ></iframe>
-          </div>
         </div>
-      </section>
+
+        {/* Google Maps iframe */}
+        <div className="relative rounded-3xl overflow-hidden h-150 w-full mt-10">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63374.86072097309!2d107.53145050717926!3d-6.89911962316508!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e6578d4253e7%3A0x136b7b51bcb1002d!2sSunken%20Court%2C%20ITB!5e0!3m2!1sid!2sid!4v1751814179388!5m2!1sid!2sid"
+            width="600"
+            height="450"
+            style={{ border: 0 }}
+            allowFullScreen=""
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            className="absolute inset-0 w-full h-full"
+          ></iframe>
+        </div>
+      </div>
+    </section>
   );
 };
 
