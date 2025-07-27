@@ -151,11 +151,12 @@ const procedureData = [
 ];
 
 const partners = [
-  { name: "Webflow", src: "/logo-partner-1.png" }, // Ganti dengan path logo Anda
-  { name: "Relume", src: "/logo-partner-2.png" }, // Ganti dengan path logo Anda
-  { name: "Webflow", src: "/logo-partner-1.png" },
-  { name: "Relume", src: "/logo-partner-2.png" },
-  { name: "Webflow", src: "/logo-partner-1.png" },
+  { name: "Tau Tau Fest", src: "/tau.png" },
+  { name: "We The Fest", src: "/wtf.png" },
+  { name: "Pertamina Goes To Campus", src: "/pertamina.png" },
+  { name: "Pestipalin", src: "/pestipalin.png" },
+  { name: "Podcast Campus", src: "/podcast_campus.png" },
+  { name: "Lakunakota", src: "/lakunakota.png" },
 ];
 
 // --- Komponen Checkmark untuk daftar fitur ---
@@ -411,7 +412,7 @@ export function RateCard() {
                   const body = encodeURIComponent(
                     `Halo 8EH Radio ITB,\n\nSaya ingin mendaftar sebagai media partner dan memilih paket berikut:\n\nPaket: ${plan.title}\nHarga: ${plan.price}\n\nMohon informasikan langkah selanjutnya. Terima kasih!\n\n(Nama Anda)\n(Instansi/Organisasi)\n(Kontak yang bisa dihubungi)`,
                   );
-                  window.location.href = `mailto:teknik8ehradioitb@gmail.com?subject=${subject}&body=${body}`;
+                  window.location.href = `mailto:8eh_itb@km.itb.ac.id?subject=${subject}&body=${body}`;
                 }}
               >
                 Daftar Sekarang
@@ -587,15 +588,15 @@ const PartnerMarquee = () => {
               <div
                 key={`p1-${index}`}
                 // Margin horizontal diperkecil untuk mobile
-                className="mx-4 flex flex-shrink-0 items-center space-x-3"
+                className="flex flex-shrink-0 items-center space-x-3"
               >
                 <Image
                   src={partner.src}
                   alt={partner.name}
                   // Ukuran logo diperkecil agar pas di layar mobile
-                  width={100}
-                  height={20}
-                  className="object-contain"
+                  width={150}
+                  height={150}
+                  className="object-contain w-40 h-40"
                 />
               </div>
             ))}
@@ -642,7 +643,12 @@ const GetInTouch = () => {
                 <h3 className="font-body font-bold text-lg text-gray-900 mb-1">
                   Email
                 </h3>
-                <p className="font-body text-gray-700">info@8ehradioitb.com</p>
+                <a
+                  href="mailto:8eh_itb@km.itb.ac.id"
+                  className="font-body text-gray-700 hover:underline"
+                >
+                  8eh_itb@km.itb.ac.id
+                </a>
               </div>
             </div>
 
@@ -667,7 +673,14 @@ const GetInTouch = () => {
                 <h3 className="font-body font-bold text-lg text-gray-900 mb-1">
                   Phone
                 </h3>
-                <p className="font-body text-gray-700">+62 812 3456 7890</p>
+                <a
+                  href="https://wa.me/6281584225370"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-body text-gray-700 hover:underline"
+                >
+                  +62 815 8422 5370
+                </a>
               </div>
             </div>
 

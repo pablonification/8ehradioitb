@@ -69,7 +69,12 @@ export default function FooterSection() {
               </div>
               <div>
                 <h3 className="font-semibold mb-1 text-gray-900">Contact:</h3>
-                <p>info@8ehradioitb.com</p>
+                <a
+                  href="mailto:8eh_itb@km.itb.ac.id"
+                  className="font-body text-gray-700 hover:underline"
+                >
+                  8eh_itb@km.itb.ac.id
+                </a>
               </div>
               <div className="flex items-center space-x-4 pt-2">
                 {socialLinks.map((social) => (

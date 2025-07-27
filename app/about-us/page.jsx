@@ -456,9 +456,12 @@ export default function AboutUs() {
                   <h3 className="font-body font-bold text-lg text-gray-900 mb-1">
                     Email
                   </h3>
-                  <p className="font-body text-gray-700">
-                    info@8ehradioitb.com
-                  </p>
+                  <a
+                    href="mailto:8eh_itb@km.itb.ac.id"
+                    className="font-body text-gray-700 hover:underline"
+                  >
+                    8eh_itb@km.itb.ac.id
+                  </a>
                 </div>
               </div>
 
@@ -483,7 +486,14 @@ export default function AboutUs() {
                   <h3 className="font-body font-bold text-lg text-gray-900 mb-1">
                     Phone
                   </h3>
-                  <p className="font-body text-gray-700">+62 812 3456 7890</p>
+                  <a
+                    href="https://wa.me/6281584225370"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-body text-gray-700 hover:underline"
+                  >
+                    +62 815 8422 5370
+                  </a>
                 </div>
               </div>
 
