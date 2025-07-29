@@ -2,7 +2,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState, useRef } from "react";
 import { FiSave, FiUpload, FiX, FiMusic } from "react-icons/fi";
-import { hasAnyRole } from '@/lib/roleUtils';
+import { hasAnyRole } from "@/lib/roleUtils";
 
 const MAX_ENTRIES = 10;
 
@@ -27,7 +27,7 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
       handleChange(field, file);
     }
   };
-  
+
   const handleRemoveFile = async (field) => {
     setError("");
     setSuccess("");
@@ -70,19 +70,20 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
       headers: { "Content-Type": file.type },
       body: file,
     });
-    if (!uploadRes.ok) throw new Error(`Direct upload to R2 failed for ${type}`);
+    if (!uploadRes.ok)
+      throw new Error(`Direct upload to R2 failed for ${type}`);
     return key;
   };
 
   const handleSave = async () => {
     if (!entry.title || !entry.artist) {
-        setError("Song Title and Artist are required.");
-        return;
+      setError("Song Title and Artist are required.");
+      return;
     }
     setSaving(true);
     setError("");
     setSuccess("");
-    
+
     let finalPayload = { ...entry };
 
     try {
@@ -94,17 +95,16 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
         const audioUrl = await uploadFile(entry.audioUrl, "audio");
         finalPayload.audioUrl = audioUrl;
       }
-  
+
       const res = await fetch("/api/tune-tracker", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(finalPayload),
       });
-  
+
       if (!res.ok) throw new Error("Failed to save entry.");
       setSuccess("Entry saved successfully!");
       if (onSaveSuccess) onSaveSuccess();
-
     } catch (err) {
       setError(err.message);
     } finally {
@@ -114,62 +114,112 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
 
   return (
     <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 flex flex-col md:flex-row gap-6 items-start">
-      <div className="w-12 text-3xl font-heading text-gray-400 pt-2 font-bold flex-shrink-0">{String(entry.order).padStart(2, "0")}</div>
-      
+      <div className="w-12 text-3xl font-heading text-gray-400 pt-2 font-bold flex-shrink-0">
+        {String(entry.order).padStart(2, "0")}
+      </div>
+
       <div className="flex-1 w-full">
-        {error && <div className="text-red-600 mb-3 text-sm font-body bg-red-50 p-3 rounded-md">{error}</div>}
-        {success && <div className="text-green-600 mb-3 text-sm font-body bg-green-50 p-3 rounded-md">{success}</div>}
-        
+        {error && (
+          <div className="text-red-600 mb-3 text-sm font-body bg-red-50 p-3 rounded-md">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="text-green-600 mb-3 text-sm font-body bg-green-50 p-3 rounded-md">
+            {success}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 font-body mb-1">Song Title</label>
-            <input 
-              className="w-full border border-gray-300 p-2 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500" 
-              value={entry.title || ''} 
-              onChange={(e) => handleChange("title", e.target.value)} 
+            <label className="block text-sm font-semibold text-gray-700 font-body mb-1">
+              Song Title
+            </label>
+            <input
+              className="w-full border border-gray-300 p-2 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              value={entry.title || ""}
+              onChange={(e) => handleChange("title", e.target.value)}
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 font-body mb-1">Artist</label>
-            <input 
-              className="w-full border border-gray-300 p-2 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500" 
-              value={entry.artist || ''} 
-              onChange={(e) => handleChange("artist", e.target.value)} 
+            <label className="block text-sm font-semibold text-gray-700 font-body mb-1">
+              Artist
+            </label>
+            <input
+              className="w-full border border-gray-300 p-2 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              value={entry.artist || ""}
+              onChange={(e) => handleChange("artist", e.target.value)}
             />
           </div>
-          
+
           <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-gray-700 font-body mb-1">Cover Image</label>
+            <label className="block text-sm font-semibold text-gray-700 font-body mb-1">
+              Cover Image
+            </label>
             <div className="flex items-center gap-3">
               <label className="flex-1">
-                <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "coverImage")} className="hidden"/>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, "coverImage")}
+                  className="hidden"
+                />
                 <div className="w-full border border-gray-300 p-2 rounded-md font-body text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2 cursor-pointer">
-                    <FiUpload />
-                    <span className="truncate text-sm">{entry.coverImage instanceof File ? entry.coverImage.name : 'Choose file...'}</span>
+                  <FiUpload />
+                  <span className="truncate text-sm">
+                    {entry.coverImage instanceof File
+                      ? entry.coverImage.name
+                      : "Choose file..."}
+                  </span>
                 </div>
               </label>
-              {typeof entry.coverImage === 'string' && entry.coverImage && (
+              {typeof entry.coverImage === "string" && entry.coverImage && (
                 <>
-                  <img src={entry.coverImage} alt="cover" className="w-12 h-12 object-cover rounded-md border" />
-                  <button type="button" className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full cursor-pointer" onClick={() => handleRemoveFile("coverImage")}><FiX /></button>
+                  <img
+                    src={`/api/proxy-audio?key=${encodeURIComponent(entry.coverImage)}`}
+                    alt="cover"
+                    className="w-12 h-12 object-cover rounded-md border"
+                  />
+                  <button
+                    type="button"
+                    className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full cursor-pointer"
+                    onClick={() => handleRemoveFile("coverImage")}
+                  >
+                    <FiX />
+                  </button>
                 </>
               )}
             </div>
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-gray-700 font-body mb-1">Audio Clip (Preview)</label>
+            <label className="block text-sm font-semibold text-gray-700 font-body mb-1">
+              Audio Clip (Preview)
+            </label>
             <div className="flex flex-col gap-2">
               <label className="flex-1">
-                <input type="file" accept="audio/*" onChange={(e) => handleFileChange(e, "audioUrl")} className="hidden"/>
+                <input
+                  type="file"
+                  accept="audio/*"
+                  onChange={(e) => handleFileChange(e, "audioUrl")}
+                  className="hidden"
+                />
                 <div className="w-full border border-gray-300 p-2 rounded-md font-body text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2 cursor-pointer">
                   <FiMusic />
-                  <span className="truncate text-sm">{entry.audioUrl instanceof File ? entry.audioUrl.name : 'Choose file...'}</span>
+                  <span className="truncate text-sm">
+                    {entry.audioUrl instanceof File
+                      ? entry.audioUrl.name
+                      : "Choose file..."}
+                  </span>
                 </div>
               </label>
-              {typeof entry.audioUrl === 'string' && entry.audioUrl && (
+              {typeof entry.audioUrl === "string" && entry.audioUrl && (
                 <div className="flex items-center gap-3 mt-1">
-                  <audio src={`/api/proxy-audio?key=${encodeURIComponent(entry.audioUrl)}`} controls className="h-10 rounded-md" />
+                  <audio
+                    src={`/api/proxy-audio?key=${encodeURIComponent(entry.audioUrl)}`}
+                    controls
+                    className="h-10 rounded-md"
+                  />
                   <button
                     type="button"
                     className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full cursor-pointer"
@@ -183,12 +233,12 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
           </div>
         </div>
       </div>
-      
+
       <div className="w-full md:w-auto pt-2 md:pt-8">
-        <button 
-          type="button" 
-          className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-md font-semibold w-full md:w-auto flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-sm cursor-pointer" 
-          onClick={handleSave} 
+        <button
+          type="button"
+          className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-md font-semibold w-full md:w-auto flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-sm cursor-pointer"
+          onClick={handleSave}
           disabled={saving}
         >
           <FiSave />
@@ -206,7 +256,8 @@ export default function TuneTrackerDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const isMusic = session && hasAnyRole(session.user.role, ["MUSIC", "DEVELOPER"]);
+  const isMusic =
+    session && hasAnyRole(session.user.role, ["MUSIC", "DEVELOPER"]);
 
   const fetchEntries = async () => {
     if (!loading) setLoading(true);
@@ -216,7 +267,16 @@ export default function TuneTrackerDashboard() {
       const data = await res.json();
       const filled = Array.from({ length: MAX_ENTRIES }, (_, i) => {
         const found = data.find((e) => e.order === i + 1);
-        return found || { order: i + 1, title: "", artist: "", coverImage: null, audioUrl: null, id: undefined };
+        return (
+          found || {
+            order: i + 1,
+            title: "",
+            artist: "",
+            coverImage: null,
+            audioUrl: null,
+            id: undefined,
+          }
+        );
       });
       setEntries(filled);
     } catch (err) {
@@ -229,26 +289,38 @@ export default function TuneTrackerDashboard() {
     if (isMusic) {
       fetchEntries();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMusic]);
 
   if (!isMusic) {
-      return <div className="p-8 text-center text-red-500 font-body">Access Denied.</div>;
+    return (
+      <div className="p-8 text-center text-red-500 font-body">
+        Access Denied.
+      </div>
+    );
   }
 
   if (loading) {
-      return <div className="p-8 text-center font-body">Loading entries...</div>;
+    return <div className="p-8 text-center font-body">Loading entries...</div>;
   }
 
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-8">
-          <h1 className="text-3xl font-heading font-bold mb-2 text-gray-900">Tune Tracker Editor</h1>
-          <p className="text-gray-600 font-body">Edit the top 10 music charts. Each entry is saved individually.</p>
+        <h1 className="text-3xl font-heading font-bold mb-2 text-gray-900">
+          Tune Tracker Editor
+        </h1>
+        <p className="text-gray-600 font-body">
+          Edit the top 10 music charts. Each entry is saved individually.
+        </p>
       </div>
-      
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md mb-6 font-body">{error}</div>}
-      
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md mb-6 font-body">
+          {error}
+        </div>
+      )}
+
       <div className="space-y-6">
         {entries.map((entry) => (
           <TuneEntryForm

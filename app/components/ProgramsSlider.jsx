@@ -21,7 +21,10 @@ export default function ProgramsSlider({ title, subtitle, programs }) {
     }
   };
   return (
-    <section className="relative py-20 lg:py-24 overflow-hidden">
+    <section
+      id="podcast-programs"
+      className="relative py-20 lg:py-24 overflow-hidden"
+    >
       <div className="absolute inset-0 top-1/8 left-0 w-40 md:w-60 opacity-70">
         <Image
           src="/vstock-programs-1.png"

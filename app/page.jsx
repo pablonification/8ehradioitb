@@ -635,7 +635,11 @@ function TuneTrackerSection() {
                   </div>
                   <div className="w-14 h-14 relative mx-4 rounded-full overflow-hidden flex-shrink-0 shadow-inner">
                     <img
-                      src={tune.coverImage || "/music-1.png"}
+                      src={
+                        tune.coverImage
+                          ? `/api/proxy-audio?key=${encodeURIComponent(tune.coverImage)}`
+                          : "/8eh-real.svg"
+                      }
                       alt={tune.title || `Song ${idx + 1}`}
                       className={`object-cover w-full h-full absolute inset-0 ${isPlaying ? "animate-[spin_3s_linear_infinite]" : ""}`}
                       style={{ position: "absolute", inset: 0 }}
@@ -717,7 +721,7 @@ export default function Home() {
       <HeroSection />
       <PodcastSection />
       <NewsSection />
-      <ProgramsSection />
+      {/* <ProgramsSection /> */}
       <TuneTrackerSection />
       <AnnouncersSection />
 
