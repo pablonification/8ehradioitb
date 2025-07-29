@@ -120,7 +120,7 @@ const PodcastHero = () => {
               className="z-0 drop-shadow-2xl"
             />
             <div className="absolute z-10 rotate-12 bottom-[16%] left-[42.5%]">
-              <button
+              {/* <button
                 onClick={() =>
                   window.dispatchEvent(new CustomEvent("triggerPlayerControl"))
                 }
@@ -134,7 +134,7 @@ const PodcastHero = () => {
                 >
                   {<path d="M8 5v14l11-7z" />}
                 </svg>
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
