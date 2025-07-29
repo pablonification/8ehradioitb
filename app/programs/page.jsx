@@ -6,49 +6,27 @@ import { useRef, useState } from "react";
 import "swiper/css";
 import Navbar from "../components/Navbar";
 import FooterSection from "../components/FooterSection";
+import useSWR from "swr";
+import ProgramsSlider from "../components/ProgramsSlider";
+
+const fetcher = (url) => fetch(url).then((res) => res.json());
 
 const programs = [
   {
-    logo: "/ctrl-logo.png", // Logo dari gambar
+    logo: "/ctrl-logo.png", 
     title: "CTRL: Coba Tanya Radio Lo!",
-    description: "CTRL: Coba Tanya Radio Lo! adalah ...",
-    link: "/programs/gws",
+    description:
+      "Kampus Mania bingung mau nanya siapa? Tenang, sekarang CTRL hadir untuk mencari jawaban dari segala kebingungan Kampus Mania!",
+    link: "/programs",
   },
   {
-    logo: "/gws-logo.png", // Contoh program lain
+    logo: "/gws-logo.png", 
     title: "GWS: Gather With Us",
-    description: "Gather With Us adalah ...",
-    link: "/programs/on-air",
+    description: "Kali ini 8EH Radio ITB kembali dengan podcast yang super seru, GWS! Bukan get well soon, tapi Gather With Us.",
+    link: "/programs",
   },
 ];
 
-const podcast = [
-  {
-    title: "Dulu VS Sekarang! | Gather With Us Special Podcast",
-    link: "",
-    image: "/placeholder-program.png",
-  },
-  {
-    title: "Vibes of Belief | Gather With Us #21",
-    link: "",
-    image: "/placeholder-program.png",
-  },
-  {
-    title: "#6ET2GETHER : Hias Kue Ultah ke-42 8EH!",
-    link: "",
-    image: "/placeholder-program.png",
-  },
-  {
-    title: "Night Drive",
-    link: "",
-    image: "/placeholder-program.png",
-  },
-  {
-    title: "Morning Brew",
-    link: "",
-    image: "/placeholder-program.png",
-  },
-];
 
 const highlightsData = [
   {
@@ -116,83 +94,20 @@ const ProgramHero = () => {
           className=""
         />
       </div>
-      <div className="container px-10 md:px-20 mx-auto relative z-10">
-        <h2 className="text-6xl font-accent text-center text-gray-800 mb-12">
-          Our Programs
-        </h2>
 
-        <Swiper
-          // Konfigurasi untuk menampilkan 1 slide penuh dan sedikit slide berikutnya
-          slidesPerView={1.1}
-          spaceBetween={20} // Jarak antar slide
-          centeredSlides={false} // Slide aktif akan berada di tengah
-          loop={false} // Slider akan berputar tanpa henti
-          breakpoints={{
-            // Konfigurasi untuk layar yang lebih besar
-            768: {
-              slidesPerView: 1.3,
-              spaceBetween: 30,
-            },
-            1024: {
-              slidesPerView: 2,
-              spaceBetween: 40,
-            },
-          }}
-          className="!overflow-visible" // Agar shadow tidak terpotong
-        >
-          {programs.map((program, index) => (
-            <SwiperSlide key={index}>
-              <div className="bg-gradient-to-br backdrop-blur-xs from-orange-600/80 via-yellow-500/50 to-yellow-100/30 rounded-3xl px-8 lg:px-20 pt-8 md:pt-8 pb-8 shadow-xl h-96 flex flex-col justify-between overflow-hidden transition-all duration-300 border hover:border-gray-400 border-gray-200/80">
-                <div className="flex flex-wrap items-center justify-center">
-                  <div className="flex-shrink-0 mb-4 w-40 md:w-65 lg:w-70">
-                    <Image
-                      src={program.logo}
-                      alt={`${program.title} logo`}
-                      width={300}
-                      height={300}
-                      className="drop-shadow-lg"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="text-xl lg:text-2xl font-bold text-gray-800 text-center">
-                      {program.title}
-                    </h3>
-                    <p className="text-gray-700 text-xs lg:text-sm mt-1 text-center">
-                      {program.description}
-                    </p>
-                  </div>
-                </div>
-                <Link
-                  href={program.link}
-                  className="self-center text-red-600 hover:text-red-800 font-semibold text-sm flex items-center"
-                >
-                  View More
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 ml-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </Link>
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </div>
+      <ProgramsSlider
+        title="Our Programs"
+        subtitle="Explore 8EH Radio ITB"
+        programs={programs}
+      />
     </section>
   );
 };
 
 const PodcastSection = () => {
   const scrollContainerRef = useRef(null);
+
+  const { data: videos, isLoading } = useSWR("/api/program-videos", fetcher);
 
   const scroll = (direction) => {
     if (scrollContainerRef.current) {
@@ -318,45 +233,68 @@ const PodcastSection = () => {
         {/* Horizontal scroll container */}
         <div
           ref={scrollContainerRef}
-          className="flex flex-wrap md:flex-nowrap overflow-x-auto scroll-smooth space-x-6 pb-4 -mx-4 px-8 -my-4 py-8 snap-x snap-mandatory hide-scrollbar bg-gradient-to-b from-white/60 to-yellow-300/30 rounded-4xl backdrop-blur-xs transition-all duration-300 border hover:border-gray-300 border-gray-200/80"
+          className="flex font-body flex-wrap md:flex-nowrap overflow-x-auto scroll-smooth space-x-6 pb-4 -mx-4 px-8 -my-4 py-8 snap-x snap-mandatory hide-scrollbar bg-gradient-to-b from-white/60 to-yellow-300/30 rounded-4xl backdrop-blur-xs transition-all duration-300 border hover:border-gray-300 border-gray-200/80"
         >
-          {podcast.map((prog, idx) => (
-            <div
-              key={idx}
-              className="flex-shrink-0 w-full md:w-[calc(33.9%-1.125rem)] snap-center group"
-            >
-              <div className="relative w-full h-48 sm:h-48 rounded-2xl mb-4 bg-gray-200/80 overflow-hidden transition-all duration-300 group-hover:scale-105">
-                {/* Image will go here */}
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="flex-shrink-0 w-full md:w-[calc(33.9%-1.125rem)] snap-center animate-pulse"
+              >
+                <div className="w-full h-48 rounded-2xl mb-4 bg-gray-200" />
+                <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto" />
               </div>
-              <div className="text-center px-2 justify-center">
-                <h4 className="font-heading text-xl font-semibold text-gray-800 mb-1">
-                  {prog.title}
-                </h4>
-                <p className="font-body text-sm text-gray-500">
-                  <Link
-                    href={prog.link}
-                    className="text-red-600 hover:text-red-800 my-4 font-semibold justify-center text-sm flex items-center"
-                  >
-                    Listen
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 ml-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+            ))
+          ) : videos && videos.length > 0 ? (
+            videos.map((prog, idx) => (
+              <div
+                key={idx}
+                className="flex-shrink-0 w-full md:w-[calc(33.9%-1.125rem)] snap-center group"
+              >
+                <div className="relative w-full h-48 sm:h-48 rounded-2xl mb-4 bg-gray-200/80 overflow-hidden transition-all duration-300 group-hover:scale-105">
+                  <Image
+                    src={prog.thumbnail}
+                    alt={prog.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="text-center px-2 justify-center">
+                  <h4 className="font-heading text-xl font-semibold text-gray-800 mb-1">
+                    {prog.title}
+                  </h4>
+                  <p className="font-body text-sm text-gray-500">
+                    <Link
+                      href={prog.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-red-600 hover:text-red-800 my-4 font-semibold justify-center text-sm flex items-center"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </Link>
-                </p>
+                      Watch
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 ml-1"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </Link>
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-gray-500 -translate-y-1.5">
+              No videos available.
+            </p>
+          )}
         </div>
       </div>
     </section>

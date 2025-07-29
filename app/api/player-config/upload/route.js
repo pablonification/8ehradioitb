@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { hasAnyRole } from "@/lib/roleUtils";
 
 const R2_ENDPOINT = process.env.R2_ENDPOINT;
 const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
@@ -18,8 +21,8 @@ const s3 = new S3Client({
   },
 });
 
-function isAdmin(role) {
-  return ["DEVELOPER", "TECHNIC"].includes(role);
+function isAdmin(roleString) {
+  return hasAnyRole(roleString, ["DEVELOPER", "TECHNIC"]);
 }
 
 export async function POST(req) {
@@ -29,24 +32,22 @@ export async function POST(req) {
   }
 
   try {
-    const formData = await req.formData();
-    const file = formData.get("file");
-    if (!file) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    const { fileName, fileType } = await req.json();
+    if (!fileName || !fileType) {
+      return NextResponse.json({ error: "Missing fileName or fileType" }, { status: 400 });
     }
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const key = `player-covers/${Date.now()}_${file.name}`;
-    await s3.send(new PutObjectCommand({
+    const key = `player-covers/${Date.now()}_${fileName}`;
+    const command = new PutObjectCommand({
       Bucket: R2_BUCKET,
       Key: key,
-      Body: buffer,
-      ContentType: file.type,
+      ContentType: fileType,
       ACL: "public-read",
-    }));
+    });
+    const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
     const url = `${R2_PUBLIC_DEV_URL}/${key}`;
-    return NextResponse.json({ url });
+    return NextResponse.json({ uploadUrl, key, url });
   } catch (error) {
-    console.error("Error uploading to R2:", error);
+    console.error("Error generating pre-signed URL:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 } 

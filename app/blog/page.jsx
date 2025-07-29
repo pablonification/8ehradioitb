@@ -7,10 +7,13 @@ import { prisma } from "@/lib/prisma";
 // --- NEW COMPONENTS FOR THE BLOG PAGE ---
 
 const FeaturedArticle = ({ article }) => (
-  <Link href={`/blog/${article.slug}`} className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center group">
+  <Link
+    href={`/blog/${article.slug}`}
+    className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center group"
+  >
     <div className="w-full h-80 relative rounded-lg overflow-hidden">
       <Image
-        src={article.mainImage || '/placeholder-news1.png'}
+        src={article.mainImage || "/og-image.png"}
         alt={article.title}
         layout="fill"
         objectFit="cover"
@@ -23,13 +26,15 @@ const FeaturedArticle = ({ article }) => (
       <h2 className="text-3xl font-bold text-gray-900 mb-2 font-heading">
         {article.title}
       </h2>
-      <p className="text-gray-600 mb-4 font-body line-clamp-2">{article.description}</p>
+      <p className="text-gray-600 mb-4 font-body line-clamp-2">
+        {article.description}
+      </p>
       <div className="flex items-center mt-auto">
         {article.authors?.[0]?.user?.image && (
           <div className="w-10 h-10 relative mr-3">
             <Image
               src={article.authors[0].user.image}
-              alt={article.authors[0].user.name || 'Author'}
+              alt={article.authors[0].user.name || "Author"}
               fill
               className="rounded-full"
             />
@@ -37,10 +42,15 @@ const FeaturedArticle = ({ article }) => (
         )}
         <div className="flex flex-col">
           <p className="font-body font-semibold text-sm text-gray-800">
-            {article.authors?.map(a => a.user.name).join(', ') || '8EH Radio ITB'}
+            {article.authors?.map((a) => a.user.name).join(", ") ||
+              "8EH Radio ITB"}
           </p>
           <p className="font-body text-xs text-gray-500">
-            {new Date(article.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+            {new Date(article.createdAt).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
             {article.readTime && ` • ${article.readTime}`}
           </p>
         </div>
@@ -53,7 +63,7 @@ const BlogCard = ({ article }) => (
   <Link href={`/blog/${article.slug}`} className="flex flex-col group">
     <div className="w-full h-60 relative rounded-lg overflow-hidden mb-4">
       <Image
-        src={article.mainImage || '/placeholder-news1.png'}
+        src={article.mainImage || "/og-image.png"}
         alt={article.title}
         layout="fill"
         objectFit="cover"
@@ -74,16 +84,23 @@ const BlogCard = ({ article }) => (
         <div className="w-8 h-8 relative mr-2">
           <Image
             src={article.authors[0].user.image}
-            alt={article.authors[0].user.name || 'Author'}
+            alt={article.authors[0].user.name || "Author"}
             fill
             className="rounded-full"
           />
         </div>
       )}
       <div>
-        <p className="font-semibold text-gray-800">{article.authors?.map(a => a.user.name).join(', ') || '8EH Radio ITB'}</p>
+        <p className="font-semibold text-gray-800">
+          {article.authors?.map((a) => a.user.name).join(", ") ||
+            "8EH Radio ITB"}
+        </p>
         <p>
-          {new Date(article.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          {new Date(article.createdAt).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}
           {article.readTime && ` • ${article.readTime}`}
         </p>
       </div>
@@ -104,66 +121,66 @@ const SectionHeader = ({ title, linkText = "See all", linkHref }) => (
 );
 
 async function getPosts() {
-    const posts = await prisma.blogPost.findMany({
-      orderBy: {
-        createdAt: "desc",
+  const posts = await prisma.blogPost.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+    include: {
+      authors: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+        },
       },
+    },
+  });
+  return posts;
+}
+
+async function getFeaturedPost() {
+  let featured = await prisma.blogPost.findFirst({
+    where: { isFeatured: true },
+    include: {
+      authors: {
+        include: {
+          user: {
+            select: { id: true, name: true, image: true },
+          },
+        },
+      },
+    },
+  });
+
+  if (!featured) {
+    featured = await prisma.blogPost.findFirst({
+      orderBy: { createdAt: "desc" },
       include: {
         authors: {
           include: {
             user: {
-              select: {
-                name: true,
-                image: true,
-              },
+              select: { id: true, name: true, image: true },
             },
           },
         },
       },
     });
-    return posts;
-}
-
-async function getFeaturedPost() {
-    let featured = await prisma.blogPost.findFirst({
-        where: { isFeatured: true },
-        include: {
-            authors: {
-              include: {
-                user: {
-                  select: { id: true, name: true, image: true },
-                },
-              },
-            },
-        },
-    });
-
-    if (!featured) {
-        featured = await prisma.blogPost.findFirst({
-            orderBy: { createdAt: 'desc' },
-            include: {
-                authors: {
-                  include: {
-                    user: {
-                      select: { id: true, name: true, image: true },
-                    },
-                  },
-                },
-            },
-        });
-    }
-    return featured;
+  }
+  return featured;
 }
 
 export default async function Blog() {
   const [featuredArticle, allPosts] = await Promise.all([
-      getFeaturedPost(),
-      getPosts(),
+    getFeaturedPost(),
+    getPosts(),
   ]);
 
   // Exclude featured article from the main list to avoid duplication
   const latestBlogs = allPosts
-    .filter(p => p.id !== featuredArticle?.id)
+    .filter((p) => p.id !== featuredArticle?.id)
     .slice(0, 9);
 
   return (
@@ -171,11 +188,45 @@ export default async function Blog() {
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
         {/* Welcome Header */}
-        <section className="text-center p-8 bg-gray-50 rounded-lg">
+        <section className="text-center p-8 bg-gray-50 rounded-lg relative overflow-hidden">
+          {/* Decorative vstock images */}
+          <div className="absolute top-4 left-4 opacity-20">
+            <Image
+              src="/vstock-podcast-3.png"
+              alt="decoration"
+              width={60}
+              height={60}
+            />
+          </div>
+          <div className="absolute top-4 right-4 opacity-20">
+            <Image
+              src="/vstock-podcast-5.png"
+              alt="decoration"
+              width={60}
+              height={60}
+            />
+          </div>
+          <div className="absolute bottom-4 left-1/4 opacity-15">
+            <Image
+              src="/vstock-agency-3.png"
+              alt="decoration"
+              width={40}
+              height={40}
+            />
+          </div>
+          <div className="absolute bottom-4 right-1/4 opacity-15">
+            <Image
+              src="/vstock-podcast-2.png"
+              alt="decoration"
+              width={50}
+              height={50}
+            />
+          </div>
+
           <p className="text-sm font-body font-medium text-gray-500 uppercase tracking-widest mb-2">
             Blog
           </p>
-          <h1 className="text-4xl font-heading font-bold text-gray-900">
+          <h1 className="text-4xl font-heading font-bold text-gray-900 relative z-10">
             Craft narratives that ignite inspiration,
             <br />
             knowledge, and entertainment.
@@ -184,21 +235,64 @@ export default async function Blog() {
 
         {/* Featured Article */}
         {featuredArticle && (
-          <section>
+          <section className="relative">
+            {/* Decorative elements around featured article */}
+            <div className="absolute -top-8 -left-8 opacity-10 hidden lg:block">
+              <Image
+                src="/vstock-podcast-4.png"
+                alt="decoration"
+                width={120}
+                height={120}
+              />
+            </div>
+            <div className="absolute -top-4 -right-4 opacity-15 hidden lg:block">
+              <Image
+                src="/vstock-3.png"
+                alt="decoration"
+                width={80}
+                height={80}
+              />
+            </div>
             <FeaturedArticle article={featuredArticle} />
           </section>
         )}
 
         {/* Latest Blog */}
         {latestBlogs.length > 0 && (
-            <section>
+          <section className="relative">
+            {/* Decorative background elements */}
+            <div className="absolute top-0 left-0 opacity-5">
+              <Image
+                src="/vstock-home1.png"
+                alt="decoration"
+                width={200}
+                height={200}
+              />
+            </div>
+            <div className="absolute top-1/2 right-0 opacity-5">
+              <Image
+                src="/vstock-home2.png"
+                alt="decoration"
+                width={180}
+                height={180}
+              />
+            </div>
+            <div className="absolute bottom-0 left-1/3 opacity-8">
+              <Image
+                src="/vstock-podcast-1.png"
+                alt="decoration"
+                width={60}
+                height={60}
+              />
+            </div>
+
             <SectionHeader title="Latest Blog" linkHref="/blog/all" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
-                {latestBlogs.map((article) => (
+              {latestBlogs.map((article) => (
                 <BlogCard key={article.id} article={article} />
-                ))}
+              ))}
             </div>
-            </section>
+          </section>
         )}
       </main>
       <FooterSection />

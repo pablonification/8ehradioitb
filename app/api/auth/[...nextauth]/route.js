@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 export const authOptions = {
   adapter: PrismaAdapter(prisma),
+  secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
   },
@@ -14,22 +15,28 @@ export const authOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
   ],
+  debug: process.env.NODE_ENV !== "production",
   callbacks: {
     async signIn({ profile }) {
       if (!profile?.email) {
-        console.log("Sign-in denied: No email in profile.");
         return false;
       }
 
-      const whitelistedEmail = await prisma.whitelistedEmail.findUnique({
-        where: { email: profile.email },
+      // Look up whitelisted email case-insensitively (covers historical mixed-case entries)
+
+      const whitelistedEmail = await prisma.whitelistedEmail.findFirst({
+        where: {
+          email: {
+            equals: profile.email,
+            mode: "insensitive",
+          },
+        },
       });
 
       if (!whitelistedEmail) {
-        console.log(`Unauthorized sign-in attempt: ${profile.email}`);
         return false; // Deny access
       }
-      
+
       return true; // Allow access
     },
     async jwt({ token, user }) {

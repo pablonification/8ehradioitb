@@ -346,10 +346,10 @@ export const ContactSection = () => (
             <div>
               <h3 className="font-bold text-lg text-gray-800">Email</h3>
               <a
-                href="mailto:partners@8eh.com"
+                href="mailto:8eh_itb@km.itb.ac.id"
                 className="text-gray-600 hover:text-black transition-colors underline underline-offset-4"
               >
-                partners@8eh.com
+                8eh_itb@km.itb.ac.id
               </a>
             </div>
           </div>

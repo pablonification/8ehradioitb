@@ -21,7 +21,7 @@ model User {
   email     String?        @unique
   emailVerified DateTime?
   image     String?
-  role      Role           @default(KRU)
+  role      String         @default("KRU")
   createdAt DateTime       @default(now())
   authored  AuthorOnPost[]
   accounts  Account[]
@@ -166,4 +166,14 @@ model TuneTrackerEntry {
   coverImage String?  // R2 URL
   audioUrl   String?  // R2 URL
   updatedAt  DateTime @updatedAt
+}
+
+model ProgramVideo {
+  id          String   @id @default(cuid()) @map("_id")
+  title       String
+  link        String
+  thumbnail   String
+  thumbnailKey String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

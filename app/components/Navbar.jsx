@@ -75,7 +75,6 @@ export default function Navbar() {
   ]);
 
   const pauseStream = useCallback(() => {
-    console.log("pauseStream");
     const audio = audioRef.current;
     if (!audio) return;
     audio.pause();
@@ -89,10 +88,8 @@ export default function Navbar() {
   const togglePlay = useCallback(() => {
     if (isPlaying) {
       pauseStream();
-      console.log("Paused");
     } else {
       playStream();
-      console.log("Played");
     }
   }, [isPlaying, playStream, pauseStream]);
 

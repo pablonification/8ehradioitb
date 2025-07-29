@@ -9,6 +9,7 @@ import BoardSliderAnnouncer from "@/app/components/BoardSliderAnnouncer";
 import RadioPlayer from "@/app/components/RadioPlayer";
 import FooterSection from "@/app/components/FooterSection";
 import PodcastAudioPlayer from "@/app/components/PodcastAudioPlayer";
+import ProgramsHeader from "@/app/components/ProgramsHeader";
 
 // ---------------------------------------------------------------------------
 //  Placeholder data (to be replaced with real content later)
@@ -109,11 +110,15 @@ const tunes = [
 
 function HeroSection() {
   return (
-    <section className="relative bg-[#FDFBF6] pt-28 pb-0 overflow-hidden">
+    <section
+      className="relative bg-[#FDFBF6] pt-28 pb-0 overflow-hidden"
+      role="banner"
+      aria-label="Welcome to 8EH Radio ITB"
+    >
       {/* Decorative gradient blob */}
       <Image
         src="/mastercard.png"
-        alt="Background Gradient"
+        alt="Abstract background gradient for 8EH Radio ITB hero section"
         width={2000}
         height={434}
         className="absolute -top-10 left-160 -translate-x-1/2 pointer-events-none select-none opacity-70 z-0"
@@ -142,6 +147,7 @@ function HeroSection() {
               onClick={() =>
                 window.dispatchEvent(new CustomEvent("triggerPlayerControl"))
               }
+              aria-label="Listen to 8EH Radio ITB live stream"
             >
               Listen
             </ButtonPrimary>
@@ -150,10 +156,9 @@ function HeroSection() {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block"
+              aria-label="Follow us on Instagram"
             >
-              <ButtonPrimary
-                className="!bg-[#EFEAE6]/80 !text-[#444] hover:!bg-[#E5DED8] !px-8 !py-3"
-              >
+              <ButtonPrimary className="!bg-[#EFEAE6]/80 !text-[#444] hover:!bg-[#E5DED8] !px-8 !py-3">
                 Join
               </ButtonPrimary>
             </a>
@@ -165,7 +170,7 @@ function HeroSection() {
       <div className="relative -mt-36 md:-mt-60 flex justify-center">
         <Image
           src="/radio-home.png"
-          alt="Radio Illustration"
+          alt="8EH Radio ITB Studio Illustration"
           width={1200}
           height={700}
           className="[mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)] mix-blend-multiply"
@@ -193,7 +198,6 @@ function PodcastSection() {
       .then((data) => {
         // Get only the 2 latest podcasts
         const latestPodcasts = data.slice(0, 2);
-        console.log("Podcast data:", latestPodcasts); // Debug log
         setPodcasts(latestPodcasts);
         setLoading(false);
       })
@@ -204,17 +208,11 @@ function PodcastSection() {
   }, []);
 
   const handlePlayPause = (pod) => {
-    console.log("Play/Pause clicked for podcast:", pod.title);
-    console.log("Current podcast:", currentPodcast?.title);
-    console.log("Audio URL:", pod.audioUrl);
-    
     if (currentPodcast && currentPodcast.id === pod.id) {
       // Same podcast - toggle play/pause
-      console.log("Toggling play/pause for same podcast");
       setIsPlaying((prev) => !prev);
     } else {
       // Different podcast - switch to new one and play
-      console.log("Switching to new podcast and playing");
       setCurrentPodcast(pod);
       // Small delay to ensure state updates before playing
       setTimeout(() => {
@@ -247,7 +245,8 @@ function PodcastSection() {
         ) : podcasts.length > 0 ? (
           <div className="space-y-4">
             {podcasts.map((pod, idx) => {
-              const playing = currentPodcast && currentPodcast.id === pod.id && isPlaying;
+              const playing =
+                currentPodcast && currentPodcast.id === pod.id && isPlaying;
               return (
                 <div
                   key={pod.id || idx}
@@ -276,7 +275,7 @@ function PodcastSection() {
                       <p className="font-body text-xs sm:text-sm text-gray-500">
                         {pod.date} &bull; {pod.duration}
                       </p>
-                      <ButtonPrimary 
+                      <ButtonPrimary
                         className="!w-12 !h-12 !p-0 !rounded-full flex items-center justify-center flex-shrink-0"
                         aria-label={playing ? "Pause Podcast" : "Play Podcast"}
                         onClick={() => handlePlayPause(pod)}
@@ -311,26 +310,30 @@ function PodcastSection() {
             })}
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">No podcasts available yet.</div>
+          <div className="text-center py-8 text-gray-500">
+            No podcasts available yet.
+          </div>
         )}
 
         {/* View All Button */}
         <div className="text-center mt-12">
           <ButtonPrimary
             className="!bg-gray-100 !text-gray-800 hover:!bg-gray-200 !font-medium !px-8 !py-3"
-            onClick={() => window.open('/podcast', '_self')}
+            onClick={() => window.open("/podcast", "_self")}
           >
             View all
           </ButtonPrimary>
         </div>
       </div>
-      
+
       {/* Render PodcastAudioPlayer if a podcast is selected */}
       {currentPodcast && (
         <PodcastAudioPlayer
           audioUrl={currentPodcast.audioUrl}
           title={currentPodcast.title}
-          image={currentPodcast.image || currentPodcast.coverImage || "/8eh-real.svg"}
+          image={
+            currentPodcast.image || currentPodcast.coverImage || "/8eh-real.svg"
+          }
           subtitle={currentPodcast.subtitle}
           description={currentPodcast.description}
           isPlaying={isPlaying}
@@ -351,7 +354,6 @@ function NewsSection() {
       .then((data) => {
         // Get only the 3 latest blog posts
         const latestPosts = data.slice(0, 3);
-        console.log("Blog data:", latestPosts); // Debug log
         setNewsItems(latestPosts);
         setLoading(false);
       })
@@ -364,10 +366,10 @@ function NewsSection() {
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleDateString('id-ID', { 
-      day: 'numeric', 
-      month: 'long', 
-      year: 'numeric' 
+    return date.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
   };
 
@@ -403,11 +405,15 @@ function NewsSection() {
         ) : newsItems.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 text-left">
             {newsItems.map((item, idx) => (
-              <Link href={`/blog/${item.slug}`} key={item.id || idx} className="block group">
+              <Link
+                href={`/blog/${item.slug}`}
+                key={item.id || idx}
+                className="block group"
+              >
                 <div className="bg-gradient-to-b from-[#FEF9E7] to-[#F5E6A3] rounded-3xl shadow-sm overflow-hidden flex flex-col h-full p-4 transition-all duration-300 ease-in-out group-hover:shadow-xl group-hover:scale-[1.02]">
                   <div className="relative h-48 rounded-xl overflow-hidden">
                     <img
-                      src={item.mainImage || "/placeholder-news1.png"}
+                      src={item.mainImage || "/og-image.png"}
                       alt={item.title}
                       className="object-cover w-full h-full"
                     />
@@ -426,29 +432,37 @@ function NewsSection() {
                       <div className="w-10 h-10 relative mr-3">
                         <img
                           src={
-                            item.authors?.[0]?.user?.image 
-                              ? (item.authors[0].user.image.includes('googleusercontent.com')
-                                  ? item.authors[0].user.image.replace(/=s\d+-c/, '=s150-c')
-                                  : item.authors[0].user.image.startsWith('http') 
-                                    ? item.authors[0].user.image 
-                                    : `${window.location.origin}${item.authors[0].user.image}`)
+                            item.authors?.[0]?.user?.image
+                              ? item.authors[0].user.image.includes(
+                                  "googleusercontent.com",
+                                )
+                                ? item.authors[0].user.image.replace(
+                                    /=s\d+-c/,
+                                    "=s150-c",
+                                  )
+                                : item.authors[0].user.image.startsWith("http")
+                                  ? item.authors[0].user.image
+                                  : `${window.location.origin}${item.authors[0].user.image}`
                               : "/8eh-real.svg"
                           }
                           alt={item.authors?.[0]?.user?.name || "Author"}
                           className="rounded-full w-full h-full object-cover"
                           onError={(e) => {
-                            console.log("Image failed to load:", e.target.src);
                             // Try alternative Google image size if it's a Google image
-                            if (e.target.src.includes('googleusercontent.com') && !e.target.src.includes('=s150-c')) {
-                              e.target.src = e.target.src.replace(/=s\d+-c/, '=s150-c');
+                            if (
+                              e.target.src.includes("googleusercontent.com") &&
+                              !e.target.src.includes("=s150-c")
+                            ) {
+                              e.target.src = e.target.src.replace(
+                                /=s\d+-c/,
+                                "=s150-c",
+                              );
                             } else {
                               e.target.src = "/8eh-real.svg";
                               e.target.onerror = null; // Prevent infinite loop
                             }
                           }}
-                          onLoad={(e) => {
-                            console.log("Image loaded successfully:", e.target.src);
-                          }}
+                          onLoad={(e) => {}}
                           crossOrigin="anonymous"
                           referrerPolicy="no-referrer"
                         />
@@ -458,7 +472,8 @@ function NewsSection() {
                           {item.authors?.[0]?.user?.name || "8EH Team"}
                         </p>
                         <p className="font-body text-xs text-gray-500">
-                          {formatDate(item.createdAt)} &bull; {item.readTime || "5 min read"}
+                          {formatDate(item.createdAt)} &bull;{" "}
+                          {item.readTime || "5 min read"}
                         </p>
                       </div>
                     </div>
@@ -468,14 +483,16 @@ function NewsSection() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">No news articles available yet.</div>
+          <div className="text-center py-8 text-gray-500">
+            No news articles available yet.
+          </div>
         )}
 
         <div className="text-center mt-12">
           <ButtonPrimary
             className="!bg-gray-200 !text-gray-800 hover:!bg-gray-300 !font-medium !px-6 !py-2.5"
             onClick={() => {
-              window.open('/blog', '_self');
+              window.open("/blog", "_self");
             }}
           >
             View all
@@ -503,59 +520,10 @@ function ProgramsSection() {
   return (
     <section className="relative py-24 bg-gradient-to-b from-[#FFF8F8] to-white overflow-hidden">
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-12">
-          <div className="text-left">
-            <h2 className="font-heading text-base sm:text-lg md:text-xl text-red-600/90 mb-1">
-              Discover the Vibrant World of
-            </h2>
-            <h3 className="font-accent text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900">
-              8EH Radio Programs
-            </h3>
-          </div>
-          {/* Slider Controls */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <button
-              onClick={() => scroll("left")}
-              className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-white/70 backdrop-blur-sm hover:bg-white/100 hover:border-gray-300 transition-all duration-200 flex items-center justify-center border border-gray-200/80 shadow-md hover:shadow-lg cursor-pointer"
-              aria-label="Scroll left"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={() => scroll("right")}
-              className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-white/70 backdrop-blur-sm hover:bg-white/100 hover:border-gray-300 transition-all duration-200 flex items-center justify-center border border-gray-200/80 shadow-md hover:shadow-lg cursor-pointer"
-              aria-label="Scroll right"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
+        <ProgramsHeader
+          onScrollLeft={() => scroll("left")}
+          onScrollRight={() => scroll("right")}
+        />
 
         {/* Horizontal scroll container */}
         <div
@@ -599,7 +567,15 @@ function TuneTrackerSection() {
         // Always 10 entries, fill missing with placeholder
         const filled = Array.from({ length: 10 }, (_, i) => {
           const found = data.find((e) => e.order === i + 1);
-          return found || { order: i + 1, title: "", artist: "", coverImage: "/music-1.png", audioUrl: "" };
+          return (
+            found || {
+              order: i + 1,
+              title: "",
+              artist: "",
+              coverImage: "/music-1.png",
+              audioUrl: "",
+            }
+          );
         });
         setTunes(filled);
         setLoading(false);
@@ -614,7 +590,7 @@ function TuneTrackerSection() {
     } else {
       setNowPlaying(idx);
       if (tunes[idx].audioUrl) {
-        audioRef.current.src = `/api/proxy-audio?url=${encodeURIComponent(tunes[idx].audioUrl)}`;
+        audioRef.current.src = `/api/proxy-audio?key=${encodeURIComponent(tunes[idx].audioUrl)}`;
         audioRef.current.play();
       }
     }
@@ -667,9 +643,19 @@ function TuneTrackerSection() {
                   </div>
                   <div className="flex-grow">
                     <h3 className="font-heading font-bold text-gray-800">
-                      {tune.title || <span className="italic text-gray-400">Coming Soon</span>}
+                      {tune.title || (
+                        <span className="italic text-gray-400">
+                          Coming Soon
+                        </span>
+                      )}
                     </h3>
-                    <p className="text-sm text-gray-500">{tune.artist || <span className="italic text-gray-300">Coming Soon</span>}</p>
+                    <p className="text-sm text-gray-500">
+                      {tune.artist || (
+                        <span className="italic text-gray-300">
+                          Coming Soon
+                        </span>
+                      )}
+                    </p>
                   </div>
                   <button
                     onClick={() => handlePlay(idx)}

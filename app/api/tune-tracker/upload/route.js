@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { hasAnyRole } from "@/lib/roleUtils";
+import { S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 
 const R2_ENDPOINT = process.env.R2_ENDPOINT;
 const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
@@ -18,8 +21,8 @@ const s3 = new S3Client({
   },
 });
 
-function isMusic(role) {
-  return role === "MUSIC" || role === "DEVELOPER";
+function isMusic(roleString) {
+  return hasAnyRole(roleString, ["MUSIC", "DEVELOPER"]);
 }
 
 export async function POST(req) {
@@ -29,26 +32,22 @@ export async function POST(req) {
   }
 
   try {
-    const formData = await req.formData();
-    const file = formData.get("file");
-    const type = formData.get("type"); // "cover" or "audio"
-    if (!file || !type) {
-      return NextResponse.json({ error: "No file or type provided" }, { status: 400 });
+    const { fileName, fileType, type } = await req.json();
+    if (!fileName || !fileType || !type) {
+      return NextResponse.json({ error: "Missing fileName, fileType, or type" }, { status: 400 });
     }
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const ext = file.name.split('.').pop();
+    const ext = fileName.split('.').pop();
     const key = `tune-tracker/${type}s/${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`;
-    await s3.send(new PutObjectCommand({
+    const command = new PutObjectCommand({
       Bucket: R2_BUCKET,
       Key: key,
-      Body: buffer,
-      ContentType: file.type,
+      ContentType: fileType,
       ACL: "public-read",
-    }));
-    const url = `${R2_PUBLIC_DEV_URL}/${key}`;
-    return NextResponse.json({ url });
+    });
+    const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
+    return NextResponse.json({ uploadUrl, key });
   } catch (error) {
-    console.error("Error uploading to R2:", error);
+    console.error("Error generating pre-signed URL:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 } 

@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { hasRole } from "@/lib/roleUtils";
 
 async function checkDeveloper(req) {
     const session = await getServerSession(authOptions);
-    if (!session || session.user.role !== "DEVELOPER") {
+    if (!session || !hasRole(session.user.role, "DEVELOPER")) {
       return { error: "Forbidden", status: 403 };
     }
     return { session };
@@ -22,10 +23,10 @@ export async function POST(req) {
 
         const existingWhitelistedEmails = (await prisma.whitelistedEmail.findMany({
             select: { email: true }
-        })).map(e => e.email);
+        })).map(e => e.email.toLowerCase());
 
         const usersToWhitelist = allUsers.filter(user => 
-            user.email && !existingWhitelistedEmails.includes(user.email)
+            user.email && !existingWhitelistedEmails.includes(user.email.toLowerCase())
         );
 
         if (usersToWhitelist.length === 0) {
@@ -34,7 +35,7 @@ export async function POST(req) {
 
         const result = await prisma.whitelistedEmail.createMany({
             data: usersToWhitelist.map(user => ({
-                email: user.email,
+                email: user.email.toLowerCase(),
             })),
         });
 

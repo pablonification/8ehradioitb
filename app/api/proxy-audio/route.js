@@ -19,11 +19,26 @@ const s3 = new S3Client({
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
-  const key = searchParams.get("key");
+  let key = searchParams.get("key");
 
   if (!key) {
     return NextResponse.json({ error: "File key is missing" }, { status: 400 });
   }
+
+  if (key.startsWith('http')) {
+    try {
+      const url = new URL(key);
+      key = url.pathname.substring(1);
+    } catch (e) {
+      console.error("Invalid URL passed as key:", key);
+      return NextResponse.json({ error: "Invalid key format" }, { status: 400 });
+    }
+  }
+
+  // Normalize key: remove leading slash and any /api/proxy-audio/ or /api/podcast/ prefix
+  key = key.replace(/^\/+/, ''); // remove leading slashes
+  key = key.replace(/^api\/proxy-audio\//, ''); // remove api/proxy-audio/ prefix
+  key = key.replace(/^api\/podcast\//, ''); // remove api/podcast/ prefix
 
   try {
     const command = new GetObjectCommand({

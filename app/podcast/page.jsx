@@ -12,19 +12,21 @@ import "swiper/css/pagination";
 import { useEffect, useState } from "react";
 import GlobalAudioPlayer from "../components/GlobalAudioPlayer";
 import PodcastAudioPlayer from "../components/PodcastAudioPlayer";
+import ProgramsSlider from "../components/ProgramsSlider";
 
 const programs = [
   {
     logo: "/ctrl-logo.png", // Logo dari gambar
     title: "CTRL: Coba Tanya Radio Lo!",
-    description: "CTRL: Coba Tanya Radio Lo! adalah ...",
+    description:
+      "Kampus Mania bingung mau nanya siapa? Tenang, sekarang CTRL hadir untuk mencari jawaban dari segala kebingungan Kampus Mania!",
     link: "/programs/gws",
   },
   {
     logo: "/gws-logo.png", // Contoh program lain
     title: "GWS: Gather With Us",
     description:
-      "Gather With Us adalah ...",
+      "Kali ini 8EH Radio ITB kembali dengan podcast yang super seru, GWS! Bukan get well soon, tapi Gather With Us.",
     link: "/programs/on-air",
   },
 ];
@@ -95,11 +97,11 @@ const PodcastHero = () => {
           <ButtonPrimary
             className="!bg-[#EFEAE6]/80 !text-[#444] hover:!bg-[#E5DED8] !px-8 !py-3"
             onClick={() => {
-              const element = document.getElementById('podcast-programs');
+              const element = document.getElementById("podcast-programs");
               if (element) {
-                element.scrollIntoView({ 
-                  behavior: 'smooth',
-                  block: 'start'
+                element.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
                 });
               }
             }}
@@ -143,107 +145,6 @@ const PodcastHero = () => {
   );
 };
 
-const PodcastPrograms = () => {
-  return (
-    <section id="podcast-programs" className="relative py-16 overflow-hidden">
-      <div className="absolute inset-0 top-1/8 left-0 w-40 md:w-60 opacity-70">
-        <Image
-          src="/vstock-programs-1.png"
-          alt="Decorative Checkmark"
-          width={300}
-          height={300}
-          className=""
-        />
-      </div>
-      <div className="absolute top-1/4 right-0 w-40 md:w-100 opacity-100">
-        <Image
-          src="/vstock-podcast-4.png"
-          alt="Decorative Checkmark"
-          width={600}
-          height={600}
-          className=""
-        />
-      </div>
-      <div className="container px-8 md:px-24 mx-auto relative z-10">
-        <div className="mx-0 md:mx-24">
-          <p className="text-lg font-bold text-gray-800 max-w-md mx-auto md:mx-0 mb-4">
-            Explore 8EH Radio ITB
-          </p>
-          <h2 className="text-6xl font-accent text-left text-gray-800 mb-12">
-            Podcast Programs
-          </h2>
-        </div>
-
-        <Swiper
-          // Konfigurasi untuk menampilkan 1 slide penuh dan sedikit slide berikutnya
-          slidesPerView={1.2}
-          spaceBetween={20} // Jarak antar slide
-          centeredSlides={false} // Slide aktif akan berada di tengah
-          loop={false} // Slider akan berputar tanpa henti
-          breakpoints={{
-            // Konfigurasi untuk layar yang lebih besar
-            768: {
-              slidesPerView: 1.3,
-              spaceBetween: 30,
-            },
-            1024: {
-              slidesPerView: 2,
-              spaceBetween: 40,
-            },
-          }}
-          className="!overflow-visible" // Agar shadow tidak terpotong
-        >
-          {programs.map((program, index) => (
-            <SwiperSlide key={index}>
-              <div className="bg-gradient-to-br backdrop-blur-xs from-orange-600/80 via-yellow-500/50 to-yellow-100/30 rounded-3xl px-8 lg:px-20 pt-8 md:pt-8 pb-8 shadow-xl h-84 md:h-96 flex flex-col justify-between overflow-hidden transition-all duration-300 border hover:border-gray-400 border-gray-200/80">
-                <div className="flex flex-wrap items-center justify-center">
-                  <div className="flex mb-4 w-full lg:h-40 justify-center">
-                    <Image
-                      src={program.logo}
-                      alt={`${program.title} logo`}
-                      width={300}
-                      height={300}
-                      className="drop-shadow-lg w-50 md:w-70 object-contain"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="text-xl lg:text-2xl font-bold text-gray-800 text-center">
-                      {program.title}
-                    </h3>
-                    <p className="text-gray-700 text-xs lg:text-sm mt-1 text-center">
-                      {program.description}
-                    </p>
-                  </div>
-                </div>
-                <Link
-                  href={program.link}
-                  className="self-center text-red-600 hover:text-red-800 font-semibold text-sm flex items-center"
-                >
-                  View More
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 ml-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </Link>
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </div>
-    </section>
-  );
-};
-
 const PODCASTS_PER_PAGE = 3; // Easily change this value to adjust per page
 
 const PodcastEpisodes = () => {
@@ -269,7 +170,8 @@ const PodcastEpisodes = () => {
   }, []);
 
   if (loading) return <div className="text-center py-8">Loading...</div>;
-  if (error) return <div className="text-center text-red-600 py-8">{error}</div>;
+  if (error)
+    return <div className="text-center text-red-600 py-8">{error}</div>;
 
   // Pagination logic
   const totalPages = Math.ceil(podcasts.length / PODCASTS_PER_PAGE);
@@ -324,9 +226,12 @@ const PodcastEpisodes = () => {
           Latest Podcast Episodes
         </h2>
         <div className="bg-white/15 backdrop-blur-sm mb-12 py-4 md:px-12 rounded-4xl px-4 mx-0 md:mx-4 border border-gray-200/20">
-          <div className={`space-y-4 transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
+          <div
+            className={`space-y-4 transition-opacity duration-300 ${isAnimating ? "opacity-0" : "opacity-100"}`}
+          >
             {currentPodcasts.map((pod, idx) => {
-              const playing = currentPodcast && currentPodcast.id === pod.id && isPlaying;
+              const playing =
+                currentPodcast && currentPodcast.id === pod.id && isPlaying;
               return (
                 <div
                   key={pod.id || idx}
@@ -445,7 +350,9 @@ const PodcastEpisodes = () => {
       <PodcastAudioPlayer
         audioUrl={currentPodcast?.audioUrl}
         title={currentPodcast?.title}
-        image={currentPodcast?.image || currentPodcast?.coverImage || "/8eh-real.svg"}
+        image={
+          currentPodcast?.image || currentPodcast?.coverImage || "/8eh-real.svg"
+        }
         subtitle={currentPodcast?.subtitle}
         description={currentPodcast?.description}
         isPlaying={isPlaying}
@@ -460,7 +367,11 @@ export default function PodcastPage() {
     <main className="bg-[#FEFBF8] overflow-x-hidden font-body">
       <Navbar />
       <PodcastHero />
-      <PodcastPrograms />
+      <ProgramsSlider
+        title="Podcast Programs"
+        subtitle="Explore 8EH Radio ITB"
+        programs={programs}
+      />
       <PodcastEpisodes />
       <FooterSection />
     </main>
