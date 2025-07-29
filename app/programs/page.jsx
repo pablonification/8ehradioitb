@@ -27,21 +27,22 @@ const programs = [
   },
 ];
 
+
 const highlightsData = [
   {
     imageUrl: "/highlight-2.png",
     altText: "Highlight Program Dulu vs Sekarang",
-    link: "",
+    link: "https://www.instagram.com/p/DKCKgOjyM9p/",
   },
   {
-    imageUrl: "/highlight-1.png",
-    altText: "Highlight Program Gather With Us",
-    link: "",
+    imageUrl: "/highlight-1.jpg",
+    altText: "Highlight Program Coba Tanya Radio Lo!",
+    link: "https://www.instagram.com/p/DL4t269Jt-B/",
   },
   {
-    imageUrl: "/highlight-3.png",
-    altText: "Highlight Program Hias Kue",
-    link: "",
+    imageUrl: "/highlight-3.jpg",
+    altText: "Highlight Program Kumal",
+    link: "https://www.instagram.com/p/DMKN7O0pgbx/",
   },
 ];
 
@@ -310,7 +311,7 @@ const HighlightsSection = () => {
         {/* Judul "Program Highlights" */}
         <div className="flex justify-center mb-12">
           <h2 className="bg-gradient-to-br backdrop-blur-xs drop-shadow-md from-yellow-500/80 via-orange-400/70 to-white/60 text-black text-center font-accent text-4xl lg:text-5xl px-4 lg:px-12 py-3 rounded-xl shadow-lg">
-            Program Highlights
+            Featured Programs
           </h2>
         </div>
 
@@ -319,7 +320,9 @@ const HighlightsSection = () => {
           {highlightsData.map((highlight, index) => (
             <a
               key={index}
-              //   href={highlight.link}
+              href={highlight.link}
+              rel="noopener noreferrer"
+              target="_blank"
               className="group block transform transition-transform duration-300 ease-in-out hover:scale-105"
             >
               <Image
