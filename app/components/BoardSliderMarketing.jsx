@@ -20,9 +20,9 @@ const photoPaths = {
   "Rifqy Ahmad Lazuardi": "",
   "Hamima Husna Nur Shabrina": "",
   "Marcella Stely Lukas": "/foto-marketing/cella.jpeg",
-  "Zahrah Nur Azizah": "/foto-marketing/ara.png",
+  "Zahrah Nur Azizah": "/foto-marketing/ara.PNG",
   "Abdullah Sulaiman Tidar Nasution": "/foto-marketing/abdul.png",
-  "Happy Sri Sholihatul Hidayah": "/foto-marketing/happy.jpg",
+  "Happy Sri Sholihatul Hidayah": "/foto-marketing/happy.JPG",
 };
 
 // Get announcer members from the JSON data, now including voiceUrl
