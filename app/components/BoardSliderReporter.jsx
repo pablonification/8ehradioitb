@@ -22,23 +22,32 @@ const photoPaths = {
   "Arqila Surya Putra": "/foto-rep/arqila.JPG",
 };
 
-// Get announcer members from the JSON data, now including voiceUrl
+// Get announcer members from the JSON data
 const members = announcerData.Announcers.map((announcer) => ({
   name: announcer.name,
   role: "Reporter & Video Editor",
   ig: announcer.ig,
   linkedin: announcer.linkedin,
   photoUrl: photoPaths[announcer.name] || "/placeholder.jpg",
-  portfolio: announcer.portfolio, // ntar diisi masing"
+  portfolio: announcer.portfolio,
 }));
 
 export default function BoardSliderReporter() {
+  // --- MODIFICATION START ---
+  // Filter members based on photo availability
+  const completeMembers = members.filter(
+    (member) => member.photoUrl !== "/placeholder.jpg",
+  );
+  const incompleteMembers = members.filter(
+    (member) => member.photoUrl === "/placeholder.jpg",
+  );
+  // --- MODIFICATION END ---
+
   return (
     <>
       <Head>
         <link rel="preload" as="image" href="/LinkedIn.svg" />
         <link rel="preload" as="image" href="/Instagram.svg" />
-        <link rel="preload" as="image" href="/x-logo.svg" />
       </Head>
       <Swiper
         modules={[Navigation, Grid]}
@@ -53,6 +62,9 @@ export default function BoardSliderReporter() {
           1024: { slidesPerView: 4, grid: { rows: 2 } },
         }}
         className="board-swiper w-full p-6 rounded-2xl"
+        style={{
+          "--swiper-navigation-size": "30px",
+        }}
       >
         <style jsx global>{`
           .board-swiper .swiper-button-prev,
@@ -60,10 +72,11 @@ export default function BoardSliderReporter() {
             color: #6b7280;
           }
         `}</style>
-        {members.map((member, idx) => (
+        {/* Map over complete members for the Swiper */}
+        {completeMembers.map((member, idx) => (
           <SwiperSlide key={idx} className="pb-8">
-            <div className="flex flex-col items-center text-center space-y-4 bg-white/30 backdrop-blur-sm p-4 rounded-3xl h-full drop-shadow-md border border-gray-300 mx-4 md:mx-0">
-              <div className="w-36 h-36 rounded-xl bg-gray-200 flex items-center justify-center overflow-hidden">
+            <div className="flex flex-col items-center text-center space-y-4 bg-white backdrop-blur-sm pb-4 rounded-3xl h-full drop-shadow-md border border-gray-300 mx-4 md:mx-0 overflow-hidden">
+              <div className="w-full h-48 rounded-t-xl bg-gray-200 flex items-center justify-center overflow-hidden">
                 <Image
                   src={member.photoUrl}
                   alt={`Photo of ${member.name}`}
@@ -80,22 +93,24 @@ export default function BoardSliderReporter() {
                   href={member.portfolio}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block"
+                  className="flex"
                   aria-label="Portfolio"
                 >
-                  <Image
-                    src="/folder.png"
-                    alt="folder icon"
-                    width={100}
-                    height={100}
-                    className="w-8 h-8 mr-2 drop-shadow-md"
-                  />
+                  <ButtonPrimary className="!bg-[#EFEAE6]/80 !text-[#444] hover:!bg-[#E5DED8] !p-2 mr-2 text-sm">
+                    <Image
+                      src="/folder.png"
+                      alt="folder icon"
+                      width={100}
+                      height={100}
+                      className="w-6 h-6 drop-shadow-lg"
+                    />
+                  </ButtonPrimary>
                 </a>
                 <a
                   href={member.portfolio}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block"
+                  className="flex"
                   aria-label="Portfolio"
                 >
                   <ButtonPrimary className="!bg-[#EFEAE6]/80 !text-[#444] hover:!bg-[#E5DED8] !px-4 !py-2 text-sm">
@@ -104,7 +119,7 @@ export default function BoardSliderReporter() {
                 </a>
               </div>
 
-              <div className="flex-grow flex flex-col justify-center">
+              <div className="flex-grow flex flex-col justify-center mt-2 mb-8">
                 <h3 className="font-heading font-semibold text-lg text-gray-900">
                   {member.name}
                 </h3>
@@ -129,7 +144,7 @@ export default function BoardSliderReporter() {
                 )) || (
                   <a
                     rel="noopener noreferrer"
-                    className="w-6 h-6 text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
+                    className="w-6 h-6 text-gray-500 hover:text-gray-800 transition-colors opacity-30"
                   >
                     <Image
                       src="/LinkedIn.svg"
@@ -156,7 +171,7 @@ export default function BoardSliderReporter() {
                 )) || (
                   <a
                     rel="noopener noreferrer"
-                    className="w-6 h-6 text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
+                    className="w-6 h-6 text-gray-500 hover:text-gray-800 transition-colors opacity-30"
                   >
                     <Image
                       src="/Instagram.svg"
@@ -171,6 +186,115 @@ export default function BoardSliderReporter() {
           </SwiperSlide>
         ))}
       </Swiper>
+
+      {/* --- NEW SECTION FOR INCOMPLETE PROFILES --- */}
+      {incompleteMembers.length > 0 && (
+        <div className="mt-12 mx-auto max-w-7xl">
+          <div className="p-6 bg-white drop-shadow-md border border-gray-300 rounded-3xl">
+            {/* Container menggunakan layout Grid Responsif */}
+            <div className="flex justify-center items-center flex-wrap space-y-4">
+              {incompleteMembers.map((member, idx) => (
+                <div
+                  key={idx}
+                  className="flex justify-between items-center py-4 px-8 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors w-full lg:w-1/2"
+                >
+                  {/* Grup teks dengan nama & peran tersusun vertikal */}
+                  <div>
+                    <p className="font-heading font-semibold text-lg text-gray-800">
+                      {member.name}
+                    </p>
+                    <p className="font-body text-sm text-gray-500">
+                      {member.role}
+                    </p>
+                  </div>
+
+                  {/* Grup ikon sosial media */}
+                  <div className="flex space-x-3 flex-shrink-0 ml-4 items-center">
+                    <div className="flex align-center justify-center">
+                      <a
+                        href={member.portfolio}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex md:hidden"
+                        aria-label="Portfolio"
+                      >
+                        <ButtonPrimary className="!bg-[#EFEAE6]/80 !text-[#444] hover:!bg-[#E5DED8] !p-2 mr-2 text-sm">
+                          <Image
+                            src="/folder.png"
+                            alt="folder icon"
+                            width={100}
+                            height={100}
+                            className="w-6 h-6 drop-shadow-lg"
+                          />
+                        </ButtonPrimary>
+                      </a>
+                      <a
+                        href={member.portfolio}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="md:inline-block hidden"
+                        aria-label="Portfolio"
+                      >
+                        <ButtonPrimary className="!bg-[#EFEAE6]/80 !text-[#444] hover:!bg-[#E5DED8] !px-4 !py-2 text-sm">
+                          View Portfolio
+                        </ButtonPrimary>
+                      </a>
+                    </div>
+                    {(member.linkedin && (
+                      <a
+                        href={member.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-6 h-6 text-gray-500 hover:text-gray-800 transition-colors"
+                      >
+                        <Image
+                          src="/LinkedIn.svg"
+                          alt="LinkedIn"
+                          width={24}
+                          height={24}
+                        />
+                      </a>
+                    )) || (
+                      <div className="w-6 h-6 opacity-30">
+                        <Image
+                          src="/LinkedIn.svg"
+                          alt="LinkedIn"
+                          width={24}
+                          height={24}
+                        />
+                      </div>
+                    )}
+                    {(member.ig && (
+                      <a
+                        href={`https://instagram.com/${member.ig}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-6 h-6 text-gray-500 hover:text-gray-800 transition-colors"
+                      >
+                        <Image
+                          src="/Instagram.svg"
+                          alt="Instagram"
+                          width={24}
+                          height={24}
+                        />
+                      </a>
+                    )) || (
+                      <div className="w-6 h-6 opacity-30">
+                        <Image
+                          src="/Instagram.svg"
+                          alt="Instagram"
+                          width={24}
+                          height={24}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
