@@ -9,39 +9,29 @@ import { useState, useEffect } from "react";
 
 const faqData = [
   {
-    question: "What is 8EH Radio?",
+    question: "Apa itu 8EH Radio?",
     answer:
-      "8EH Radio ITB is the official student radio at Institut Teknologi Bandung. We provide a vibrant platform for entertainment, information, and creativity. Our programs include live broadcasts, music events, and podcasts.",
+      "8EH Radio ITB adalah radio mahasiswa resmi di Institut Teknologi Bandung. Kami menyediakan platform  untuk hiburan, informasi, dan kreativitas. Program kami meliputi siaran langsung, acara musik, dan podcast.",
   },
   {
-    question: "How can I listen?",
+    question: "Gimana cara mendengarkannya?",
     answer:
-      "You can listen to 8EH Radio through our website or mobile app. Tune in for live shows and enjoy our on-demand podcasts. Stay connected with us for the latest updates.",
+      "Kamu bisa mendengarkan 8EH Radio lewat website kami. Nikmati siaran live yang seru dan podcast on-demand kapan pun kamu mau! Stay tune untuk update terbaru dan konten menarik lainnya.",
   },
   {
-    question: "What programs do you offer?",
+    question: "Program apa saja yang ditawarkan?",
     answer:
-      "We offer a variety of programs including interactive live shows, music events like Jamgazm, and talent development through 8EH Agency. Our content is designed to engage and entertain our listeners. Check our schedule for specific program times.",
+      "Kami hadir dengan beragam program seru mulai dari siaran live interaktif, event musik seperti Jamgazm, hingga pengembangan talenta lewat 8EH Agency. Semua konten kami dirancang untuk menghibur dan melibatkan kamu sebagai pendengar setia. Yuk, cek jadwal lengkapnya dan temukan program favoritmu!",
   },
   {
-    question: "How can businesses collaborate?",
+    question: "Gimana cara kolaborasi bisnis?",
     answer:
-      "Businesses can collaborate with 8EH Radio ITB for advertising, sponsorships, and event partnerships. We offer tailored solutions to meet your marketing needs. Reach out to our business team for more details.",
+      "Bisnis kamu bisa berkolaborasi dengan 8EH Radio ITB lewat iklan, sponsor, atau kemitraan event. Kami siap memberikan solusi yang sesuai dengan kebutuhan marketingmu. Hubungi tim kami sekarang untuk informasi lebih lanjut.",
   },
   {
-    question: "How do I contact you?",
+    question: "Dimana kami bisa menghubungi kalian?",
     answer:
-      "You can contact us via our website's contact form or email us directly. We are here to answer any questions you may have. Don't hesitate to reach out!",
-  },
-  {
-    question: "Is there a mobile app?",
-    answer:
-      "Yes, our mobile app is available for both Android and iOS devices, providing the best listening experience on the go. You can download it from the Google Play Store and Apple App Store.",
-  },
-  {
-    question: "Can I request a song?",
-    answer:
-      "Absolutely! During our live music shows, you can send in your song requests through our social media channels or the request feature on our website and mobile app.",
+      "Kamu bisa menghubungi kami lewat email—kami siap menjawab segala pertanyaanmu. Jangan ragu untuk menyapa, kami selalu terbuka untukmu!",
   },
 ];
 
@@ -132,8 +122,7 @@ const FAQHero = () => {
             Your Questions Answered
           </h1>
           <p className="text-lg font-heading font-medium text-gray-800 mx-auto md:mx-0 mb-8">
-            Explore our FAQ to find answers to your questions about 8EH Radio
-            ITB.
+            Punya pertanyaan seputar 8EH Radio ITB? Jelajahi halaman FAQ kami dan temukan jawabannya.
           </p>
         </div>
 
@@ -219,8 +208,7 @@ const FaqSection = () => {
       <div className="relative z-10 mx-auto max-w-4xl text-center">
         <h2 className="text-6xl font-accent text-gray-800">FAQs</h2>
         <p className="mt-4 text-gray-800 font-body">
-          Find answers to common questions about 8EH Radio ITB for listeners and
-          business clients.
+          Temukan jawaban atas pertanyaan seputar 8EH Radio ITB
         </p>
       </div>
 

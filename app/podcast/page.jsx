@@ -90,9 +90,7 @@ const PodcastHero = () => {
             Our Podcasts
           </h1>
           <p className="text-lg text-gray-600 max-w-md mx-auto md:mx-0 mb-8">
-            Experience the excitement of 8EH's podcasts, where we bring you
-            engaging discussions and entertaining stories. Join us as we explore
-            campus life and beyond, all wrapped in our signature vibrant style.
+            Rasakan serunya podcast 8EH, tempat di mana diskusi seru dan cerita menghibur hadir untukmu! Yuk, jelajahi kehidupan kampus yang dikemas dengan gaya khas kami yang penuh warna dan energi!
           </p>
           <ButtonPrimary
             className="!bg-[#EFEAE6]/80 !text-[#444] hover:!bg-[#E5DED8] !px-8 !py-3"
@@ -199,7 +197,7 @@ const PodcastEpisodes = () => {
   };
 
   return (
-    <section className="pt-24 bg-gradient-to-b from-black/0 from-0% to-black to-5% md:to-15% text-white relative overflow-hidden">
+    <section className="pt-24 bg-gradient-to-b from-black/0 from-0% to-black to-5% md:to-15% text-white relative overflow-hidden" id="podcast-programs">
       <div className="absolute top-0 md:top-1/3 right-0 md:right-0 w-100 md:w-180 opacity-20 -rotate-17">
         <Image
           src="/boombox-podcast.png"

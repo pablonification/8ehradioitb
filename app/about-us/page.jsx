@@ -147,8 +147,7 @@ export default function AboutUs() {
               8EH Radio ITB
             </h1>
             <p className="text-base md:text-lg font-body max-w-3xl mx-auto mb-8 text-white/90">
-              Connecting the ITB community through engaging content, creativity,
-              and collaboration in media.
+              Menyatukan komunitas ITB lewat konten yang seru, kreativitas tanpa batas, dan kolaborasi di dunia media.
             </p>
             <div className="flex justify-center mt-4 hidden">
               <RadioPlayer
@@ -281,7 +280,7 @@ export default function AboutUs() {
           </h2>
 
           <p className="text-center font-semibold max-w-2xl mx-auto mb-16 text-gray-600 font-body">
-            Meet the passionate individuals behind 8EH Radio ITB.
+            Temui para personel keren dibalik 8EH Radio ITB
           </p>
 
           {/* Board Grid */}

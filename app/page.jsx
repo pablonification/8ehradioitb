@@ -137,9 +137,7 @@ function HeroSection() {
         {/* CTA */}
         <div className="space-y-6 md:col-span-1 md:text-left mt-8 md:mt-2">
           <p className="font-body text-base text-gray-700 max-w-sm">
-            Tune in to 8EH Radio for the latest in campus news, music, and
-            entertainment. Join our vibrant community and explore a world of
-            creativity and fun!
+            Dengarkan 8EH Radio untuk kabar terkini seputar kampus, musik hits, dan hiburan seru! Bergabunglah dengan komunitas kami dan temukan dunia dengan kreativitas dan keseruan tanpa batas!
           </p>
           <div className="flex items-center gap-4 justify-start">
             <ButtonPrimary
@@ -397,7 +395,7 @@ function NewsSection() {
           Latest Campus News
         </h2>
         <p className="font-body text-gray-600 mb-16">
-          Stay updated with campus happenings and insights.
+          Selalu terhubung dengan kabar terbaru dan cerita seru seputar dunia kampus!
         </p>
 
         {loading ? (
@@ -698,7 +696,7 @@ function AnnouncersSection() {
             Our Announcers
           </h2>
           <p className="font-body text-lg text-white/90">
-            Meet our talented radio announcers and their stories.
+            Temui Announcer kami yang penuh talenta dan cerita!
           </p>
         </div>
         <BoardSliderAnnouncer />

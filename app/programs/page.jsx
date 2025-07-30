@@ -45,19 +45,9 @@ const highlightsData = [
     link: "https://www.instagram.com/p/DMKN7O0pgbx/",
   },
 ];
-
 const ProgramHero = () => {
   return (
     <section className="relative py-16 overflow-hidden">
-      <div className="absolute inset-0 top-1/8 left-0 w-40 md:w-60 opacity-70">
-        <Image
-          src="/vstock-programs-1.png"
-          alt="Decorative Checkmark"
-          width={300}
-          height={300}
-          className=""
-        />
-      </div>
       <div className="absolute top-1/4 right-0 w-40 md:w-80 opacity-30">
         <Image
           src="/vstock-programs-2.png"
@@ -370,8 +360,7 @@ const YoutubeCTA = () => {
             Join Us on Youtube
           </h2>
           <p className="text-gray-600 max-w-md font-body mt-4">
-            Experience the vibrant sounds of 8EH Radio ITB Podcasts by visiting
-            our Youtube Channel
+            Nikmati konten-konten seru dari 8EH Radio ITB pada Youtube kami!
           </p>
         </div>
 

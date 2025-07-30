@@ -44,43 +44,83 @@ const rateCardData = {
         "1x Infografis post-event di IG @8ehradioitb (materi dari penyelenggara)",
       ],
     },
-  ],
-  longTerm: [
     {
-      title: "Paket Pop+",
-      price: "25K",
-      gradient: "from-orange-600 via-yellow-500/80 to-yellow-100/30",
-      features: [
-        "2x Iklan (video/poster) di feeds IG @8ehradioitb (14 hari)",
-        "4x Iklan di story IG @8ehradioitb",
-        "Publikasi artikel/press release di web 8ehradioitb.com",
-        "2x Iklan (poster) di website 8ehradioitb.com",
-      ],
-    },
-    {
-      title: "Paket Hip Hop+",
+      title: "Paket Jazz",
       price: "75K",
       gradient: "from-orange-600 via-yellow-500/80 to-yellow-100/30",
       features: [
-        "3x Iklan (video/poster) di feeds IG @8ehradioitb (tayang sebulan)",
-        "6x Iklan di story IG @8ehradioitb",
-        "Publikasi artikel/press release di web 8ehradioitb.com",
-        "3x Iklan (poster) di website 8ehradioitb.com",
-        "Dedicated IG Highlight",
+        "5x Iklan (video/poster) di IG @8ehradioitb & @reporter8eh (7 hari, max 1x/minggu)",
+        "7x Iklan di story IG @8ehradioitb & @reporter8eh (max 1x/minggu)",
+        "1x Siaran online via Live IG (opsional)",
+        "Artikel/Press Release di web 8ehradioitb.id",
+        "1x Iklan (poster) di website 8ehradioitb.id",
+        "Live report minimal 7x di story IG @8ehradioitb & @reporter8eh",
+        "1x Infografis untuk post-event di IG @8ehradioitb",
+        "1x Konten reels/TikTok di IG @8ehradioitb",
       ],
     },
     {
-      title: "Paket Classic+",
-      price: "120K",
+      title: "Paket Rock",
+      price: "100K",
       gradient: "from-orange-600 via-yellow-500/80 to-yellow-100/30",
       features: [
-        "4x Iklan (video/poster) di feeds IG @8ehradioitb (sebulan)",
-        "8x Iklan di story IG @8ehradioitb",
-        "4x Iklan di story IG @reporter8eh",
-        "Publikasi artikel/press release di web 8ehradioitb.com",
-        "4x Iklan (poster) di website 8ehradioitb.com",
-        "2x Infografis post-event di IG @8ehradioitb",
-        "Partnership mention di bio IG",
+        "1x Iklan (video/poster) di feeds IG @8ehradioitb (10 hari)",
+        "3x Iklan di story IG @8ehradioitb (video/poster)",
+        "2x Iklan di story IG @reporter8eh (video/poster)",
+        "Artikel/Press Release di web 8ehradioitb.com",
+        "1x Iklan (poster) di website 8ehradioitb.com",
+        "Live report minimal 3x di story IG @reporter8eh",
+        "1x Konten infografis/reels/TikTok untuk post-event (jika tersedia free pass & reporter)",
+      ],
+    },
+  ],
+  longTerm: [
+    {
+      title: "1 Month Package",
+      price: "200K",
+      gradient: "from-orange-600 via-yellow-500/80 to-yellow-100/30",
+      features: [
+        "2x Iklan (video/poster) di IG @8ehradioitb dan @reporter8eh (5 hari, max 1x/minggu)",
+        "4x Iklan di story IG @8ehradioitb dan @reporter8eh (max 1x/minggu)",
+        "Artikel/Press Release di web 8ehradioitb.id (konten dari penyelenggara)",
+        "1x Iklan (poster) di web 8ehradioitb.id",
+        "Live report minimal 4x di IG @reporter8eh (jika tersedia free pass dan reporter)",
+        "1x Infografis untuk post-event di IG @8ehradioitb",
+        "1x Konten reels/TikTok di IG @8ehradioitb",
+      ],
+    },
+    {
+      title: "3 Months Package",
+      price: "300K",
+      gradient: "from-orange-600 via-yellow-500/80 to-yellow-100/30",
+      features: [
+        "3x Iklan (video/poster) di IG @8ehradioitb (7 hari, max 1x/minggu)",
+        "3x Iklan (video/poster) di IG @reporter8eh (5 hari, max 1x/minggu)",
+        "5x Iklan di story IG @8ehradioitb (max 1x/minggu)",
+        "5x Iklan di story IG @reporter8eh (max 1x/minggu)",
+        "1x Siaran online untuk promosi event via Live IG (opsional)",
+        "Artikel/Press Release di web 8ehradioitb.id (konten dari penyelenggara)",
+        "1x Iklan (poster) di website 8ehradioitb.id",
+        "Live report minimal 5x di story IG @reporter8eh dan @8ehradioitb (jika ada free pass dan reporter)",
+        "1x Infografis untuk post-event di IG @8ehradioitb",
+        "1x Konten reels/TikTok di IG @8ehradioitb",
+      ],
+    },
+    {
+      title: "6 Months Package",
+      price: "400K",
+      gradient: "from-orange-600 via-yellow-500/80 to-yellow-100/30",
+      features: [
+        "5x Iklan (video/poster) di IG @8ehradioitb (7 hari, max 1x/minggu)",
+        "5x Iklan (video/poster) di IG @reporter8eh (7 hari, max 1x/minggu)",
+        "7x Iklan di story IG @8ehradioitb (max 1x/minggu)",
+        "7x Iklan di story IG @reporter8eh (max 1x/minggu)",
+        "1x Siaran online untuk promosi event via Live IG (opsional)",
+        "Artikel/Press Release di web 8ehradioitb.id (konten dari penyelenggara)",
+        "1x Iklan (poster) di website 8ehradioitb.id",
+        "Live report minimal 7x di story IG @reporter8eh dan @8ehradioitb (jika ada free pass dan reporter)",
+        "1x Infografis untuk post-event di IG @8ehradioitb",
+        "1x Konten reels/TikTok di IG @8ehradioitb",
       ],
     },
   ],
@@ -206,8 +246,8 @@ const MedpartHero = () => {
             Partner with Us
           </h1>
           <p className="text-lg text-gray-700 mx-auto md:mx-0 mb-8">
-            Unlock new opportunities by collaborating with 8EH Radio ITB for
-            impactful media partnerships.
+            Temukan peluang baru dengan berkolaborasi bersama 8EH Radio ITB
+            melalui media partnership!
           </p>
         </div>
       </div>
@@ -346,7 +386,7 @@ export function RateCard() {
           Rate Card
         </h2>
         <p className="font-body text-gray-600 mb-16">
-          Choose the perfect package for your media needs.
+          Pilih paket terbaik sesuai kebutuhan mediamu!
         </p>
       </div>
 
@@ -381,11 +421,11 @@ export function RateCard() {
         </div>
 
         {/* Container untuk Kartu Harga (tetap sama) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="flex flex-wrap justify-center gap-4">
           {currentPlans.map((plan, index) => (
             <div
               key={index}
-              className={`rounded-4xl p-8 text-black flex flex-col shadow-md border border-gray-300 backdrop-blur-md transform hover:scale-101 transition-transform duration-300 bg-gradient-to-br ${plan.gradient}`}
+              className={`rounded-4xl p-8 text-black flex flex-col shadow-md border border-gray-300 backdrop-blur-md transform hover:scale-101 transition-transform duration-300 bg-gradient-to-br ${plan.gradient} max-w-xs`} // max-w-xs digunakan untuk lebar maksimal 20rem (320px)
             >
               <h3 className="text-2xl font-heading mb-2 text-center">
                 {plan.title}
@@ -575,7 +615,8 @@ const PartnerMarquee = () => {
         */}
         <div className="flex-shrink-0 p-6 text-center md:p-8 md:text-left md:w-1/4">
           <p className="text-sm font-semibold text-black">
-            8EH Radio ITB has partnered up with the following instances
+            8EH Radio ITB telah menjalin kolaborasi dengan berbagai institusi
+            dan mitra
           </p>
         </div>
 
@@ -616,7 +657,8 @@ const GetInTouch = () => {
         </h2>
 
         <p className="font-body text-gray-600 mb-16">
-          We'd love to hear from you! Reach out for inquiries or collaborations.
+          Kami ingin mendengar kabar darimu! Hubungi kami untuk pertanyaan,
+          saran, atau kolaborasi lebih lanjut.
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
