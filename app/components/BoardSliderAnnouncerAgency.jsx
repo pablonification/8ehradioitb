@@ -25,7 +25,7 @@ const photoPaths = {
   "Rinjani Aulia Syifa": "/foto-announcer/IMG_3364 - Rinjani Aulia Syifa.jpeg",
   Audrey: "",
   "Muhammad Raga Wibawa Sugiarto": "/foto-announcer/raga.png",
-  "Nur Sofita": "/foto-announcer/IMG_1121 - Nur Sofita.jpeg",
+  "Nur Sofita": "/foto-announcer/sofi.jpg",
   "Fahlianti Afif": "/foto-announcer/lia.png",
   "Barsa Naadhir Akmal": "/foto-announcer/barsa.jpg",
   "Nayla Fijar Az-Zahra": "/foto-announcer/nayel.png",
@@ -62,7 +62,7 @@ const voicePaths = {
   "Rinjani Aulia Syifa": "",
   Audrey: "",
   "Muhammad Raga Wibawa Sugiarto": "/voice-ann/raga.m4a",
-  "Nur Sofita": "",
+  "Nur Sofita": "/voice-ann/sofi.m4a",
   "Fahlianti Afif": "/voice-ann/lia.m4a",
   "Barsa Naadhir Akmal": "/voice-ann/barsa.m4a",
   "Nayla Fijar Az-Zahra": "/voice-ann/nayel.m4a",
@@ -83,17 +83,30 @@ const voicePaths = {
   "Galuh Maharani Putriku": "",
 };
 
-// Get announcer members from the JSON data, now including voiceUrl
-const members = announcerData.Announcers.map((announcer) => ({
+// Get announcer members from the JSON data
+const allMembers = announcerData.Announcers.map((announcer) => ({
   name: announcer.name,
   role: "Announcer",
   ig: announcer.ig,
   linkedin: announcer.linkedin,
   photoUrl: photoPaths[announcer.name] || "/placeholder.jpg",
-  voiceUrl: voicePaths[announcer.name] || "", // Assuming 'voice_url' exists in your JSON
+  voiceUrl: voicePaths[announcer.name] || "",
 }));
 
 export default function BoardSliderAnnouncerAgency() {
+  // --- MODIFICATION START ---
+  // Filter members into two groups: those with complete data and those without.
+  const completeMembers = allMembers.filter(
+    (member) =>
+      member.photoUrl !== "/placeholder.jpg" && member.voiceUrl !== "",
+  );
+
+  const incompleteMembers = allMembers.filter(
+    (member) =>
+      member.photoUrl === "/placeholder.jpg" || member.voiceUrl === "",
+  );
+  // --- MODIFICATION END ---
+
   return (
     <>
       <Head>
@@ -101,6 +114,8 @@ export default function BoardSliderAnnouncerAgency() {
         <link rel="preload" as="image" href="/Instagram.svg" />
         <link rel="preload" as="image" href="/x-logo.svg" />
       </Head>
+
+      {/* Swiper for members with complete profiles */}
       <Swiper
         modules={[Navigation, Grid]}
         spaceBetween={20}
@@ -114,6 +129,9 @@ export default function BoardSliderAnnouncerAgency() {
           1024: { slidesPerView: 4, grid: { rows: 2 } },
         }}
         className="board-swiper w-full p-6 rounded-2xl"
+        style={{
+          "--swiper-navigation-size": "30px",
+        }}
       >
         <style jsx global>{`
           .board-swiper .swiper-button-prev,
@@ -121,10 +139,10 @@ export default function BoardSliderAnnouncerAgency() {
             color: #6b7280;
           }
         `}</style>
-        {members.map((member, idx) => (
+        {completeMembers.map((member, idx) => (
           <SwiperSlide key={idx} className="pb-4">
-            <div className="flex flex-col items-center text-center space-y-4 bg-white/30 backdrop-blur-sm p-4 rounded-3xl drop-shadow-md border border-gray-300 min-h-[410px] mx-4 md:mx-0">
-              <div className="w-36 h-36 rounded-xl bg-gray-200 flex items-center justify-center overflow-hidden">
+            <div className="flex flex-col items-center text-center space-y-4 bg-white backdrop-blur-sm pb-4 rounded-3xl drop-shadow-md border border-gray-300 min-h-[440px] mx-4 md:mx-0 overflow-hidden">
+              <div className="w-full h-48 rounded-t-xl bg-gray-200 flex items-center justify-center overflow-hidden">
                 <Image
                   src={member.photoUrl}
                   alt={`Photo of ${member.name}`}
@@ -137,11 +155,11 @@ export default function BoardSliderAnnouncerAgency() {
               </div>
 
               {/* Waveform component for voice sample */}
-              <div className="border-b-1 border-gray-200 pb-4">
+              <div className="border-b-1 border-gray-300 pb-4">
                 {member.voiceUrl && (
                   <Waveform
                     audioUrl={member.voiceUrl}
-                    announcerName={member.name.split(" ")[0]} // Pass the first name for the label
+                    announcerName={member.name.split(" ")[0]}
                   />
                 )}
               </div>
@@ -171,7 +189,7 @@ export default function BoardSliderAnnouncerAgency() {
                 )) || (
                   <a
                     rel="noopener noreferrer"
-                    className="w-6 h-6 text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
+                    className="w-6 h-6 text-gray-500 hover:text-gray-800 transition-colors  opacity-30"
                   >
                     <Image
                       src="/LinkedIn.svg"
@@ -198,7 +216,7 @@ export default function BoardSliderAnnouncerAgency() {
                 )) || (
                   <a
                     rel="noopener noreferrer"
-                    className="w-6 h-6 text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
+                    className="w-6 h-6 text-gray-500 hover:text-gray-800 transition-colors  opacity-30"
                   >
                     <Image
                       src="/Instagram.svg"
@@ -213,6 +231,87 @@ export default function BoardSliderAnnouncerAgency() {
           </SwiperSlide>
         ))}
       </Swiper>
+
+      {/* --- NEW SECTION FOR INCOMPLETE PROFILES --- */}
+      {incompleteMembers.length > 0 && (
+        <div className="mt-12 mx-auto max-w-7xl px-0">
+          <div className="p-6 bg-white drop-shadow-md border border-gray-300 rounded-3xl">
+            {/* <h3 className="font-heading text-2xl font-semibold text-center mb-6 text-gray-800">
+              Also on Our Team
+            </h3> */}
+            {/* Change to grid layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {incompleteMembers.map((member, idx) => (
+                <div
+                  key={idx}
+                  className="flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  {/* Grouping name and role together */}
+                  <div>
+                    <p className="font-heading font-semibold text-lg text-gray-800">
+                      {member.name}
+                    </p>
+                    <p className="font-body text-sm text-gray-500">
+                      {member.role}
+                    </p>
+                  </div>
+
+                  <div className="flex space-x-3 flex-shrink-0 ml-4">
+                    {(member.linkedin && (
+                      <a
+                        href={member.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-6 h-6 text-gray-500 hover:text-gray-800 transition-colors"
+                      >
+                        <Image
+                          src="/LinkedIn.svg"
+                          alt="LinkedIn"
+                          width={24}
+                          height={24}
+                        />
+                      </a>
+                    )) || (
+                      <div className="w-6 h-6 opacity-30">
+                        <Image
+                          src="/LinkedIn.svg"
+                          alt="LinkedIn"
+                          width={24}
+                          height={24}
+                        />
+                      </div>
+                    )}
+                    {(member.ig && (
+                      <a
+                        href={`https://instagram.com/${member.ig}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-6 h-6 text-gray-500 hover:text-gray-800 transition-colors"
+                      >
+                        <Image
+                          src="/Instagram.svg"
+                          alt="Instagram"
+                          width={24}
+                          height={24}
+                        />
+                      </a>
+                    )) || (
+                      <div className="w-6 h-6 opacity-30">
+                        <Image
+                          src="/Instagram.svg"
+                          alt="Instagram"
+                          width={24}
+                          height={24}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
