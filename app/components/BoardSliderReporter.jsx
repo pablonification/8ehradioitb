@@ -11,15 +11,15 @@ import "swiper/css/navigation";
 import "swiper/css/grid";
 
 const photoPaths = {
-  "Happy Sri Sholihatul Hidayah": "/foto-rep/happy.jpg",
+  "Happy Sri Sholihatul Hidayah": "/foto-rep/happy.JPG",
   "Evangeline Agnesia": "/foto-rep/evangeline.png",
   "Galuh Maharani Putriku": "/foto-rep/galuh.png",
   "Hillary Gwen Hartono": "/foto-rep/hillary.jpg",
   "Melodya Divana Fauziah": "/foto-rep/ody.jpg",
   "Jesica Patricia": "",
-  "Tazkia Zahra Aulia": "/foto-rep/kia.png",
+  "Tazkia Zahra Aulia": "/foto-rep/kia.PNG",
   "De’ Faiera Cyindria Hannum": "",
-  "Arqila Surya Putra": "/foto-rep/arqila.jpg",
+  "Arqila Surya Putra": "/foto-rep/arqila.JPG",
 };
 
 // Get announcer members from the JSON data, now including voiceUrl

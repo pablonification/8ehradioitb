@@ -19,7 +19,7 @@ const photoPaths = {
   "Maurana Idzil Fikryansyah":
     "/foto-announcer/IMG_4757 - Maurana Idzil Fikriansyah.jpeg",
   "Benedictus Alfian Wibisono": "",
-  "Alika Mirfatya": "/foto-announcer/lily.jpg",
+  "Alika Mirfatya": "/foto-announcer/lily.JPG",
   "Marsela Wanda Arista": "/foto-announcer/IMG_2338 - Marsela Wanda.jpg",
   "Tamima Meirizqeena": "",
   "Rinjani Aulia Syifa": "/foto-announcer/IMG_3364 - Rinjani Aulia Syifa.jpeg",
@@ -30,7 +30,7 @@ const photoPaths = {
   "Barsa Naadhir Akmal": "/foto-announcer/barsa.jpg",
   "Nayla Fijar Az-Zahra": "/foto-announcer/nayel.png",
   "Queenie Angelica Juwanda": "/foto-announcer/queenie.png",
-  "Naura Tsabita Wibowo": "/foto-announcer/naura.jpg",
+  "Naura Tsabita Wibowo": "/foto-announcer/naura.JPG",
   "Khalisa Nadya Lazuardi": "/foto-announcer/IMG_6965 - KL24-025-Zuzu.jpeg",
   "Dicky Ardiansyah":
     "/foto-announcer/IMG-20250212-WA0118 - Dicky Ardiansyah.jpg",
@@ -41,10 +41,10 @@ const photoPaths = {
   "Muhammad Jordan Ferimeison": "/foto-announcer/jordan.jpeg",
   "Juliene Najla Aninditya":
     "/foto-announcer/foto juliene - Juliene Najla Aninditya.jpg",
-  "Ivan Sultan Firmansyah": "/foto-announcer/ivan.png",
+  "Ivan Sultan Firmansyah": "/foto-announcer/ivan.PNG",
   "Nadhifa Zavrina Musmarliansyah":
     "/foto-announcer/EBAD6C6A-7D18-4953-9901-4A84A5EAF1F1 - Nadhifa Z. M..jpeg",
-  "Zahrah Nur Azizah": "/foto-announcer/ara.png",
+  "Zahrah Nur Azizah": "/foto-announcer/ara.PNG",
   "Evangeline Agnesia": "/foto-announcer/evangeline.png",
   "Galuh Maharani Putriku": "/foto-announcer/galuh.png",
 };
