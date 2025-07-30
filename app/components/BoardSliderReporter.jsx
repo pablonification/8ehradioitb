@@ -192,7 +192,7 @@ export default function BoardSliderReporter() {
         <div className="mt-12 mx-auto max-w-7xl">
           <div className="p-6 bg-white drop-shadow-md border border-gray-300 rounded-3xl">
             {/* Container menggunakan layout Grid Responsif */}
-            <div className="flex justify-center items-center flex-wrap space-y-4">
+            <div className="flex justify-center items-center flex-wrap space-y-4 md:space-y-0">
               {incompleteMembers.map((member, idx) => (
                 <div
                   key={idx}
