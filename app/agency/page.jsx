@@ -3,7 +3,9 @@ import Image from "next/image";
 import Navbar from "@/app/components/Navbar"; // Reusing the Navbar component
 import ButtonPrimary from "@/app/components/ButtonPrimary"; // Reusing the Button component
 import FooterSection from "../components/FooterSection";
-import BoardSliderAnnouncer from "../components/BoardSliderAnnouncer";
+import BoardSliderAnnouncerAgency from "../components/BoardSliderAnnouncerAgency";
+import BoardSliderReporter from "../components/BoardSliderReporter";
+import BoardSliderMarketing from "../components/BoardSliderMarketing";
 
 // Komponen Ikon Sosial Media (untuk kebersihan kode)
 const SocialIcon = ({ href, children }) => (
@@ -158,8 +160,7 @@ export const HeroSection = () => (
           8EH Agency Services
         </h1>
         <p className="mt-6 text-base font-body md:text-xl text-gray-700 max-w-lg">
-          Discover professional talent to elevate your events with engaging and
-          dynamic presentations.
+          Temukan talenta profesional untuk memeriahkan acaramu dengan pembawaan yang menarik dan penuh energi!
         </p>
       </div>
       <div className="absolute right-0 top-0 translate-x-1/8 lg:translate-x-0 translate-y-1/2 lg:-translate-y-1/16 justify-center lg:justify-end">
@@ -211,11 +212,10 @@ export const AnnouncerServicesSection = () => (
                 className="mb-4"
               />
               <h3 className="text-lg font-body font-semibold text-black mb-2">
-                Why Choose Us
+                Kenapa 8EH Agency?
               </h3>
               <p className="text-black font-body text-sm">
-                Our announcers are experienced, engaging, and tailored to fit
-                your event's theme.
+                Talenta kami berpengalaman, atraktif, dan siap tampil sesuai dengan tema acara Anda.
               </p>
             </div>
           </div>
@@ -229,11 +229,10 @@ export const AnnouncerServicesSection = () => (
                 className="mb-4"
               />
               <h3 className="text-lg font-body font-semibold text-black mb-2">
-                Our Talent
+                Talent Kami
               </h3>
               <p className="text-black font-body text-sm">
-                Meet our diverse team of talented announcers ready to make your
-                event unforgettable.
+                Kenalan dengan tim kami yang penuh warna—kumpulan announcer, reporter, dan desainer grafis berbakat!
               </p>
             </div>
           </div>
@@ -277,7 +276,7 @@ export const AnnouncerServicesSection = () => (
 );
 
 export const AnnouncersSection = () => (
-  <section className="pb-12 bg-gradient-to-b from-orange-400 via-orange-300 to-white text-gray-800">
+  <section className="pb-12 bg-gradient-to-b from-orange-400 via-orange-300 to-orange-200 text-gray-800">
     {/* <Image
         src="/agency-white-transition.png"
         alt="A group of microphones with a halftone effect"
@@ -288,13 +287,58 @@ export const AnnouncersSection = () => (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
       <div className="text-center max-w-2xl mb-12 mx-auto">
         <h2 className="font-accent text-5xl sm:text-7xl text-white font-bold mb-4 drop-shadow-md">
-          Our Announcers
+          Our Team
         </h2>
-        <p className="font-body text-lg text-white/90 drop-shadow-md">
-          Meet our talented radio announcers and their stories.
-        </p>
+        <ButtonPrimary className="!px-4 !py-2 mt-4 !pointer-events-none">
+          Announcers
+        </ButtonPrimary>
       </div>
-      <BoardSliderAnnouncer />
+      <BoardSliderAnnouncerAgency />
+    </div>
+  </section>
+);
+export const ReporterSection = () => (
+  <section className="pb-12 bg-gradient-to-b from-orange-400 via-orange-300 to-orange-200 text-gray-800">
+    {/* <Image
+        src="/agency-white-transition.png"
+        alt="A group of microphones with a halftone effect"
+        width={1920}
+        height={1080}
+        className="object-fit w-full h-4 md:h-10"
+      /> */}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
+      <div className="text-center max-w-2xl mb-12 mx-auto">
+        <h2 className="font-accent text-5xl sm:text-7xl text-white font-bold mb-4 drop-shadow-md">
+          Our Team
+        </h2>
+        <ButtonPrimary className="!px-4 !py-2 mt-4 !pointer-events-none">
+          Reporters & Video Editors
+        </ButtonPrimary>
+      </div>
+      <BoardSliderReporter />
+    </div>
+  </section>
+);
+
+export const MarketingSection = () => (
+  <section className="pb-12 bg-gradient-to-b from-orange-400 via-orange-300 to-orange-200 text-gray-800">
+    {/* <Image
+        src="/agency-white-transition.png"
+        alt="A group of microphones with a halftone effect"
+        width={1920}
+        height={1080}
+        className="object-fit w-full h-4 md:h-10"
+      /> */}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
+      <div className="text-center max-w-2xl mb-12 mx-auto">
+        <h2 className="font-accent text-5xl sm:text-7xl text-white font-bold mb-4 drop-shadow-md">
+          Our Team
+        </h2>
+        <ButtonPrimary className="!px-4 !py-2 mt-4 !pointer-events-none">
+          Graphic Designers
+        </ButtonPrimary>
+      </div>
+      <BoardSliderMarketing />
     </div>
   </section>
 );
@@ -375,6 +419,8 @@ export default function AgencyServicesPage() {
       <HeroSection />
       <AnnouncerServicesSection />
       <AnnouncersSection />
+      <ReporterSection />
+      <MarketingSection />
       <ContactSection />
       <FooterSection />
     </div>
