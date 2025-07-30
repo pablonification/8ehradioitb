@@ -27,6 +27,7 @@ const programs = [
   },
 ];
 
+
 const highlightsData = [
   {
     imageUrl: "/highlight-2.png",
