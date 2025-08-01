@@ -18,6 +18,7 @@ const RESERVED = [
   "proxy-audio",
   "_next",
   "favicon.ico",
+  "contributors",
 ];
 
 export async function middleware(request: NextRequest) {

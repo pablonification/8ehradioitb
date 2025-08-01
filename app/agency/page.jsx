@@ -287,11 +287,11 @@ export const AnnouncersSection = () => (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
       <div className="text-center max-w-2xl mb-12 mx-auto">
         <h2 className="font-accent text-5xl sm:text-7xl text-white font-bold mb-4 drop-shadow-md">
-          Our Team
-        </h2>
-        <ButtonPrimary className="!px-4 !py-2 mt-4 !pointer-events-none">
           Announcers
-        </ButtonPrimary>
+        </h2>
+        {/* <ButtonPrimary className="!px-4 !py-2 mt-4 !pointer-events-none">
+          Announcers
+        </ButtonPrimary> */}
       </div>
       <BoardSliderAnnouncerAgency />
     </div>
@@ -309,11 +309,11 @@ export const ReporterSection = () => (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
       <div className="text-center max-w-2xl mb-12 mx-auto">
         <h2 className="font-accent text-5xl sm:text-7xl text-white font-bold mb-4 drop-shadow-md">
-          Our Team
-        </h2>
-        <ButtonPrimary className="!px-4 !py-2 mt-4 !pointer-events-none">
           Reporters & Video Editors
-        </ButtonPrimary>
+        </h2>
+        {/* <ButtonPrimary className="!px-4 !py-2 mt-4 !pointer-events-none">
+          Reporters & Video Editors
+        </ButtonPrimary> */}
       </div>
       <BoardSliderReporter />
     </div>
@@ -332,11 +332,11 @@ export const MarketingSection = () => (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
       <div className="text-center max-w-2xl mb-12 mx-auto">
         <h2 className="font-accent text-5xl sm:text-7xl text-white font-bold mb-4 drop-shadow-md">
-          Our Team
-        </h2>
-        <ButtonPrimary className="!px-4 !py-2 mt-4 !pointer-events-none">
           Graphic Designers
-        </ButtonPrimary>
+        </h2>
+        {/* <ButtonPrimary className="!px-4 !py-2 mt-4 !pointer-events-none">
+          Graphic Designers
+        </ButtonPrimary> */}
       </div>
       <BoardSliderMarketing />
     </div>

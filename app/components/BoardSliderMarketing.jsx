@@ -81,8 +81,8 @@ export default function BoardSliderMarketing() {
                 <Image
                   src={member.photoUrl}
                   alt={`Photo of ${member.name}`}
-                  width={144}
-                  height={144}
+                  width={500}
+                  height={500}
                   className="object-cover w-full h-full"
                   priority={idx < 8}
                   loading={idx < 8 ? "eager" : "lazy"}
