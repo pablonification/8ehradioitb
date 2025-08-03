@@ -11,18 +11,18 @@ import "swiper/css/navigation";
 import "swiper/css/grid";
 
 const photoPaths = {
-  "Caroline Adetya Tuati": "/foto-marketing/olin.jpg",
-  "Kayla Olivia Putri": "/foto-marketing/ope.png",
-  "Danella Nafisya": "/foto-marketing/lala.png",
-  "Aini Fakhirahani": "/foto-marketing/aini.png",
+  "Caroline Adetya Tuati": "/foto-agency/olin.png",
+  "Kayla Olivia Putri": "/foto-agency/ope.png",
+  "Danella Nafisya": "/foto-agency/lala.png",
+  "Aini Fakhirahani": "/foto-agency/aini.png",
   "Vanessa Kurniawan": "",
   "Iasha Putri Izzaty": "",
-  "Rifqy Ahmad Lazuardi": "",
+  "Rifqy Ahmad Lazuardi": "/foto-agency/juju.png",
   "Hamima Husna Nur Shabrina": "",
-  "Marcella Stely Lukas": "/foto-marketing/cella.jpeg",
-  "Zahrah Nur Azizah": "/foto-marketing/ara.PNG",
-  "Abdullah Sulaiman Tidar Nasution": "/foto-marketing/abdul.png",
-  "Happy Sri Sholihatul Hidayah": "/foto-marketing/happy.JPG",
+  "Marcella Stely Lukas": "/foto-agency/cella.png",
+  "Zahrah Nur Azizah": "/foto-agency/ara.png",
+  "Abdullah Sulaiman Tidar Nasution": "/foto-agency/abdul.png",
+  "Happy Sri Sholihatul Hidayah": "/foto-agency/happy.png",
 };
 
 // Get announcer members from the JSON data
@@ -192,7 +192,7 @@ export default function BoardSliderMarketing() {
       {incompleteMembers.length > 0 && (
         <div className="mt-12 mx-auto max-w-7xl">
           <div className="p-6 bg-white drop-shadow-md border border-gray-300 rounded-3xl">
-            <div className="flex justify-center items-center flex-wrap space-y-4 md:space-y-0">
+            <div className="flex justify-start items-center flex-wrap space-y-4 md:space-y-0">
               {incompleteMembers.map((member, idx) => (
                 <div
                   key={idx}

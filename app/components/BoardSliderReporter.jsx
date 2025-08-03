@@ -11,15 +11,15 @@ import "swiper/css/navigation";
 import "swiper/css/grid";
 
 const photoPaths = {
-  "Happy Sri Sholihatul Hidayah": "/foto-rep/happy.JPG",
-  "Evangeline Agnesia": "/foto-rep/evangeline.png",
-  "Galuh Maharani Putriku": "/foto-rep/galuh.png",
-  "Hillary Gwen Hartono": "/foto-rep/hillary.jpg",
-  "Melodya Divana Fauziah": "/foto-rep/ody.jpg",
+  "Happy Sri Sholihatul Hidayah": "/foto-agency/happy.png",
+  "Evangeline Agnesia": "/foto-agency/evangeline.png",
+  "Galuh Maharani Putriku": "/foto-agency/galuh.png",
+  "Hillary Gwen Hartono": "/foto-agency/hillary.png",
+  "Melodya Divana Fauziah": "/foto-agency/ody.png",
   "Jesica Patricia": "",
-  "Tazkia Zahra Aulia": "/foto-rep/kia.PNG",
+  "Tazkia Zahra Aulia": "/foto-agency/kia.png",
   "De’ Faiera Cyindria Hannum": "",
-  "Arqila Surya Putra": "/foto-rep/arqila.JPG",
+  "Arqila Surya Putra": "/foto-agency/arqila.png",
 };
 
 // Get announcer members from the JSON data
@@ -192,7 +192,7 @@ export default function BoardSliderReporter() {
         <div className="mt-12 mx-auto max-w-7xl">
           <div className="p-6 bg-white drop-shadow-md border border-gray-300 rounded-3xl">
             {/* Container menggunakan layout Grid Responsif */}
-            <div className="flex justify-center items-center flex-wrap space-y-4 md:space-y-0">
+            <div className="flex justify-start items-center flex-wrap space-y-4 md:space-y-0">
               {incompleteMembers.map((member, idx) => (
                 <div
                   key={idx}
