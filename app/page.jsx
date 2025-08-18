@@ -170,7 +170,7 @@ function HeroSection() {
               aria-label={isOnAir ? "Listen to 8EH Radio ITB live stream" : "Listen to 8EH Radio ITB podcasts"}
               disabled={loading}
             >
-              {loading ? "Loading..." : "Listen"}
+              {loading ? "Loading" : "Listen"}
             </ButtonPrimary>
             <a
               href="https://www.instagram.com/regenerasi8eh/"
