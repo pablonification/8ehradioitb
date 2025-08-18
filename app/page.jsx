@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
 import ButtonPrimary from "@/app/components/ButtonPrimary";
 import BoardSliderAnnouncer from "@/app/components/BoardSliderAnnouncer";
@@ -10,6 +11,7 @@ import RadioPlayer from "@/app/components/RadioPlayer";
 import FooterSection from "@/app/components/FooterSection";
 import PodcastAudioPlayer from "@/app/components/PodcastAudioPlayer";
 import ProgramsHeader from "@/app/components/ProgramsHeader";
+import { useOnAirStatus } from "@/app/hooks/useOnAirStatus";
 
 // ---------------------------------------------------------------------------
 //  Placeholder data (to be replaced with real content later)
@@ -109,6 +111,28 @@ const tunes = [
 // ---------------------------------------------------------------------------
 
 function HeroSection() {
+  const { isOnAir, loading } = useOnAirStatus();
+  const router = useRouter();
+  const [isSafari, setIsSafari] = useState(false);
+
+  useEffect(() => {
+    if (typeof navigator !== "undefined") {
+      const ua = navigator.userAgent;
+      const detectedSafari = /Safari/i.test(ua) && !/Chrome|Chromium|OPR|Edg|CriOS|FxiOS|EdgiOS/i.test(ua);
+      setIsSafari(detectedSafari);
+    }
+  }, []);
+
+  const handleListenClick = () => {
+    if (isOnAir) {
+      // If on air, trigger the radio player
+      window.dispatchEvent(new CustomEvent("triggerPlayerControl"));
+    } else {
+      // If not on air, redirect to podcast page
+      router.push('/podcast');
+    }
+  };
+
   return (
     <section
       className="relative bg-[#FDFBF6] pt-28 pb-0 overflow-hidden"
@@ -142,12 +166,11 @@ function HeroSection() {
           <div className="flex items-center gap-4 justify-start">
             <ButtonPrimary
               className="!bg-[#EA4A30] !text-white hover:!bg-[#D0402A] !px-8 !py-3"
-              onClick={() =>
-                window.dispatchEvent(new CustomEvent("triggerPlayerControl"))
-              }
-              aria-label="Listen to 8EH Radio ITB live stream"
+              onClick={handleListenClick}
+              aria-label={isOnAir ? "Listen to 8EH Radio ITB live stream" : "Listen to 8EH Radio ITB podcasts"}
+              disabled={loading}
             >
-              Listen
+              {loading ? "Loading..." : "Listen"}
             </ButtonPrimary>
             <a
               href="https://www.instagram.com/regenerasi8eh/"
@@ -171,7 +194,7 @@ function HeroSection() {
           alt="8EH Radio ITB Studio Illustration"
           width={1200}
           height={700}
-          className="[mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)] mix-blend-multiply"
+          className={`[mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)] ${!isSafari ? "mix-blend-multiply" : ""}`}
           priority
         />
       </div>
