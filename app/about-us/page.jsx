@@ -74,10 +74,9 @@ export default function AboutUs() {
   const journeyRef = useRef(null);
 
   const timelineContent = {
-    1963: '20 Mei 1963: 8EH resmi didirikan oleh mahasiswa Teknik Elektro ITB sebagai radio komunitas eksperimental. Menggunakan pemancar bekas Angkatan Laut Jepang, mereka mendapatkan call sign "8EH" dari ITU dan menjadi radio FM kedua di Indonesia setelah RRI.',
+    1963: 'Pada 20 Mei 1963, 8EH resmi didirikan oleh mahasiswa Teknik Elektro ITB sebagai radio komunitas eksperimental. Menggunakan pemancar bekas Angkatan Laut Jepang, mereka mendapatkan call sign "8EH" dari ITU dan menjadi radio FM kedua di Indonesia setelah RRI.',
     1978: "Pada 21 Januari 1978, setelah menjadi corong utama pergerakan mahasiswa, terutama siaran Buku Putih Perjuangan Mahasiswa. Stasiun ini disegel oleh Kopkamtib Jawa Barat, terkait aktivitas kritis terhadap pemerintah Orde Baru. Siaran dihentikan sejak awal 1980-an, di saat 8EH dianggap berbahaya sebagai medium perjuangan mahasiswa.",
-    1999: 'Setelah vakum selama hampir dua dekade, 8EH kembali mengudara pada 31 Desember 1999. Mulai saat itu, formatnya berkembang menjadi radio komunitas "edutainment", mengudara di 107.9 FM dan streaming online.',
-    2025: "Placeholder untuk sejarah tahun 2025.",
+    1999: 'Setelah vakum selama hampir dua dekade, 8EH kembali mengudara pada 31 Desember 1999. Mulai saat itu, formatnya berkembang menjadi radio komunitas "edutainment", mengudara di 107.9 FM dan streaming online.'
   };
 
   return (
@@ -249,17 +248,7 @@ export default function AboutUs() {
                     }
                   >
                     1999
-                  </ButtonPrimary>
-                  <ButtonPrimary
-                    onClick={() => setSelectedYear("2025")}
-                    className={
-                      selectedYear === "2025"
-                        ? "ring-2 ring-white ring-opacity-50"
-                        : ""
-                    }
-                  >
-                    2025
-                  </ButtonPrimary>
+                  </ButtonPrimary> 
                 </div>
                 <div className="h-[200px] overflow-y-auto">
                   <p className="text-gray-700 font-body text-lg leading-relaxed">
