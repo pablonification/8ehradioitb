@@ -114,7 +114,6 @@ export default function BlogDashboardPage() {
   
   const authorizedRoles = ["DEVELOPER", "REPORTER"];
 
-  // Pengecekan baru: apakah peran pengguna mengandung salah satu kata kunci
   const isAuthorized = session && authorizedRoles.some(keyword => 
     session.user?.role?.includes(keyword)
   );

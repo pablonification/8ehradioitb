@@ -15,7 +15,11 @@ export default function EditPostPage() {
   if (status === "loading" || !post) return <div className="p-8 text-center font-body">Loading...</div>;
 
   const authorizedRoles = ["DEVELOPER", "REPORTER"];
-  if (!session || !authorizedRoles.includes(session.user?.role)) {
+  const isAuthorized = session && authorizedRoles.some(keyword => 
+    session.user?.role?.includes(keyword)
+  );
+
+  if (!session || !isAuthorized) {
     return <div className="p-8 text-center text-red-500 font-body">Access Denied. You do not have permission to view this page.</div>;
   }
 
