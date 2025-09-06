@@ -113,7 +113,13 @@ export default function BlogDashboardPage() {
   }
   
   const authorizedRoles = ["DEVELOPER", "REPORTER"];
-  if (!session || !authorizedRoles.includes(session.user?.role)) {
+
+  // Pengecekan baru: apakah peran pengguna mengandung salah satu kata kunci
+  const isAuthorized = session && authorizedRoles.some(keyword => 
+    session.user?.role?.includes(keyword)
+  );
+
+  if (!session || !isAuthorized) {
     return <div className="p-8 text-center text-red-500 font-body">Access Denied. You do not have permission to view this page.</div>;
   }
 
