@@ -6,7 +6,7 @@ import { FiPlus, FiEdit, FiTrash2, FiSave, FiX } from 'react-icons/fi';
 import { hasAnyRole } from '@/lib/roleUtils';
 
 function PodcastDashboard() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession(); 
   const [podcasts, setPodcasts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -15,14 +15,18 @@ function PodcastDashboard() {
   const [editId, setEditId] = useState(null);
   const [editForm, setEditForm] = useState({});
 
-  useEffect(() => {
-    fetch("/api/podcast")
-      .then((res) => res.json())
-      .then((data) => { setPodcasts(data); setLoading(false); })
-      .catch(() => { setError("Failed to load podcasts"); setLoading(false); });
-  }, []);
+  const isAdmin =
+    session && hasAnyRole(session.user.role, ["DEVELOPER", "MUSIC"]);
 
-  const isAdmin = session && hasAnyRole(session.user.role, ["DEVELOPER", "MUSIC"]);
+  useEffect(() => {
+    if (isAdmin) {
+      fetch("/api/podcast")
+        .then((res) => res.json())
+        .then((data) => { setPodcasts(data); setLoading(false); })
+        .catch(() => { setError("Failed to load podcasts"); setLoading(false); });
+    }
+  }, [isAdmin]);
+
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -147,6 +151,18 @@ function PodcastDashboard() {
       setSubmitting(false);
     }
   };
+
+  if (status === "loading") {
+    return <div className="p-8 text-center font-body">Loading...</div>;
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="p-8 text-center text-red-500 font-body">
+        Access Denied.
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -393,4 +409,4 @@ function PodcastDashboard() {
   );
 }
 
-export default PodcastDashboard; 
+export default PodcastDashboard;

@@ -3,12 +3,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { hasRole } from "@/lib/roleUtils";
+import { hasAnyRole } from "@/lib/roleUtils";
 
 export async function GET(req) {
   const session = await getServerSession(authOptions);
 
-  if (!session || !hasRole(session.user.role, "DEVELOPER")) {
+  if (!session || !hasAnyRole(session.user.role, ["DEVELOPER", "REPORTER"])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -31,7 +31,7 @@ export async function GET(req) {
 export async function PATCH(req) {
   const session = await getServerSession(authOptions);
 
-  if (!session || !hasRole(session.user.role, "DEVELOPER")) {
+  if (!session || !hasAnyRole(session.user.role, ["DEVELOPER", "REPORTER"])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

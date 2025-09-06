@@ -3,14 +3,19 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
+import { useSession } from 'next-auth/react'; 
+import { hasAnyRole } from '@/lib/roleUtils'; 
 
 const fetcher = url => fetch(url).then(r => r.json());
 
 export default function ProgramVideosPage() {
+  const { data: session, status } = useSession(); 
   const { data: videos, mutate, isLoading } = useSWR('/api/program-videos', fetcher);
   const [form, setForm] = useState({ title: '', link: '', thumbnail: null });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const hasAccess = session && hasAnyRole(session.user.role, ["DEVELOPER", "TECHNIC"]);
 
   const handleChange = (field) => (e) => {
       if (e.target.files) {
@@ -79,11 +84,23 @@ export default function ProgramVideosPage() {
     mutate();
   };
 
+  if (status === 'loading') {
+    return <div className="p-8 text-center font-body">Loading...</div>;
+  }
+
+  if (!hasAccess) {
+    return (
+      <div className="p-8 text-center text-red-500 font-body">
+        Access Denied.
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-heading font-bold mb-6 text-gray-900">Manage Program Videos</h1>
 
-      {/* Add form */}
+      {/* Form Tambah Video */}
       <div className="mb-8 space-y-6 bg-white p-6 sm:p-8 rounded-xl shadow-md border border-gray-200">
         <h2 className="text-xl font-heading font-semibold mb-6 text-gray-800">Add New Video</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -127,7 +144,7 @@ export default function ProgramVideosPage() {
         </button>
       </div>
 
-      {/* List */}
+      {/* Daftar Video */}
       <div className="bg-white p-6 sm:p-8 rounded-xl shadow-md border border-gray-200">
         <h2 className="text-xl font-heading font-semibold mb-6 text-gray-900">All Videos</h2>
         {isLoading ? (
@@ -157,4 +174,4 @@ export default function ProgramVideosPage() {
       </div>
     </div>
   );
-} 
+}
