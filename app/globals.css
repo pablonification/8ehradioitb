@@ -50,6 +50,16 @@ body {
   .animate-marquee-infinite {
     animation: marquee-infinite 20s linear infinite;
   }
+
+  /* Smooth spinner */
+  @keyframes spinner-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .spinner {
+    animation: spinner-rotate 900ms linear infinite;
+  }
 }
 
 @tailwind base;

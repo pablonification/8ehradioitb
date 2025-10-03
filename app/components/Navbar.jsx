@@ -163,7 +163,9 @@ export default function Navbar() {
   }, []);
 
   const handlePlayClick = () => {
-    if (onAir) togglePlay();
+    if (!onAir) return;
+    // prevent double-trigger while loading
+    if (!isLoading) togglePlay();
   };
 
   const discoverLinks = (
@@ -281,7 +283,8 @@ export default function Navbar() {
             <button
               onClick={handlePlayClick}
               className={`md:hidden px-3 py-2 rounded-full font-body font-medium transition-colors cursor-pointer flex items-center gap-2 ${onAir ? "bg-[#D83232] hover:bg-[#B72929] text-white cursor-pointer" : "bg-gray-300 text-white cursor-not-allowed"}`}
-              disabled={!onAir}
+              disabled={!onAir || isLoading}
+              aria-live="polite"
               style={{
                 boxShadow: `
                   0 1px 2px rgba(2, 8, 11, 0.05),
@@ -292,7 +295,12 @@ export default function Navbar() {
                 `,
               }}
             >
-              {isPlaying ? (
+            {isLoading ? (
+                <svg className="h-5 w-5 text-white spinner" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.25)" strokeWidth="3" />
+                  <path d="M22 12a10 10 0 00-10-10" stroke="white" strokeWidth="3" strokeLinecap="round" />
+                </svg>
+              ) : isPlaying ? (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5 text-white"
@@ -427,8 +435,9 @@ export default function Navbar() {
           {/* Custom Play Button (desktop/tablet) */}
           <button
             onClick={handlePlayClick}
-            className={`hidden md:flex px-4 py-2 rounded-full font-body font-medium transition-colors items-center gap-2 ${onAir ? "bg-[#D83232] hover:bg-[#B72929] text-white cursor-pointer" : "bg-gray-300 text-white cursor-not-allowed"}`}
-            disabled={!onAir}
+            className={`hidden md:flex px-4 py-2 rounded-full font-body font-medium transition-colors items-center gap-2 ${onAir ? "bg-[#D83232] hover:bg-[#B72929] text-white cursor-pointer" : "bg-gray-300 text-white cursor-not-allowed"} ${isLoading ? "animate-btn-bounce-loading" : ""}`}
+            disabled={!onAir || isLoading}
+            aria-live="polite"
             style={{
               boxShadow: `
                 0 1px 2px rgba(2, 8, 11, 0.05),
@@ -439,7 +448,15 @@ export default function Navbar() {
               `,
             }}
           >
-            {isPlaying ? (
+            {isLoading ? (
+              <>
+                <svg className="h-5 w-5 text-white spinner" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.25)" strokeWidth="3" />
+                  <path d="M22 12a10 10 0 00-10-10" stroke="white" strokeWidth="3" strokeLinecap="round" />
+                </svg>
+                <span className="ml-1">Loading...</span>
+              </>
+            ) : isPlaying ? (
               <>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
