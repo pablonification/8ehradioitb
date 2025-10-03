@@ -344,22 +344,24 @@ export default function AboutUs() {
           </h2>
 
           <p className="font-body text-gray-600 mb-16">
-            8EH Radio has transformed our campus experience.
+            8EH Radio ITB has transformed our campus experience.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             {[
               {
                 quote:
-                  '"8EH Radio is a vibrant platform that connects students and alumni, fostering creativity and collaboration."',
+                  '"8EH Radio ITB is my go-to podcasts and articles to accompany me during campus life!"',
                 name: "Nicholas Andhika Lucas",
                 role: "Students, ITB",
+                image: "/lucas.jpg",
               },
               {
                 quote:
-                  '"The programs offered by 8EH Radio have enriched our campus culture and provided invaluable experiences for students."',
+                  '"8EH Radio ITB has enriched our campus culture and provided invaluable experiences for students."',
                 name: "Zahrah Nur Azizah",
                 role: "8EH's Kru, ITB",
+                image: "/foto-announcer/ara.png",
               },
             ].map((t, idx) => (
               <div key={idx} className="bg-white p-0">
@@ -384,13 +386,14 @@ export default function AboutUs() {
 
                 <div className="flex items-center space-x-3">
                   {/* Avatar */}
-                  <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
-                    <span className="text-gray-600 text-sm font-medium">
-                      {t.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </span>
+                  <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0 border border-gray-200 shadow-sm">
+                    <Image
+                      src={t.image}
+                      alt={t.name}
+                      width={120}
+                      height={120}
+                      className="object-cover w-full h-full"
+                    />
                   </div>
 
                   <div>
