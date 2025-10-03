@@ -111,7 +111,6 @@ const tunes = [
 // ---------------------------------------------------------------------------
 
 function HeroSection() {
-  const { isOnAir, loading } = useOnAirStatus();
   const router = useRouter();
   const [isSafari, setIsSafari] = useState(false);
 
@@ -122,16 +121,6 @@ function HeroSection() {
       setIsSafari(detectedSafari);
     }
   }, []);
-
-  const handleListenClick = () => {
-    if (isOnAir) {
-      // If on air, trigger the radio player
-      window.dispatchEvent(new CustomEvent("triggerPlayerControl"));
-    } else {
-      // If not on air, redirect to podcast page
-      router.push('/podcast');
-    }
-  };
 
   return (
     <section
@@ -166,11 +155,10 @@ function HeroSection() {
           <div className="flex items-center gap-4 justify-start">
             <ButtonPrimary
               className="!bg-[#EA4A30] !text-white hover:!bg-[#D0402A] !px-8 !py-3"
-              onClick={handleListenClick}
-              aria-label={isOnAir ? "Listen to 8EH Radio ITB live stream" : "Listen to 8EH Radio ITB podcasts"}
-              disabled={loading}
+              onClick={() => router.push('/about-us')}
+              aria-label="Learn more about 8EH Radio ITB"
             >
-              {loading ? "Loading" : "Listen"}
+              Learn More
             </ButtonPrimary>
             <a
               href="https://www.instagram.com/regenerasi8eh/"

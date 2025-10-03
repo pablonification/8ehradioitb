@@ -232,7 +232,7 @@ const FaqSection = () => {
         </div>
 
         {/* Kontrol Paginasi */}
-        <div className="mt-8 flex items-center justify-center space-x-4">
+        {/* <div className="mt-8 flex items-center justify-center space-x-4">
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1 || isAnimating}
@@ -271,7 +271,7 @@ const FaqSection = () => {
               />
             </svg>
           </button>
-        </div>
+        </div> */}
       </div>
     </section>
   );
@@ -308,10 +308,10 @@ const ContactCTA = () => {
         {/* Sisi Kiri: Teks */}
         <div className="text-center md:text-left">
           <h2 className="font-heading md:font-accent text-4xl md:text-6xl font-medium text-gray-800">
-            Have Questions? We're Here!
+            Wan't to see our other services?
           </h2>
           <p className="mt-3 text-lg text-gray-700 font-body">
-            Contact us for any inquiries or information.
+            Check out our other services.
           </p>
         </div>
 
@@ -323,7 +323,7 @@ const ContactCTA = () => {
               window.open('/media-partner', '_self');
             }}
           >
-            Learn More
+            Media Partner
           </ButtonPrimary>
         </div>
       </div>

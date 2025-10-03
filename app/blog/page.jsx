@@ -29,9 +29,9 @@ const FeaturedArticle = ({ article }) => (
       <p className="text-gray-600 mb-4 font-body line-clamp-2">
         {article.description}
       </p>
-      <div className="flex items-center mt-auto">
+      <div className="flex items-center mt-auto flex-shrink-0">
         {article.authors?.[0]?.user?.image && (
-          <div className="w-10 h-10 relative mr-3">
+          <div className="w-10 h-10 relative mr-3 flex-shrink-0">
             <Image
               src={article.authors[0].user.image}
               alt={article.authors[0].user.name || "Author"}
@@ -40,12 +40,12 @@ const FeaturedArticle = ({ article }) => (
             />
           </div>
         )}
-        <div className="flex flex-col">
-          <p className="font-body font-semibold text-sm text-gray-800">
+        <div className="flex flex-col min-w-0">
+          <p className="font-body font-semibold text-sm text-gray-800 truncate-words">
             {article.authors?.map((a) => a.user.name).join(", ") ||
               "8EH Radio ITB"}
           </p>
-          <p className="font-body text-xs text-gray-500">
+          <p className="font-body text-xs text-gray-500 truncate-words">
             {new Date(article.createdAt).toLocaleDateString("en-US", {
               year: "numeric",
               month: "long",
@@ -79,9 +79,9 @@ const BlogCard = ({ article }) => (
     <p className="font-body text-sm text-gray-600 mb-4 flex-grow line-clamp-2">
       {article.description}
     </p>
-    <div className="flex items-center text-xs text-gray-500 mt-auto">
+    <div className="flex items-start text-xs text-gray-500 mt-auto flex-shrink-0">
       {article.authors?.[0]?.user?.image && (
-        <div className="w-8 h-8 relative mr-2">
+        <div className="w-8 h-8 relative mr-2 mt-0.5 flex-shrink-0">
           <Image
             src={article.authors[0].user.image}
             alt={article.authors[0].user.name || "Author"}
@@ -90,12 +90,12 @@ const BlogCard = ({ article }) => (
           />
         </div>
       )}
-      <div>
-        <p className="font-semibold text-gray-800">
+      <div className="min-w-0">
+        <p className="font-semibold text-gray-800 truncate-words">
           {article.authors?.map((a) => a.user.name).join(", ") ||
             "8EH Radio ITB"}
         </p>
-        <p>
+        <p className="truncate-words">
           {new Date(article.createdAt).toLocaleDateString("en-US", {
             year: "numeric",
             month: "long",

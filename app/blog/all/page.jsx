@@ -28,9 +28,9 @@ const BlogCard = ({ article }) => (
     <p className="font-body text-sm text-gray-600 mb-4 flex-grow line-clamp-2">
       {article.description}
     </p>
-    <div className="flex items-center text-xs text-gray-500 mt-auto">
+    <div className="flex items-start text-xs text-gray-500 mt-auto flex-shrink-0">
       {article.authors?.[0]?.user?.image && (
-        <div className="w-8 h-8 relative mr-2">
+        <div className="w-8 h-8 relative mr-2 flex-shrink-0">
           <Image
             src={article.authors[0].user.image}
             alt={article.authors[0].user.name || "Author"}
@@ -39,12 +39,12 @@ const BlogCard = ({ article }) => (
           />
         </div>
       )}
-      <div>
-        <p className="font-semibold text-gray-800">
+      <div className="min-w-0">
+        <p className="font-semibold text-gray-800 truncate-words">
           {article.authors?.map((a) => a.user.name).join(", ") ||
             "8EH Radio ITB"}
         </p>
-        <p>
+        <p className="truncate-words">
           {new Date(article.createdAt).toLocaleDateString("en-US", {
             year: "numeric",
             month: "long",
