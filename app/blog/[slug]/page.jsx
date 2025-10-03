@@ -100,14 +100,14 @@ export default async function BlogPostPage({ params }) {
               {post.title}
             </h1>
             <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-3">
+              <div className="flex items-start space-x-3 min-w-0 flex-1">
                 {mainAuthor?.image && (
-                  <div className="w-12 h-12 bg-gray-200 rounded-full relative overflow-hidden">
+                  <div className="w-12 h-12 bg-gray-200 rounded-full relative overflow-hidden flex-shrink-0">
                     <Image src={mainAuthor.image} alt={mainAuthor.name} fill />
                   </div>
                 )}
-                <div>
-                  <p className="font-body font-semibold text-gray-900">
+                <div className="min-w-0">
+                  <p className="font-body font-semibold text-gray-900 truncate-words">
                     {allAuthorNames}
                   </p>
                   <p className="font-body text-sm text-gray-500">
@@ -120,7 +120,7 @@ export default async function BlogPostPage({ params }) {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center space-x-4 text-gray-700">
+              <div className="flex items-center space-x-4 text-gray-700 flex-shrink-0">
                 {/* LinkedIn Share */}
                 <a
                   href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(

@@ -352,14 +352,14 @@ export default function AboutUs() {
               {
                 quote:
                   '"8EH Radio is a vibrant platform that connects students and alumni, fostering creativity and collaboration."',
-                name: "Rina Hartono",
-                role: "Alumnus, ITB",
+                name: "Nicholas Andhika Lucas",
+                role: "Students, ITB",
               },
               {
                 quote:
                   '"The programs offered by 8EH Radio have enriched our campus culture and provided invaluable experiences for students."',
-                name: "Andi Prasetyo",
-                role: "Faculty, ITB",
+                name: "Zahrah Nur Azizah",
+                role: "8EH's Kru, ITB",
               },
             ].map((t, idx) => (
               <div key={idx} className="bg-white p-0">
