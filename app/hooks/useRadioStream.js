@@ -33,7 +33,7 @@ export const useRadioStream = () => {
     // Generate a 6-character alphanumeric code (letters & digits)
     const randomCode = Math.random().toString(36).substring(2, 8);
     // Menggunakan baseUrl langsung, tanpa kondisional isIOS
-    return `${STREAM_CONFIG.baseUrl}/;stream.mp3?${randomCode}`;
+    return `${STREAM_CONFIG.baseUrl}/;?type=http&nocache=${randomCode}`;
   }, [STREAM_CONFIG.baseUrl]);
 
   // Detect if running on an iOS device (iPhone, iPod, iPad)
