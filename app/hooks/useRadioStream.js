@@ -32,8 +32,8 @@ export const useRadioStream = () => {
   const generateStreamUrl = useCallback(() => {
     // Generate a 6-character alphanumeric code (letters & digits)
     const randomCode = Math.random().toString(36).substring(2, 8);
-    // Menggunakan baseUrl langsung, tanpa kondisional isIOS
-    return `${STREAM_CONFIG.baseUrl}/;?type=http&nocache=${randomCode}`;
+    // Use HTTP for streaming (required by shoutcast) - proxy through our API to avoid mixed content issues
+    return `/api/stream?url=${encodeURIComponent(`${STREAM_CONFIG.baseUrl}/;?type=http&nocache=${randomCode}`)}`;
   }, [STREAM_CONFIG.baseUrl]);
 
   // Detect if running on an iOS device (iPhone, iPod, iPad)
@@ -67,7 +67,9 @@ export const useRadioStream = () => {
     if (retryCount === 0) {
       setError("Primary connection failed. Switching to fallback stream...");
       setRetryCount((prev) => prev + 1);
-      setStreamUrl(`${STREAM_CONFIG.fallbackUrl}/;stream.mp3`);
+      // Generate HTTP fallback URL with random cache buster - proxy through our API
+      const randomCode = Math.random().toString(36).substring(2, 8);
+      setStreamUrl(`/api/stream?url=${encodeURIComponent(`${STREAM_CONFIG.fallbackUrl}/;?type=http&nocache=${randomCode}`)}`);
       return;
     }
 
