@@ -1,0 +1,32 @@
+@startuml
+!theme plain
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+title Manage Tune Tracker Sequence
+participant Admin
+participant TuneTrackerDashboard
+participant TuneTrackerAPI
+participant prisma
+participant TuneTrackerEntry
+
+Admin -> TuneTrackerDashboard: Access tune tracker
+TuneTrackerDashboard -> TuneTrackerAPI: GET /api/tune-tracker
+TuneTrackerAPI -> prisma: tuneTrackerEntry.findMany()
+prisma -> TuneTrackerEntry: query entries
+TuneTrackerEntry --> prisma: entry data
+prisma --> TuneTrackerAPI: entries array
+TuneTrackerAPI --> TuneTrackerDashboard: tune list
+TuneTrackerDashboard --> Admin: Display tune tracker
+
+Admin -> TuneTrackerDashboard: Update tune entry
+TuneTrackerDashboard -> TuneTrackerAPI: PATCH /api/tune-tracker
+TuneTrackerAPI -> prisma: tuneTrackerEntry.updateMany()
+prisma -> TuneTrackerEntry: update entries
+TuneTrackerEntry --> prisma: updated entries
+prisma --> TuneTrackerAPI: update result
+TuneTrackerAPI --> TuneTrackerDashboard: success response
+TuneTrackerDashboard --> Admin: Tune tracker updated
+
+@enduml

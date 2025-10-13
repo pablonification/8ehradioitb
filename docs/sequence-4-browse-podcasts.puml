@@ -1,0 +1,32 @@
+@startuml
+!theme plain
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+title Browse Podcasts Sequence
+participant Guest
+participant PodcastPage
+participant PodcastAPI
+participant prisma
+participant Podcast
+participant PodcastAudioPlayer
+participant useGlobalAudio
+
+Guest -> PodcastPage: Navigate to podcasts
+PodcastPage -> PodcastAPI: GET /api/podcast
+PodcastAPI -> prisma: podcast.findMany()
+prisma -> Podcast: query podcasts
+Podcast --> prisma: podcast data
+prisma --> PodcastAPI: podcasts array
+PodcastAPI --> PodcastPage: podcast list
+PodcastPage --> Guest: Display podcast list
+
+Guest -> PodcastAudioPlayer: Click play on podcast
+PodcastAudioPlayer -> useGlobalAudio: getAudioRef()
+useGlobalAudio --> PodcastAudioPlayer: audio reference
+PodcastAudioPlayer -> PodcastAudioPlayer: set audioUrl
+PodcastAudioPlayer -> PodcastAudioPlayer: setIsPlaying(true)
+PodcastAudioPlayer --> Guest: Podcast playing
+
+@enduml

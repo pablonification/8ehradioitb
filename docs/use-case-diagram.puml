@@ -1,0 +1,65 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor Guest
+actor "Admin / Staff" as Admin
+
+rectangle "8EH Radio System" {
+  usecase "Browse Public Site" as UC_Browse
+  usecase "Play Radio Stream" as UC_PlayStream
+  usecase "Control Playback (pause/volume)" as UC_Control
+  usecase "View Tune Tracker" as UC_NowPlaying
+  usecase "Play Tune Tracker Preview" as UC_Preview
+  usecase "Browse Podcasts" as UC_BrowsePod
+  usecase "Play Podcast" as UC_PlayPod
+  usecase "Proxy Audio (signed URLs)" as UC_ProxyAudio
+  usecase "Open Short Link / Redirect" as UC_Shortlink
+  usecase "Track Shortlink Clicks" as UC_TrackClicks
+
+  usecase "Sign in with Google (OAuth 2.0)" as UC_Login
+  usecase "Access Dashboard (role-check)" as UC_AccessDash
+
+  usecase "Manage Podcasts" as UC_ManagePod
+  usecase "Manage Blog Posts" as UC_ManageBlog
+  usecase "Manage Short Links" as UC_ManageLinks
+  usecase "Manage Tune Tracker" as UC_ManageTunes
+  usecase "Manage Player Config" as UC_ManagePlayer
+  usecase "Manage Stream Config" as UC_ManageStream
+  usecase "Manage Users & Whitelist" as UC_ManageUsers
+  usecase "View Dashboard Analytics" as UC_ViewStats
+}
+
+' Public actor relationships
+Guest      --> UC_Browse
+Guest      --> UC_PlayStream
+Guest      --> UC_Control
+Guest      --> UC_NowPlaying
+Guest      --> UC_BrowsePod
+Guest      --> UC_PlayPod
+Guest      --> UC_Preview
+Guest      --> UC_Shortlink
+
+' Note: Play Tune Preview intentionally has no actor links (0 actors)
+' UC_Preview remains inside the system but is not directly invoked by a named actor
+
+' Admin and auth flow
+Admin      --> UC_AccessDash
+UC_AccessDash ..> UC_Login : <<include>> 
+Admin      --> UC_ManagePod
+Admin      --> UC_ManageBlog
+Admin      --> UC_ManageLinks
+Admin      --> UC_ManageTunes
+Admin      --> UC_ManagePlayer
+Admin      --> UC_ManageStream
+Admin      --> UC_ManageUsers
+Admin      --> UC_ViewStats
+
+' System interactions
+UC_PlayStream ..> UC_ProxyAudio : <<include>>
+UC_PlayPod ..> UC_ProxyAudio : <<include>>
+
+UC_Shortlink ..> UC_TrackClicks : <<include>>
+UC_ManageLinks ..> UC_Shortlink : <<extend>>
+
+@enduml

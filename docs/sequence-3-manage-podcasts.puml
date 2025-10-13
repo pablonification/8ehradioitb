@@ -1,0 +1,33 @@
+@startuml
+!theme plain
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+title Manage Podcasts Sequence
+participant Admin
+participant PodcastDashboard
+participant PodcastAPI
+participant prisma
+participant Podcast
+participant User
+
+Admin -> PodcastDashboard: Access podcast management
+PodcastDashboard -> PodcastAPI: GET /api/podcast
+PodcastAPI -> prisma: podcast.findMany()
+prisma -> Podcast: query podcasts
+Podcast --> prisma: podcast data
+prisma --> PodcastAPI: podcasts array
+PodcastAPI --> PodcastDashboard: podcast list
+PodcastDashboard --> Admin: Display podcasts
+
+Admin -> PodcastDashboard: Create new podcast
+PodcastDashboard -> PodcastAPI: POST /api/podcast
+PodcastAPI -> prisma: podcast.create()
+prisma -> Podcast: insert new podcast
+Podcast --> prisma: created podcast
+prisma --> PodcastAPI: podcast data
+PodcastAPI --> PodcastDashboard: success response
+PodcastDashboard --> Admin: Podcast created
+
+@enduml

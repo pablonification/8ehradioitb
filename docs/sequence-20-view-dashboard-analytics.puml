@@ -1,0 +1,48 @@
+@startuml
+!theme plain
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+title View Dashboard Analytics Sequence
+participant Admin
+participant DashboardHome
+participant BlogAPI
+participant PodcastAPI
+participant ShortLinkAPI
+participant prisma
+participant BlogPost
+participant Podcast
+participant ShortLink
+participant ShortLinkClick
+
+Admin -> DashboardHome: Access dashboard
+DashboardHome -> BlogAPI: GET /api/blog
+BlogAPI -> prisma: blogPost.findMany()
+prisma -> BlogPost: query posts
+BlogPost --> prisma: post data
+prisma --> BlogAPI: posts array
+BlogAPI --> DashboardHome: blog stats
+
+DashboardHome -> PodcastAPI: GET /api/podcast
+PodcastAPI -> prisma: podcast.findMany()
+prisma -> Podcast: query podcasts
+Podcast --> prisma: podcast data
+prisma --> PodcastAPI: podcasts array
+PodcastAPI --> DashboardHome: podcast stats
+
+DashboardHome -> ShortLinkAPI: GET /api/shortlinks
+ShortLinkAPI -> prisma: shortLink.findMany()
+prisma -> ShortLink: query short links
+ShortLink --> prisma: short link data
+prisma --> ShortLinkAPI: short links array
+ShortLinkAPI -> prisma: shortLinkClick.aggregate()
+prisma -> ShortLinkClick: count total clicks
+ShortLinkClick --> prisma: click count
+prisma --> ShortLinkAPI: total clicks
+ShortLinkAPI --> DashboardHome: link stats
+
+DashboardHome -> DashboardHome: Calculate analytics
+DashboardHome --> Admin: Display dashboard with stats
+
+@enduml

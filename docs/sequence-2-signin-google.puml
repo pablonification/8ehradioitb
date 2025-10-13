@@ -1,0 +1,30 @@
+@startuml
+!theme plain
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+title Sign in with Google (OAuth 2.0) Sequence
+participant Admin
+participant LoginPage
+participant AuthAPI
+participant GoogleProvider
+participant WhitelistedEmail
+participant User
+participant Session
+
+Admin -> LoginPage: Click "Sign in with Google"
+LoginPage -> AuthAPI: signIn("google")
+AuthAPI -> GoogleProvider: authenticate()
+GoogleProvider --> AuthAPI: profile data
+AuthAPI -> WhitelistedEmail: findFirst(email)
+WhitelistedEmail --> AuthAPI: whitelist check
+AuthAPI -> User: findUnique(email)
+User --> AuthAPI: user data
+AuthAPI -> Session: create()
+Session --> AuthAPI: session token
+AuthAPI --> LoginPage: session data
+LoginPage -> LoginPage: redirect to /dashboard
+LoginPage --> Admin: Dashboard access
+
+@enduml

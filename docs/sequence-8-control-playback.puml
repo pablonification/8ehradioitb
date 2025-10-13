@@ -1,0 +1,28 @@
+@startuml
+!theme plain
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+title Control Playback (pause/volume) Sequence
+participant Guest
+participant RadioPlayer
+participant Navbar
+participant Audio
+participant useRadioStream
+
+Guest -> Navbar: Click pause button
+Navbar -> Navbar: pauseStream()
+Navbar -> Audio: pause()
+Audio --> Navbar: paused event
+Navbar -> Navbar: setIsPlaying(false)
+Navbar -> Navbar: emitAudioStateChanged(false)
+Navbar --> Guest: Audio paused
+
+Guest -> RadioPlayer: Adjust volume slider
+RadioPlayer -> RadioPlayer: setVolume(value)
+RadioPlayer -> Audio: volume = value
+Audio --> RadioPlayer: volume changed
+RadioPlayer --> Guest: Volume updated
+
+@enduml

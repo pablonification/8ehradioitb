@@ -1,0 +1,27 @@
+@startuml
+!theme plain
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+title Proxy Audio (signed URLs) Sequence
+participant RadioPlayer
+participant PodcastAudioPlayer
+participant ProxyAudioAPI
+participant R2Storage
+
+RadioPlayer -> ProxyAudioAPI: GET /api/proxy-audio?key=audioUrl
+ProxyAudioAPI -> ProxyAudioAPI: Validate request
+ProxyAudioAPI -> ProxyAudioAPI: Generate signed URL with expiration
+ProxyAudioAPI -> R2Storage: Create presigned URL
+R2Storage --> ProxyAudioAPI: signed URL
+ProxyAudioAPI --> RadioPlayer: HTTP redirect to signed URL
+
+PodcastAudioPlayer -> ProxyAudioAPI: GET /api/proxy-audio?key=podcastUrl
+ProxyAudioAPI -> ProxyAudioAPI: Validate request
+ProxyAudioAPI -> ProxyAudioAPI: Generate signed URL with expiration
+ProxyAudioAPI -> R2Storage: Create presigned URL
+R2Storage --> ProxyAudioAPI: signed URL
+ProxyAudioAPI --> PodcastAudioPlayer: HTTP redirect to signed URL
+
+@enduml

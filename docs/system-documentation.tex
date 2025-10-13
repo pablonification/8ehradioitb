@@ -1,0 +1,501 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[bahasa]{babel}
+
+% Custom colors
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Code listing style
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% Header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Analisis Sistem \textit{Website} 8EH Radio ITB}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Title formatting
+\titleformat{\section}{\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{1em}{}
+
+\title{\textbf{Analisis Use Case Diagram, Class Diagram, dan Sequence Diagram dari Sistem Website 8EH Radio ITB}}
+\author{Arqila Surya Putra - 18223047}
+\date{\today}
+
+
+\begin{document}
+
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+\section{Gambaran Umum Sistem}
+
+8EH Radio ITB adalah\textit{ platform streaming} radio yang menyediakan layanan \textit{streaming} radio langsung, manajemen \textit{podcast}, konten blog, dan layanan \textit{shortener} URL. Sistem ini dibangun menggunakan Next.js dengan database MongoDB dan mengimplementasikan kontrol akses berbasis peran untuk fungsi-fungsi administratif.
+
+\subsection{Fitur Utama}
+\begin{itemize}
+    \item \textit{Streaming} radio langsung dengan mekanisme \textit{fallback}
+    \item Manajemen dan pemutaran \textit{podcast}
+    \item Manajemen pembuatan dan \textit{publishing} blog
+    \item \textit{Shortener} URL dengan \textit{analytics}
+    \item Manajemen \textit{chart} musik (Tune Tracker)
+    \item \textit{Dashboard} admin berbasis peran
+    \item Autentikasi Google OAuth 2.0
+    \item \textit{Proxy} audio untuk pengaksesan dan pemutaran \textit{file audio}.
+\end{itemize}
+
+\section{Arsitektur Sistem}
+
+\subsection{Stack Teknologi}
+\begin{itemize}
+    \item \textbf{Frontend}: Next.js 14, React, Tailwind CSS
+    \item \textbf{Backend}: Next.js API Routes, NextAuth.js
+    \item \textbf{Database}: MongoDB dengan Prisma ORM
+    \item \textbf{Autentikasi}: Google OAuth 2.0
+    \item \textbf{Penyimpanan File}: Cloudflare R2
+    \item \textbf{Pemrosesan Audio}: WaveSurfer.js, HTML5 Audio API
+\end{itemize}
+
+\subsection{Komponen Sistem}
+Sistem terdiri dari beberapa komponen kunci:
+\begin{itemize}
+    \item \textbf{Komponen Frontend}: Komponen React untuk UI
+    \item \textbf{Custom Hooks}: Logika yang dapat digunakan kembali untuk manajemen state
+    \item \textbf{API Routes}: Endpoint backend untuk operasi data
+    \item \textbf{Model Database}: Koleksi MongoDB melalui Prisma
+    \item \textbf{Fungsi Utilitas}: Fungsi helper untuk peran dan database
+\end{itemize}
+
+\section{Diagram UML}
+
+Sebelum membahas detail implementasi sistem, penting untuk memahami jenis-jenis diagram UML yang digunakan dalam dokumentasi ini. \textit{Unified Modeling Language} (UML) adalah bahasa pemodelan standar yang digunakan untuk menggambarkan, merancang, dan mendokumentasikan sistem perangkat lunak.
+
+\subsection{Jenis Diagram yang Digunakan}
+
+\subsubsection{Use Case Diagram}
+Use Case Diagram menggambarkan interaksi antara pengguna (aktor) dengan sistem. Diagram ini menunjukkan:
+\begin{itemize}
+    \item \textbf{Aktor}: Pengguna atau sistem eksternal yang berinteraksi dengan sistem
+    \item \textbf{Use Case}: Fungsi atau fitur yang dapat dilakukan oleh aktor
+    \item \textbf{Relasi}: Hubungan antara aktor dan \textit{use case}
+\end{itemize}
+
+Dalam sistem 8EH Radio ITB, terdapat dua aktor utama:
+\begin{itemize}
+    \item \textbf{Guest}: Pengguna publik yang dapat menjelajahi konten dan mendengarkan radio/\textit{podcast}
+    \item \textbf{Admin/Staff}: Pengguna terautentikasi dengan akses berbasis peran ke fungsi manajemen
+\end{itemize}
+
+\subsubsection{Class Diagram}
+Class Diagram menggambarkan struktur statis sistem dengan menunjukkan:
+\begin{itemize}
+    \item \textbf{Class}: \textit{Template} untuk objek yang memiliki atribut dan metode
+    \item \textbf{Atribut}: Properti atau data yang dimiliki oleh \textit{class}
+    \item \textbf{Metode}: Operasi atau fungsi yang dapat dilakukan oleh \textit{class}
+    \item \textbf{Relasi}: Hubungan antar \textit{class} (inheritance, association, composition, dll.)
+\end{itemize}
+
+Class Diagram sistem ini dibagi menjadi beberapa paket:
+\begin{itemize}
+    \item \textbf{Frontend Components}: React Component untuk \textit{interface} pengguna
+    \item \textbf{Custom Hooks}: \textit{Hook} khusus untuk manajemen \textit{state}
+    \item \textbf{API Routes}: \textit{Endpoint backend} untuk operasi data
+    \item \textbf{Database Models}: Model data MongoDB
+    \item \textbf{Utility Functions}: Fungsi bantu untuk sistem
+\end{itemize}
+
+\subsubsection{Sequence Diagram}
+Sequence Diagram menggambarkan interaksi dinamis antara objek dalam sistem seiring waktu. Diagram ini menunjukkan:
+\begin{itemize}
+    \item \textbf{Participant}: Objek atau komponen yang berpartisipasi dalam interaksi
+    \item \textbf{Lifeline}: Garis vertikal yang menunjukkan waktu hidup objek
+    \item \textbf{Message}: Komunikasi antar objek
+    \item \textbf{Activation}: Periode ketika objek aktif memproses pesan
+\end{itemize}
+
+Sequence diagram dalam dokumentasi ini mencakup 20 skenario utama yang mencakup:
+\begin{itemize}
+    \item Interaksi pengguna publik (Guest)
+    \item Fungsi administratif (Admin/Staff)
+    \item Alur autentikasi dan otorisasi
+    \item Operasi CRUD untuk berbagai entitas
+\end{itemize}
+
+\section{Analisis Use Case}
+
+Sistem mendukung 20 \textit{use case} inti yang mencakup akses publik dan fungsi administratif. \textit{Use case} ini dikelompokkan berdasarkan aktor yang menggunakannya dan kompleksitas fungsionalitasnya.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/use-case-diagram.png}
+    \caption{Diagram Use Case Sistem 8EH Radio ITB}
+    \label{fig:use-case}
+\end{figure}
+
+Diagram Use Case di atas menunjukkan semua interaksi yang dapat dilakukan oleh pengguna dengan sistem. Diagram ini menjadi fondasi untuk memahami kebutuhan fungsional sistem dan menjadi acuan dalam pengembangan fitur-fitur selanjutnya.
+
+\section{Class Diagram}
+
+Arsitektur sistem direpresentasikan melalui diagram kelas yang menunjukkan hubungan antara komponen \textit{frontend}, \textit{API routes}, model \textit{database}, dan fungsi utilitas.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/class-diagram.png}
+    \caption{Diagram Class Sistem 8EH Radio ITB}
+    \label{fig:class}
+\end{figure}
+
+Diagram Class ini memberikan gambaran detail tentang struktur internal sistem, termasuk:
+\begin{itemize}
+    \item \textbf{Komponen Frontend}: RadioPlayer, Navbar, Waveform, dan komponen UI lainnya
+    \item \textbf{Custom Hooks}: useRadioStream, useGlobalAudio untuk manajemen state
+    \item \textbf{API Routes}: Endpoint untuk operasi CRUD pada berbagai entitas
+    \item \textbf{Model Database}: User, BlogPost, Podcast, ShortLink, dan model lainnya
+    \item \textbf{Fungsi Utilitas}: roleUtils untuk kontrol akses dan prisma untuk \textit{database}
+\end{itemize}
+
+\section{Sequence Diagram}
+
+Bagian ini menyajikan alur interaksi detail untuk \textit{use case} inti sistem. Diagram \textit{sequence} menunjukkan bagaimana komponen-komponen sistem berinteraksi dalam skenario tertentu, memberikan pemahaman yang mendalam tentang perilaku dinamis sistem.
+
+\subsection{Pengelompokan Sequence Diagram}
+
+\textit{Sequence diagram} dalam dokumentasi ini dikelompokkan menjadi dua kategori utama:
+
+\subsubsection{Interaksi Pengguna Publik}
+Diagram-diagram ini menunjukkan bagaimana pengguna Guest berinteraksi dengan sistem untuk mengakses fitur-fitur publik seperti mendengarkan radio, menjelajahi \textit{podcast}, dan menggunakan \textit{short link}.
+
+\subsubsection{Fungsi Administratif}
+Diagram-diagram ini menunjukkan alur kerja untuk fungsi-fungsi administratif yang memerlukan autentikasi dan otorisasi, seperti manajemen konten, konfigurasi sistem, dan manajemen pengguna.
+
+\subsection{Interaksi Pengguna Publik}
+
+\subsubsection{Pemutaran Radio Stream}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/sequence-1-play-radio-stream.png}
+    \caption{Diagram Sequence Pemutaran Radio Stream}
+    \label{fig:seq-play-radio}
+\end{figure}
+
+Diagram ini menunjukkan alur lengkap dari saat pengguna mengklik tombol play hingga audio radio mulai diputar. Proses melibatkan pengambilan konfigurasi \textit{stream}, pembuatan URL \textit{stream} yang unik, dan inisialisasi audio \textit{player}.
+
+\subsubsection{Menjelajahi Podcast}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/sequence-4-browse-podcasts.png}
+    \caption{Diagram Sequence Menjelajahi Podcast}
+    \label{fig:seq-browse-podcasts}
+\end{figure}
+
+Alur ini menunjukkan bagaimana pengguna dapat melihat daftar \textit{podcast} yang tersedia dan memutar \textit{podcast} yang dipilih menggunakan sistem \textit{player} audio \textit{global}.
+
+\subsubsection{Pemutaran Podcast}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/sequence-14-play-podcast.png}
+    \caption{Diagram Sequence Pemutaran Podcast}
+    \label{fig:seq-play-podcast}
+\end{figure}
+
+Diagram ini menunjukkan proses pemutaran \textit{podcast} yang melibatkan \textit{proxy} audio untuk keamanan file dan sinkronisasi dengan sistem audio global.
+
+\subsubsection{Kontrol Pemutaran}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/sequence-8-control-playback.png}
+    \caption{Diagram Sequence Kontrol Pemutaran}
+    \label{fig:seq-control-playback}
+\end{figure}
+
+Alur kontrol pemutaran menunjukkan bagaimana pengguna dapat menghentikan audio dan mengatur volume melalui \textit{navigation bar} atau komponen \textit{player}.
+
+\subsubsection{Menampilkan Tune Tracker}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/sequence-12-view-tune-tracker.png}
+    \caption{Diagram Sequence Menampilkan Tune Tracker}
+    \label{fig:seq-view-tune-tracker}
+\end{figure}
+
+Diagram ini menunjukkan bagaimana sistem menampilkan \textit{chart} musik dengan mengisi posisi kosong dengan \textit{placeholder} jika diperlukan.
+
+\subsubsection{Membuka Short Link}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/sequence-6-open-shortlink.png}
+    \caption{Diagram Sequence Membuka Short Link}
+    \label{fig:seq-open-shortlink}
+\end{figure}
+
+Alur ini menunjukkan proses \textit{redirect short link} yang mencakup \textit{tracking} untuk \textit{analytics}.
+
+\subsection{Fungsi Administratif}
+
+\subsubsection{Sign in dengan Google}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/sequence-2-signin-google.png}
+    \caption{Diagram Sequence Sign in dengan Google}
+    \label{fig:seq-signin-google}
+\end{figure}
+
+Diagram ini menunjukkan proses autentikasi lengkap melalui Google OAuth 2.0, termasuk pengecekan \textit{whitelist email} dan pembuatan \textit{session}.
+
+\subsubsection{Akses Dashboard}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/sequence-10-access-dashboard.png}
+    \caption{Diagram Sequence Akses Dashboard}
+    \label{fig:seq-access-dashboard}
+\end{figure}
+
+Alur ini menunjukkan proses otorisasi berbasis peran untuk mengakses \textit{dashboard} admin.
+
+\subsubsection{Manajemen Podcast}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/sequence-3-manage-podcasts.png}
+    \caption{Diagram Sequence Manajemen Podcast}
+    \label{fig:seq-manage-podcasts}
+\end{figure}
+
+Diagram ini menunjukkan operasi CRUD untuk \textit{podcast}, termasuk pembuatan dan pengelolaan konten audio.
+
+\subsubsection{Manajemen Blog Post}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/sequence-7-manage-blog-posts.png}
+    \caption{Diagram Sequence Manajemen Blog Post}
+    \label{fig:seq-manage-blog-posts}
+\end{figure}
+
+Alur ini menunjukkan manajemen \textit{posting} blog dengan relasi ke penulisnya yang bisa terdiri atas multi-\textit{writer} dan operasi CRUD lengkap.
+
+\subsubsection{Manajemen Short Link}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/sequence-5-manage-shortlinks.png}
+    \caption{Diagram Sequence Manajemen Short Link}
+    \label{fig:seq-manage-shortlinks}
+\end{figure}
+
+Diagram ini menunjukkan pembuatan dan pengelolaan \textit{short link} dengan generasi \textit{slug} unik.
+
+\subsubsection{Manajemen Tune Tracker}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/sequence-9-manage-tune-tracker.png}
+    \caption{Diagram Sequence Manajemen Tune Tracker}
+    \label{fig:seq-manage-tune-tracker}
+\end{figure}
+
+Alur ini menunjukkan pengelolaan \textit{chart} musik dengan operasi \textit{bulk update} untuk posisi \textit{chart}.
+
+\subsubsection{Manajemen Konfigurasi Player}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/sequence-17-manage-player-config.png}
+    \caption{Diagram Sequence Manajemen Konfigurasi Player}
+    \label{fig:seq-manage-player-config}
+\end{figure}
+
+Diagram ini menunjukkan pengelolaan konfigurasi \textit{player} radio termasuk \textit{upload cover image}.
+
+\subsubsection{Manajemen Konfigurasi Stream}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/sequence-18-manage-stream-config.png}
+    \caption{Diagram Sequence Manajemen Konfigurasi Stream}
+    \label{fig:seq-manage-stream-config}
+\end{figure}
+
+Alur ini menunjukkan pengelolaan konfigurasi \textit{streaming server} dan URL \textit{fallback}.
+
+\subsubsection{Manajemen Pengguna \& Whitelist}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/sequence-19-manage-users-whitelist.png}
+    \caption{Diagram Sequence Manajemen Pengguna \& Whitelist}
+    \label{fig:seq-manage-users-whitelist}
+\end{figure}
+
+Diagram ini menunjukkan pengelolaan pengguna, peran, dan \textit{whitelist email} untuk kontrol akses.
+
+\subsubsection{Menampilkan Analitik Dashboard}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/sequence-20-view-dashboard-analytics.png}
+    \caption{Diagram Sequence Menampilkan Analitik Dashboard}
+    \label{fig:seq-view-dashboard-analytics}
+\end{figure}
+
+Alur ini menunjukkan pengumpulan dan tampilan statistik sistem untuk \textit{dashboard} admin.
+
+\section{Skema Database}
+
+\subsection{Model Inti}
+Sistem menggunakan MongoDB dengan model-model kunci berikut:
+
+\subsubsection{Model User}
+\begin{lstlisting}[language=javascript, caption=Skema Model User]
+model User {
+  id        String         @id @default(auto()) @map("_id") @db.ObjectId
+  name      String?
+  email     String?        @unique
+  emailVerified DateTime?
+  image     String?
+  role      String         @default("KRU")
+  createdAt DateTime       @default(now())
+  authored  AuthorOnPost[]
+  accounts  Account[]
+  sessions  Session[]
+  shortLinks ShortLink[]
+  podcasts  Podcast[]
+}
+\end{lstlisting}
+
+\subsubsection{Model BlogPost}
+\begin{lstlisting}[language=javascript, caption=Skema Model BlogPost]
+model BlogPost {
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  slug        String         @unique
+  content     String
+  description String?
+  readTime    String?
+  category    String?
+  mainImage   String?
+  tags        String[]
+  isFeatured  Boolean        @default(false)
+  authors     AuthorOnPost[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+\end{lstlisting}
+
+\subsubsection{Model Podcast}
+\begin{lstlisting}[language=javascript, caption=Skema Model Podcast]
+model Podcast {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  subtitle    String?
+  description String
+  date        String?
+  duration    String?
+  audioUrl    String
+  image       String?
+  coverImage  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    String
+}
+\end{lstlisting}
+
+\section{Endpoint API}
+
+\subsection{Endpoint Publik}
+\begin{itemize}
+    \item \texttt{GET /api/blog} - Mengambil postingan blog
+    \item \texttt{GET /api/podcast} - Mengambil \textit{podcast}
+    \item \texttt{GET /api/tune-tracker} - Mengambil \textit{chart} musik
+    \item \texttt{GET /api/stream-config} - Mendapatkan konfigurasi \textit{stream}
+    \item \texttt{GET /api/redirect/[slug]} - \textit{Redirect short link}
+    \item \texttt{GET /api/proxy-audio} - \textit{Proxy file audio}
+\end{itemize}
+
+\subsection{Endpoint Admin}
+\begin{itemize}
+    \item \texttt{POST /api/blog} - Membuat postingan blog
+    \item \texttt{PUT /api/blog/[slug]} - Memperbarui postingan blog
+    \item \texttt{POST /api/podcast} - Membuat \textit{podcast}
+    \item \texttt{PATCH /api/podcast/[id]} - Memperbarui \textit{podcast}
+    \item \texttt{POST /api/shortlinks} - Membuat \textit{short link}
+    \item \texttt{PUT /api/shortlinks/[id]} - Memperbarui \textit{short link}
+    \item \texttt{PATCH /api/tune-tracker} - Memperbarui \textit{tune tracker}
+    \item \texttt{PATCH /api/users} - Memperbarui \textit{role} pengguna
+\end{itemize}
+
+\section{Fitur Keamanan}
+
+\subsection{Autentikasi}
+\begin{itemize}
+    \item Integrasi Google OAuth 2.0
+    \item \textit{Whitelist email} untuk kontrol akses
+    \item Manajemen \textit{session} JWT
+    \item Otorisasi berbasis peran
+\end{itemize}
+
+\subsection{Otorisasi}
+Sistem mengimplementasikan kontrol akses berbasis peran dengan peran-peran berikut:
+\begin{itemize}
+    \item \textbf{DEVELOPER}: Akses penuh sistem
+    \item \textbf{TECHNIC}: Akses konfigurasi teknis
+    \item \textbf{REPORTER}: Manajemen \textit{blog} dan konten
+    \item \textbf{MUSIC}: Manajemen musik dan \textit{podcast}
+    \item \textbf{KRU}: Akses dasar
+\end{itemize}
+
+\section{Deployment \& Infrastruktur}
+
+\subsection{Persyaratan Environment}
+\begin{itemize}
+    \item Node.js 18+
+    \item \textit{Database} MongoDB
+    \item Penyimpanan Cloudflare R2
+    \item Kredensial Google OAuth
+\end{itemize}
+
+\subsection{Environment Variables}
+\begin{lstlisting}[language=bash, caption=Environment Variables yang Diperlukan]
+MONGODB_URL=mongodb://localhost:27017/8ehradio
+NEXTAUTH_SECRET=your-secret-key
+NEXTAUTH_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+R2_ACCESS_KEY_ID=your-r2-access-key
+R2_SECRET_ACCESS_KEY=your-r2-secret-key
+R2_BUCKET_NAME=your-bucket-name
+R2_ENDPOINT=your-r2-endpoint
+\end{lstlisting}
+
+\section{Kesimpulan}
+
+Sistem 8EH Radio ITB menyediakan \textit{platform} yang lengkap untuk streaming radio, manajemen konten, dan fungsi-fungsi administratif. Arsitektur sistem mendukung skalabilitas, keamanan, dan kemudahan pemeliharaan melalui teknologi web modern dan praktik terbaik.
+
+Dokumentasi yang disajikan dalam dokumen ini mencakup analisis sistem lengkap termasuk \textit{use case}, \textit{class diagram}, \textit{sequence diagram}, dan detail implementasi teknis yang diperlukan untuk pengembangan lanjutan yang akan dilakukan di tugas mata kuliah Teknologi Sistem Terintegrasi selanjutnya.
+
+\end{document}

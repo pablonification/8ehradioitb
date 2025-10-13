@@ -1,0 +1,35 @@
+@startuml
+!theme plain
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+title Access Dashboard (role-check) Sequence
+participant Admin
+participant DashboardLayout
+participant AuthAPI
+participant Session
+participant User
+participant roleUtils
+participant DashboardSidebar
+
+Admin -> DashboardLayout: Navigate to /dashboard
+DashboardLayout -> AuthAPI: getSession()
+AuthAPI -> Session: findUnique(sessionToken)
+Session --> AuthAPI: session data
+AuthAPI -> User: findUnique(userId)
+User --> AuthAPI: user data
+AuthAPI --> DashboardLayout: session with user
+
+DashboardLayout -> roleUtils: hasAnyRole(user.role, requiredRoles)
+roleUtils -> roleUtils: splitRoles(roleString)
+roleUtils --> DashboardLayout: role check result
+
+alt Role authorized
+    DashboardLayout -> DashboardSidebar: render sidebar
+    DashboardSidebar --> Admin: Dashboard access granted
+else Role not authorized
+    DashboardLayout --> Admin: Access denied
+end
+
+@enduml

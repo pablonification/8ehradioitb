@@ -1,0 +1,29 @@
+@startuml
+!theme plain
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+title Play Radio Stream Sequence
+participant Guest
+participant RadioPlayer
+participant useRadioStream
+participant StreamAPI
+participant StreamConfig
+participant Audio
+
+Guest -> RadioPlayer: Click play button
+RadioPlayer -> useRadioStream: getStreamUrl()
+useRadioStream -> StreamAPI: GET /api/stream-config
+StreamAPI -> StreamConfig: findFirst()
+StreamConfig --> StreamAPI: config data
+StreamAPI --> useRadioStream: stream config
+useRadioStream -> useRadioStream: generateStreamUrl()
+useRadioStream --> RadioPlayer: stream URL
+RadioPlayer -> Audio: src = streamUrl
+RadioPlayer -> Audio: play()
+Audio --> RadioPlayer: playing event
+RadioPlayer -> RadioPlayer: setIsPlaying(true)
+RadioPlayer --> Guest: Audio playing
+
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+!theme plain
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+title Open Short Link / Redirect Sequence
+participant Guest
+participant RedirectAPI
+participant prisma
+participant ShortLink
+participant ShortLinkClick
+
+Guest -> RedirectAPI: GET /api/redirect/[slug]
+RedirectAPI -> prisma: shortLink.findUnique(slug)
+prisma -> ShortLink: query by slug
+ShortLink --> prisma: short link data
+prisma --> RedirectAPI: short link found
+RedirectAPI -> prisma: shortLinkClick.create()
+prisma -> ShortLinkClick: insert click record
+ShortLinkClick --> prisma: click data
+prisma --> RedirectAPI: click recorded
+RedirectAPI -> RedirectAPI: redirect to destination
+RedirectAPI --> Guest: HTTP redirect to destination
+
+@enduml
