@@ -143,7 +143,7 @@ export const HeroSection = () => (
           alt="decorative"
           width={96}
           height={96}
-          className="rotate-225"
+          className="rotate-225" // halo
         />
       </div>
       <div className="absolute inset-0 top-1/8 left-[4%] w-16 md:w-20 h-20 opacity-70">
