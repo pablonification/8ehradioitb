@@ -358,7 +358,7 @@ export default function AboutUs() {
               },
               {
                 quote:
-                  '"8EH Radio ITB has enriched our campus culture and provided invaluable experiences for students."',
+                  '"8EH Radio ITB brightens up my day and keeps me entertained throughout the day, with their down to earth vibe and relatable content, me and my friends seem to always be entertained by it."',
                 name: "Zahrah Nur Azizah",
                 role: "8EH's Kru, ITB",
                 image: "/foto-announcer/ara.png",
