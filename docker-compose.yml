@@ -23,16 +23,3 @@ services:
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     ports:
       - "127.0.0.1:3000:3000"
-    depends_on:
-      - mongo
-
-  mongo:
-    image: mongo:6.0
-    restart: unless-stopped
-    volumes:
-      - mongo_data:/data/db
-    environment:
-      MONGO_INITDB_DATABASE: 8ehradio
-
-volumes:
-  mongo_data:

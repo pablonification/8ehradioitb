@@ -85,7 +85,36 @@ fi
 # Build and run docker-compose
 cd "$WORKDIR"
 echo "Building and starting containers..."
-docker compose --env-file "$ENV_FILE" up -d --build
+# decide whether to start local mongo. Read MONGODB_URL from env file we just created
+MONGODB_URL_VALUE=$(sed -n 's/^MONGODB_URL=//p' "$ENV_FILE" | tr -d '\r')
+# normalize empty
+MONGODB_URL_VALUE=${MONGODB_URL_VALUE:-}
+
+# determine if URL refers to local container mongo (host contains "mongo" or host is localhost/127.0.0.1)
+START_MONGO=false
+if [[ -z "$MONGODB_URL_VALUE" ]]; then
+  # default value points to local mongo
+  START_MONGO=true
+elif echo "$MONGODB_URL_VALUE" | grep -q "@"; then
+  # connection string with creds containing @, leave as remote
+  START_MONGO=false
+else
+  # check host part
+  HOST_PART=$(echo "$MONGODB_URL_VALUE" | sed -E 's#^[^:]+://([^/:]+).*#\1#') || true
+  if [[ "$HOST_PART" == "mongo" || "$HOST_PART" == "localhost" || "$HOST_PART" == "127.0.0.1" ]]; then
+    START_MONGO=true
+  else
+    START_MONGO=false
+  fi
+fi
+
+if [[ "$START_MONGO" == true ]]; then
+  echo "Starting app + mongo (local)"
+  docker compose --env-file "$ENV_FILE" -f docker-compose.yml -f docker-compose.mongo.yml up -d --build
+else
+  echo "Starting app only (using remote MongoDB)"
+  docker compose --env-file "$ENV_FILE" -f docker-compose.yml up -d --build
+fi
 
 # Setup nginx site
 mkdir -p "$CERTBOT_WEBROOT"
