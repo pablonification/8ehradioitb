@@ -56,6 +56,12 @@ if ! docker compose version >/dev/null 2>&1; then
   apt-get update && apt-get install -y docker-compose-plugin
 fi
 
+# Install nginx if missing
+if ! command -v nginx >/dev/null 2>&1; then
+  echo "Installing nginx..."
+  apt-get update && apt-get install -y nginx
+fi
+
 # Create .env.production from machine env or prompt
 echo "Creating $ENV_FILE"
 cat > "$ENV_FILE" <<EOF
