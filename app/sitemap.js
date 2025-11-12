@@ -1,9 +1,11 @@
 import { prisma } from "@/lib/prisma";
 
-export default async function sitemap() {
-  const baseUrl = "https://8ehradioitb.com";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-  // Static pages
+export default async function sitemap() {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://8ehradioitb.com";
+
   const staticPages = [
     {
       url: baseUrl,
@@ -61,38 +63,32 @@ export default async function sitemap() {
     },
   ];
 
-  // Dynamic blog posts
-  const blogPosts = await prisma.blogPost.findMany({
-    select: {
-      slug: true,
-      updatedAt: true,
-    },
-    where: {
-      // Add any filters if needed
-    },
-  });
+  try {
+    const blogPosts = await prisma.blogPost.findMany({
+      select: { slug: true, updatedAt: true },
+    });
 
-  const blogUrls = blogPosts.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: post.updatedAt,
-    changeFrequency: "monthly",
-    priority: 0.6,
-  }));
+    const blogUrls = blogPosts.map((post) => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: post.updatedAt,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    }));
 
-  // Dynamic podcasts
-  const podcasts = await prisma.podcast.findMany({
-    select: {
-      id: true,
-      updatedAt: true,
-    },
-  });
+    const podcasts = await prisma.podcast.findMany({
+      select: { id: true, updatedAt: true },
+    });
 
-  const podcastUrls = podcasts.map((podcast) => ({
-    url: `${baseUrl}/podcast/${podcast.id}`,
-    lastModified: podcast.updatedAt,
-    changeFrequency: "monthly",
-    priority: 0.6,
-  }));
+    const podcastUrls = podcasts.map((podcast) => ({
+      url: `${baseUrl}/podcast/${podcast.id}`,
+      lastModified: podcast.updatedAt,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    }));
 
-  return [...staticPages, ...blogUrls, ...podcastUrls];
-} 
+    return [...staticPages, ...blogUrls, ...podcastUrls];
+  } catch (e) {
+    // Fallback to static pages only if DB is not reachable during build/runtime
+    return staticPages;
+  }
+}
