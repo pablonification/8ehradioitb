@@ -95,12 +95,13 @@ START_MONGO=false
 if [[ -z "$MONGODB_URL_VALUE" ]]; then
   # default value points to local mongo
   START_MONGO=true
-elif echo "$MONGODB_URL_VALUE" | grep -q "@"; then
-  # connection string with creds containing @, leave as remote
+elif echo "$MONGODB_URL_VALUE" | grep -E -i '^mongodb\\+srv://' >/dev/null 2>&1; then
+  # mongodb+srv is a DNS SRV connection (remote)
   START_MONGO=false
 else
-  # check host part
-  HOST_PART=$(echo "$MONGODB_URL_VALUE" | sed -E 's#^[^:]+://([^/:]+).*#\1#') || true
+  # remove scheme and possible credentials (user:pass@) then extract host
+  TMP=$(echo "$MONGODB_URL_VALUE" | sed -E 's#^[^:]+://([^@]*@)?##')
+  HOST_PART=$(echo "$TMP" | sed -E 's#^([^/:]+).*#\1#') || true
   if [[ "$HOST_PART" == "mongo" || "$HOST_PART" == "localhost" || "$HOST_PART" == "127.0.0.1" ]]; then
     START_MONGO=true
   else
