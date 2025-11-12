@@ -11,14 +11,17 @@ CERTBOT_WEBROOT="/var/www/certbot"
 
 print_usage(){
   cat <<EOF
-Usage: sudo $0 --domain <domain> --email <email>
+Usage: sudo $0 --domain <domain> --email <email> [--skip-docker-build]
 
 This script will:
  - ensure docker and docker compose plugin are installed
  - create .env.production (prompting for missing values)
- - build and run docker compose
+ - build and run docker compose (unless --skip-docker-build)
  - install nginx site and reload
  - obtain Let's Encrypt certificates via certbot
+
+Options:
+  --skip-docker-build  Skip Docker build and container start (if already done)
 
 EOF
 }
@@ -26,10 +29,12 @@ EOF
 # Parse args
 DOMAIN=""
 EMAIL=""
+SKIP_DOCKER_BUILD=false
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
     --domain) DOMAIN="$2"; shift 2;;
     --email) EMAIL="$2"; shift 2;;
+    --skip-docker-build) SKIP_DOCKER_BUILD=true; shift;;
     -h|--help) print_usage; exit 0;;
     *) echo "Unknown arg: $1"; print_usage; exit 1;;
   esac
