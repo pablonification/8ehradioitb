@@ -6,6 +6,7 @@ import AuthProvider from "@/app/components/AuthProvider";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import StructuredData from "@/app/components/StructuredData";
+import ChatWidgetWrapper from "@/app/components/ai/ChatWidgetWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,12 +39,26 @@ const instrumentSerif = Instrument_Serif({
 
 export const metadata = {
   title: "8EH Radio ITB",
-  description: "Tempatnya semua informasi dan hiburan untuk Kampus Mania. Dengarkan berita terbaru, musik pilihan, dan podcast yang seru hanya di 8EH Radio ITB, Your Edutainment and Music Station!",
+  description:
+    "Tempatnya semua informasi dan hiburan untuk Kampus Mania. Dengarkan berita terbaru, musik pilihan, dan podcast yang seru hanya di 8EH Radio ITB, Your Edutainment and Music Station!",
   keywords: [
-    "radio itb", "8eh radio", "radio kampus", "podcast itb", "musik kampus", 
-    "edutainment", "radio streaming", "berita kampus", "hiburan kampus", 
-    "radio online", "podcast indonesia", "musik indonesia", "radio bandung",
-    "itb radio", "kampus radio", "student radio", "college radio"
+    "radio itb",
+    "8eh radio",
+    "radio kampus",
+    "podcast itb",
+    "musik kampus",
+    "edutainment",
+    "radio streaming",
+    "berita kampus",
+    "hiburan kampus",
+    "radio online",
+    "podcast indonesia",
+    "musik indonesia",
+    "radio bandung",
+    "itb radio",
+    "kampus radio",
+    "student radio",
+    "college radio",
   ],
   authors: [{ name: "8EH Radio ITB" }],
   creator: "8EH Radio ITB",
@@ -75,7 +90,8 @@ export const metadata = {
     url: "https://8ehradioitb.com",
     type: "website",
     title: "8EH Radio ITB",
-    description: "Tempatnya semua informasi dan hiburan untuk Kampus Mania. Dengarkan berita terbaru, musik pilihan, dan podcast yang seru hanya di 8EH Radio ITB, Your Edutainment and Music Station!",
+    description:
+      "Tempatnya semua informasi dan hiburan untuk Kampus Mania. Dengarkan berita terbaru, musik pilihan, dan podcast yang seru hanya di 8EH Radio ITB, Your Edutainment and Music Station!",
     locale: "id_ID",
     images: [
       {
@@ -94,7 +110,8 @@ export const metadata = {
     domain: "8ehradioitb.com",
     url: "https://8ehradioitb.com",
     title: "8EH Radio ITB",
-    description: "Tempatnya semua informasi dan hiburan untuk Kampus Mania. Dengarkan berita terbaru, musik pilihan, dan podcast yang seru hanya di 8EH Radio ITB, Your Edutainment and Music Station!",
+    description:
+      "Tempatnya semua informasi dan hiburan untuk Kampus Mania. Dengarkan berita terbaru, musik pilihan, dan podcast yang seru hanya di 8EH Radio ITB, Your Edutainment and Music Station!",
     images: [
       {
         url: "https://opengraph.b-cdn.net/production/images/926d8e9c-a7a3-40a9-b8b4-0de2a4a36875.png?token=IKNzn_FUcVlq_Gf8fdp7krktgTVanXpsEyg4_LdRG3E&height=630&width=1200&expires=33288947365",
@@ -105,7 +122,7 @@ export const metadata = {
   alternates: {
     canonical: "https://8ehradioitb.com",
     languages: {
-      'id-ID': 'https://8ehradioitb.com',
+      "id-ID": "https://8ehradioitb.com",
     },
   },
   metadataBase: new URL("https://8ehradioitb.com"),
@@ -136,6 +153,7 @@ export default async function RootLayout({ children }) {
         <div>
           <GlobalAudioPlayer />
         </div>
+        <ChatWidgetWrapper />
       </body>
     </html>
   );
