@@ -7,6 +7,7 @@ import Navbar from "@/app/components/Navbar";
 import FooterSection from "@/app/components/FooterSection";
 import { prisma } from "@/lib/prisma";
 import ArticleStructuredData from "@/app/components/ArticleStructuredData";
+import TLDRSection from "@/app/components/TLDRSection";
 
 async function getPost(slug) {
   const post = await prisma.blogPost.findUnique({
@@ -169,6 +170,11 @@ export default async function BlogPostPage({ params }) {
                 objectFit="cover"
               />
             </div>
+          )}
+
+          {/* TL;DR Section */}
+          {post.content && post.content.length >= 500 && (
+            <TLDRSection content={post.content} title={post.title} />
           )}
 
           {/* Markdown Content */}
