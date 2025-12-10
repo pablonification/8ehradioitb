@@ -7,6 +7,7 @@ import {
   FiTrash2,
   FiRefreshCw,
   FiAlertCircle,
+  FiInfo,
 } from "react-icons/fi";
 
 /**
@@ -20,107 +21,135 @@ import {
  * - POST /api/ml/predictions/[id] (make predictions)
  */
 
-// Default features for different model types
-const MODEL_FEATURES = {
-  listener_engagement: [
-    { name: "age", label: "Age", type: "int", min: 15, max: 60 },
-    {
-      name: "hours_listened",
-      label: "Hours Listened",
-      type: "float",
-      min: 0,
-      max: 50,
-    },
-    { name: "days_active", label: "Days Active", type: "int", min: 1, max: 30 },
-    {
-      name: "favorite_genre",
-      label: "Favorite Genre",
-      type: "int",
-      min: 0,
-      max: 4,
-    },
-  ],
-  podcast_popularity: [
-    {
-      name: "duration_mins",
-      label: "Duration (mins)",
-      type: "int",
-      min: 10,
-      max: 120,
-    },
-    { name: "num_tags", label: "Number of Tags", type: "int", min: 1, max: 10 },
-    {
-      name: "publish_hour",
-      label: "Publish Hour",
-      type: "int",
-      min: 0,
-      max: 23,
-    },
-    {
-      name: "host_experience_years",
-      label: "Host Experience (years)",
-      type: "int",
-      min: 0,
-      max: 10,
-    },
-  ],
-  chart_movement: [
-    {
-      name: "current_position",
-      label: "Current Position",
-      type: "int",
-      min: 1,
-      max: 100,
-    },
-    {
-      name: "weeks_on_chart",
-      label: "Weeks on Chart",
-      type: "int",
-      min: 1,
-      max: 52,
-    },
-    {
-      name: "genre_popularity",
-      label: "Genre Popularity",
-      type: "float",
-      min: 0,
-      max: 1,
-    },
-    {
-      name: "social_mentions",
-      label: "Social Mentions",
-      type: "int",
-      min: 0,
-      max: 10000,
-    },
-  ],
-  // Default fallback
-  default: [
-    { name: "feature_1", label: "Feature 1", type: "float", min: 0, max: 100 },
-    { name: "feature_2", label: "Feature 2", type: "float", min: 0, max: 100 },
-    { name: "feature_3", label: "Feature 3", type: "float", min: 0, max: 100 },
-  ],
-};
-
-// Prediction labels for classification models
-const PREDICTION_LABELS = {
+// Feature configurations for different scenarios
+const SCENARIO_FEATURES = {
   listener_engagement: {
-    1: { label: "Will Return", icon: "✅" },
-    0: { label: "Won't Return", icon: "❌" },
+    name: "Listener Engagement",
+    features: [
+      { name: "age", label: "Age", type: "int", min: 15, max: 60 },
+      {
+        name: "hours_listened",
+        label: "Hours Listened",
+        type: "float",
+        min: 0,
+        max: 50,
+      },
+      {
+        name: "days_active",
+        label: "Days Active",
+        type: "int",
+        min: 1,
+        max: 30,
+      },
+      {
+        name: "favorite_genre",
+        label: "Favorite Genre",
+        type: "int",
+        min: 0,
+        max: 4,
+      },
+    ],
+    keywords: ["listener", "engagement", "return", "churn"],
+    predictionLabels: {
+      1: { label: "Will Return", icon: "✅" },
+      0: { label: "Won't Return", icon: "❌" },
+    },
   },
   podcast_popularity: {
-    1: { label: "Will Be Popular", icon: "🔥" },
-    0: { label: "Not Popular", icon: "📉" },
+    name: "Podcast Popularity",
+    features: [
+      {
+        name: "duration_mins",
+        label: "Duration (mins)",
+        type: "int",
+        min: 10,
+        max: 120,
+      },
+      {
+        name: "num_tags",
+        label: "Number of Tags",
+        type: "int",
+        min: 1,
+        max: 10,
+      },
+      {
+        name: "publish_hour",
+        label: "Publish Hour",
+        type: "int",
+        min: 0,
+        max: 23,
+      },
+      {
+        name: "host_experience_years",
+        label: "Host Experience (years)",
+        type: "int",
+        min: 0,
+        max: 10,
+      },
+    ],
+    keywords: ["podcast", "popularity", "popular", "episode"],
+    predictionLabels: {
+      1: { label: "Will Be Popular", icon: "🔥" },
+      0: { label: "Not Popular", icon: "📉" },
+    },
   },
-  default: {
-    1: { label: "Positive", icon: "✅" },
-    0: { label: "Negative", icon: "❌" },
+  chart_movement: {
+    name: "Chart Movement",
+    features: [
+      {
+        name: "current_position",
+        label: "Current Position",
+        type: "int",
+        min: 1,
+        max: 100,
+      },
+      {
+        name: "weeks_on_chart",
+        label: "Weeks on Chart",
+        type: "int",
+        min: 1,
+        max: 52,
+      },
+      {
+        name: "genre_popularity",
+        label: "Genre Popularity",
+        type: "float",
+        min: 0,
+        max: 1,
+      },
+      {
+        name: "social_mentions",
+        label: "Social Mentions",
+        type: "int",
+        min: 0,
+        max: 10000,
+      },
+    ],
+    keywords: ["chart", "movement", "position", "song", "music"],
+    predictionLabels: {},
   },
+};
+
+// Try to detect scenario from model ID
+const detectScenario = (modelId) => {
+  if (!modelId) return null;
+  const lowerModelId = modelId.toLowerCase();
+
+  for (const [scenarioId, scenario] of Object.entries(SCENARIO_FEATURES)) {
+    if (scenario.keywords.some((keyword) => lowerModelId.includes(keyword))) {
+      return scenarioId;
+    }
+  }
+  return null;
 };
 
 export default function PredictionPlayground() {
   const [models, setModels] = useState([]);
   const [selectedModel, setSelectedModel] = useState("");
+  const [selectedScenario, setSelectedScenario] = useState(
+    "listener_engagement",
+  );
+  const [scenarioMode, setScenarioMode] = useState("auto"); // 'auto' or 'manual'
   const [inputMode, setInputMode] = useState("random");
   const [inputData, setInputData] = useState([]);
   const [randomCount, setRandomCount] = useState(3);
@@ -129,39 +158,19 @@ export default function PredictionPlayground() {
   const [loadingModels, setLoadingModels] = useState(true);
   const [error, setError] = useState(null);
 
-  // Get features based on model name
-  const getModelFeatures = (modelId) => {
-    if (!modelId) return MODEL_FEATURES.default;
+  // Get current features based on scenario
+  const currentScenario = SCENARIO_FEATURES[selectedScenario];
+  const currentFeatures = currentScenario?.features || [];
 
-    const lowerModelId = modelId.toLowerCase();
-    if (lowerModelId.includes("listener"))
-      return MODEL_FEATURES.listener_engagement;
-    if (lowerModelId.includes("podcast"))
-      return MODEL_FEATURES.podcast_popularity;
-    if (lowerModelId.includes("chart")) return MODEL_FEATURES.chart_movement;
-    return MODEL_FEATURES.default;
-  };
-
-  // Get prediction label based on model type
-  const getPredictionLabel = (modelId, pred) => {
-    const lowerModelId = (modelId || "").toLowerCase();
-    let labels = PREDICTION_LABELS.default;
-
-    if (lowerModelId.includes("listener"))
-      labels = PREDICTION_LABELS.listener_engagement;
-    else if (lowerModelId.includes("podcast"))
-      labels = PREDICTION_LABELS.podcast_popularity;
-
-    // For classification (0 or 1)
-    if (pred === 0 || pred === 1) {
-      return labels[pred] || { label: String(pred), icon: "📊" };
+  // Detect scenario when model changes
+  useEffect(() => {
+    if (scenarioMode === "auto" && selectedModel) {
+      const detected = detectScenario(selectedModel);
+      if (detected) {
+        setSelectedScenario(detected);
+      }
     }
-
-    // For regression (numeric)
-    return { label: `Score: ${pred}`, icon: "📊" };
-  };
-
-  const currentFeatures = getModelFeatures(selectedModel);
+  }, [selectedModel, scenarioMode]);
 
   // Load ready models
   useEffect(() => {
@@ -176,6 +185,11 @@ export default function PredictionPlayground() {
         setModels(readyModels);
         if (readyModels.length > 0) {
           setSelectedModel(readyModels[0].id);
+          // Try to detect scenario for first model
+          const detected = detectScenario(readyModels[0].id);
+          if (detected) {
+            setSelectedScenario(detected);
+          }
         }
       } catch (err) {
         setError("Failed to load models");
@@ -186,11 +200,12 @@ export default function PredictionPlayground() {
     fetchModels();
   }, []);
 
-  // Reset input data when model changes
+  // Reset input data when scenario changes
   useEffect(() => {
     setInputData([]);
     setPredictions(null);
-  }, [selectedModel]);
+    setError(null);
+  }, [selectedScenario]);
 
   const generateRandomValue = (feature) => {
     if (feature.type === "int") {
@@ -284,6 +299,30 @@ export default function PredictionPlayground() {
     }
   };
 
+  const getPredictionLabel = (pred) => {
+    const labels = currentScenario?.predictionLabels || {};
+
+    // For classification (0 or 1)
+    if (pred === 0 || pred === 1) {
+      return (
+        labels[pred] || {
+          label: pred === 1 ? "Positive" : "Negative",
+          icon: pred === 1 ? "✅" : "❌",
+        }
+      );
+    }
+
+    // For regression (numeric)
+    return {
+      label: `Score: ${typeof pred === "number" ? pred.toFixed(2) : pred}`,
+      icon: "📊",
+    };
+  };
+
+  // Check if scenario was auto-detected
+  const detectedScenario = detectScenario(selectedModel);
+  const isScenarioDetected = detectedScenario !== null;
+
   // Loading state
   if (loadingModels) {
     return (
@@ -303,7 +342,7 @@ export default function PredictionPlayground() {
           No Ready Models Available
         </h3>
         <p className="text-gray-500 font-body mb-4">
-          Train a model first in the "Train Model" tab
+          Train a model first in the &quot;Train Model&quot; tab
         </p>
         <button
           onClick={handleRefreshModels}
@@ -348,6 +387,75 @@ export default function PredictionPlayground() {
               className={loadingModels ? "animate-spin" : ""}
             />
           </button>
+        </div>
+      </div>
+
+      {/* Scenario Selection - Important for matching features! */}
+      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-3">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 font-body mb-1">
+              Feature Schema
+            </label>
+            <p className="text-xs text-gray-500 font-body">
+              Select the feature schema that matches how the model was trained.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="flex items-center gap-1 cursor-pointer text-sm">
+              <input
+                type="checkbox"
+                checked={scenarioMode === "manual"}
+                onChange={(e) =>
+                  setScenarioMode(e.target.checked ? "manual" : "auto")
+                }
+                className="w-4 h-4 text-red-600 focus:ring-red-500 rounded"
+              />
+              <span className="font-body text-gray-600">Manual Override</span>
+            </label>
+          </div>
+        </div>
+
+        <select
+          value={selectedScenario}
+          onChange={(e) => setSelectedScenario(e.target.value)}
+          disabled={scenarioMode === "auto"}
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 font-body text-gray-900 focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+        >
+          {Object.entries(SCENARIO_FEATURES).map(([id, scenario]) => (
+            <option key={id} value={id}>
+              {scenario.name}
+            </option>
+          ))}
+        </select>
+
+        {/* Warning if model name doesn't match scenario */}
+        {!isScenarioDetected && (
+          <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <FiAlertCircle
+                className="text-yellow-600 mt-0.5 flex-shrink-0"
+                size={16}
+              />
+              <div className="text-sm text-yellow-700 font-body">
+                <strong>Warning:</strong> Model name &quot;{selectedModel}&quot;
+                doesn&apos;t match any known scenario. Please enable
+                &quot;Manual Override&quot; and select the correct feature
+                schema that was used during training.
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Show current features */}
+        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-start gap-2">
+            <FiInfo className="text-blue-500 mt-0.5 flex-shrink-0" size={16} />
+            <div className="text-sm text-blue-700 font-body">
+              <strong>Features:</strong>{" "}
+              {currentFeatures.map((f) => f.name).join(", ")}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -497,9 +605,18 @@ export default function PredictionPlayground() {
 
       {/* Error Message */}
       {error && (
-        <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg font-body">
-          <FiAlertCircle size={20} />
-          {error}
+        <div className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg font-body">
+          <FiAlertCircle size={20} className="flex-shrink-0 mt-0.5" />
+          <div>
+            <p>{error}</p>
+            {error.includes("feature") && (
+              <p className="text-sm mt-1">
+                Tip: Make sure the feature schema matches how the model was
+                trained. Try enabling &quot;Manual Override&quot; and selecting
+                the correct schema.
+              </p>
+            )}
+          </div>
         </div>
       )}
 
@@ -532,10 +649,10 @@ export default function PredictionPlayground() {
           </h3>
           <div className="space-y-2">
             {predictions.predictions.map((pred, index) => {
-              const predLabel = getPredictionLabel(selectedModel, pred);
+              const predLabel = getPredictionLabel(pred);
               const inputRow = inputData[index];
               const inputSummary = currentFeatures
-                .map((f) => `${f.label}=${inputRow?.[f.name] ?? "?"}`)
+                .map((f) => `${f.name}=${inputRow?.[f.name] ?? "?"}`)
                 .join(", ");
 
               return (
