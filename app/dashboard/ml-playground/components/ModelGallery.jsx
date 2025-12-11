@@ -19,6 +19,7 @@ export default function ModelGallery() {
 
   const fetchModels = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/ml/models");
       const data = await res.json();
@@ -26,12 +27,18 @@ export default function ModelGallery() {
       if (res.ok) {
         setModels(data.models || []);
         setError(null);
-      } else {
-        setError(data.message || "Failed to fetch models");
+      } 
+      else {
+        const errorMessage = data.message || data.error || "Failed to fetch models";
+        setError(errorMessage);
+        setModels([]);
       }
-    } catch (err) {
+    } 
+    catch (err) {
       setError("Failed to connect to API");
-    } finally {
+      setModels([]);
+    } 
+    finally {
       setLoading(false);
     }
   };
@@ -52,11 +59,27 @@ export default function ModelGallery() {
         fetchModels();
       } else {
         const data = await res.json();
-        setError(data.message || "Failed to delete model");
+        let errorMessage = "Failed to delete model";
+        
+        if (res.status === 404) {
+          errorMessage = data.message || data.detail || `Model "${modelId}" not found`;
+        } 
+        else if (res.status === 422) {
+          if (Array.isArray(data.detail) && data.detail.length > 0) {
+            errorMessage = data.detail.map((d) => d.msg).join(", ");
+          } else {
+            errorMessage = data.message || "Validation error";
+          }
+        } 
+        else {
+          errorMessage = data.message || data.error || "Failed to delete model";
+        }
+        
+        setError(errorMessage);
         setDeleteConfirm(null);
       }
     } catch (err) {
-      setError("Failed to delete model");
+      setError("Failed to connect to API");
       setDeleteConfirm(null);
     }
   };
