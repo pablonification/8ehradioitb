@@ -183,7 +183,21 @@ export default function PredictionPlayground() {
           (m) => m.status === "ready",
         );
         setModels(readyModels);
-        if (readyModels.length > 0) {
+        
+        const preSelectedModel = typeof window !== "undefined" 
+          ? window.sessionStorage.getItem("selectedPredictModel") 
+          : null;
+        
+        if (preSelectedModel && readyModels.some(m => m.id === preSelectedModel)) {
+          setSelectedModel(preSelectedModel);
+          window.sessionStorage.removeItem("selectedPredictModel");
+          const detected = detectScenario(preSelectedModel);
+          if (detected) {
+            setSelectedScenario(detected);
+          }
+        } 
+        
+        else if (readyModels.length > 0) {
           setSelectedModel(readyModels[0].id);
           // Try to detect scenario for first model
           const detected = detectScenario(readyModels[0].id);
@@ -274,7 +288,29 @@ export default function PredictionPlayground() {
       if (res.ok) {
         setPredictions(data);
       } else {
-        setError(data.message || "Prediction failed");
+        let errorMessage = "Prediction failed";
+        
+        if (res.status === 404) {
+          errorMessage = data.message || data.detail || "Model not found";
+        } else if (res.status === 422) {
+          if (Array.isArray(data.detail) && data.detail.length > 0) {
+            errorMessage = data.detail.map((d) => d.msg || String(d)).join(", ");
+          } else if (typeof data.detail === "string") {
+            errorMessage = data.detail;
+          } else {
+            errorMessage = data.message || "Model is not ready for predictions";
+          }
+        } else {
+          if (typeof data.message === "string") {
+            errorMessage = data.message;
+          } else if (typeof data.error === "string") {
+            errorMessage = data.error;
+          } else if (typeof data.detail === "string") {
+            errorMessage = data.detail;
+          }
+        }
+        
+        setError(errorMessage);
       }
     } catch (err) {
       setError("Failed to make prediction");
@@ -608,8 +644,8 @@ export default function PredictionPlayground() {
         <div className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg font-body">
           <FiAlertCircle size={20} className="flex-shrink-0 mt-0.5" />
           <div>
-            <p>{error}</p>
-            {error.includes("feature") && (
+            <p>{typeof error === "string" ? error : JSON.stringify(error)}</p>
+            {typeof error === "string" && error.includes("feature") && (
               <p className="text-sm mt-1">
                 Tip: Make sure the feature schema matches how the model was
                 trained. Try enabling &quot;Manual Override&quot; and selecting

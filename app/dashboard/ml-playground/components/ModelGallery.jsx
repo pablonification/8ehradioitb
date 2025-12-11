@@ -4,18 +4,28 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   FiAlertCircle,
+  FiCheck,
+  FiClock,
   FiDatabase,
   FiEye,
+  FiLoader,
   FiRefreshCw,
   FiTrash2,
+  FiX,
   FiZap,
 } from "react-icons/fi";
 
-export default function ModelGallery() {
+export default function ModelGallery({ onNavigateToPredict }) {
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  
+  // Status modal state
+  const [statusModal, setStatusModal] = useState(null); // model id to show status
+  const [statusData, setStatusData] = useState(null);
+  const [statusLoading, setStatusLoading] = useState(false);
+  const [statusError, setStatusError] = useState(null);
 
   const fetchModels = async () => {
     setLoading(true);
@@ -29,13 +39,18 @@ export default function ModelGallery() {
         setError(null);
       } 
       else {
-        const errorMessage = data.message || data.error || "Failed to fetch models";
+        let errorMessage = "Gagal memuat daftar model";
+        if (typeof data.message === "string") {
+          errorMessage = data.message;
+        } else if (typeof data.error === "string") {
+          errorMessage = data.error;
+        }
         setError(errorMessage);
         setModels([]);
       }
     } 
     catch (err) {
-      setError("Failed to connect to API");
+      setError("Gagal terhubung ke server. Periksa koneksi internet Anda.");
       setModels([]);
     } 
     finally {
@@ -62,25 +77,112 @@ export default function ModelGallery() {
         let errorMessage = "Failed to delete model";
         
         if (res.status === 404) {
-          errorMessage = data.message || data.detail || `Model "${modelId}" not found`;
+          // API returns { error: "not_found", message: "Model 'xxx' not found" }
+          errorMessage = `Model "${modelId}" tidak ditemukan. Mungkin sudah dihapus atau belum selesai training.`;
         } 
         else if (res.status === 422) {
           if (Array.isArray(data.detail) && data.detail.length > 0) {
             errorMessage = data.detail.map((d) => d.msg).join(", ");
           } else {
-            errorMessage = data.message || "Validation error";
+            errorMessage = data.message || "Terjadi kesalahan validasi";
           }
         } 
+        else if (res.status === 401) {
+          errorMessage = "Anda tidak memiliki akses untuk menghapus model ini";
+        }
+        else if (res.status === 503) {
+          errorMessage = "Gagal terhubung ke ML API. Silakan coba lagi nanti.";
+        }
         else {
-          errorMessage = data.message || data.error || "Failed to delete model";
+          // Extract message properly
+          if (typeof data.message === "string") {
+            errorMessage = data.message;
+          } else if (typeof data.error === "string") {
+            errorMessage = data.error;
+          } else {
+            errorMessage = "Gagal menghapus model. Silakan coba lagi.";
+          }
         }
         
         setError(errorMessage);
         setDeleteConfirm(null);
       }
     } catch (err) {
-      setError("Failed to connect to API");
+      setError("Gagal terhubung ke server. Periksa koneksi internet Anda.");
       setDeleteConfirm(null);
+    }
+  };
+
+  const fetchModelStatus = async (modelId) => {
+    setStatusModal(modelId);
+    setStatusLoading(true);
+    setStatusError(null);
+    setStatusData(null);
+
+    try {
+      const res = await fetch(`/api/ml/models/${modelId}`);
+      const data = await res.json();
+
+      if (res.ok) {
+        setStatusData(data);
+      } else if (res.status === 404) {
+        setStatusError(`Model "${modelId}" tidak ditemukan.`);
+      } else if (res.status === 422) {
+        if (Array.isArray(data.detail) && data.detail.length > 0) {
+          setStatusError(data.detail.map((d) => d.msg || String(d)).join(", "));
+        } else {
+          setStatusError("Terjadi kesalahan validasi");
+        }
+      } else if (res.status === 401) {
+        setStatusError("Anda tidak memiliki akses untuk melihat model ini");
+      } else if (res.status === 503) {
+        setStatusError("Gagal terhubung ke ML API. Silakan coba lagi nanti.");
+      } else {
+        let errorMessage = "Gagal memuat status model";
+        if (typeof data.message === "string") {
+          errorMessage = data.message;
+        } else if (typeof data.error === "string") {
+          errorMessage = data.error;
+        }
+        setStatusError(errorMessage);
+      }
+    } catch (err) {
+      setStatusError("Gagal terhubung ke server. Periksa koneksi internet Anda.");
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
+  const closeStatusModal = () => {
+    setStatusModal(null);
+    setStatusData(null);
+    setStatusError(null);
+  };
+
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "ready":
+        return <FiCheck className="text-green-600" />;
+      case "failed":
+        return <FiX className="text-red-600" />;
+      case "training":
+        return <FiLoader className="text-blue-600 animate-spin" />;
+      case "queued":
+        return <FiClock className="text-yellow-600" />;
+      default:
+        return <FiDatabase className="text-gray-600" />;
     }
   };
 
@@ -197,7 +299,7 @@ export default function ModelGallery() {
         <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700 font-body">
           <FiAlertCircle className="mt-0.5" />
           <div>
-            <p className="font-semibold">Something went wrong</p>
+            <p className="font-semibold">Terjadi Kesalahan</p>
             <p className="text-sm">{error}</p>
           </div>
         </div>
@@ -244,21 +346,21 @@ export default function ModelGallery() {
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                <Link
-                  href="#status"
-                  className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold font-body text-gray-800 transition hover:bg-gray-100"
+                <button
+                  onClick={() => fetchModelStatus(model.id)}
+                  className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold font-body text-gray-800 transition hover:bg-gray-100 cursor-pointer"
                 >
                   <FiEye />
                   View Status
-                </Link>
-                {model.status === "ready" && (
-                  <Link
-                    href="#predict"
-                    className="flex items-center gap-2 rounded-lg bg-gray-800 px-3 py-2 text-sm font-semibold font-body text-white transition hover:bg-gray-900"
+                </button>
+                {model.status === "ready" && onNavigateToPredict && (
+                  <button
+                    onClick={() => onNavigateToPredict(model.id)}
+                    className="flex items-center gap-2 rounded-lg bg-gray-800 px-3 py-2 text-sm font-semibold font-body text-white transition hover:bg-gray-900 cursor-pointer"
                   >
                     <FiZap />
                     Predict
-                  </Link>
+                  </button>
                 )}
                 <button
                   onClick={() => setDeleteConfirm(model.id)}
@@ -303,6 +405,147 @@ export default function ModelGallery() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Status Modal */}
+      {statusModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-md mx-4 rounded-2xl border border-gray-200 bg-white shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-heading font-bold text-white">
+                  Model Status
+                </h3>
+                <button
+                  onClick={closeStatusModal}
+                  className="text-white/80 hover:text-white transition cursor-pointer"
+                >
+                  <FiX size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              {statusLoading && (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <FiLoader className="text-4xl text-red-600 animate-spin mb-4" />
+                  <p className="text-gray-600 font-body">Memuat status...</p>
+                </div>
+              )}
+
+              {statusError && (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
+                    <FiX className="text-3xl text-red-600" />
+                  </div>
+                  <p className="text-red-700 font-body font-semibold mb-2">Terjadi Kesalahan</p>
+                  <p className="text-gray-600 font-body text-sm text-center">{statusError}</p>
+                </div>
+              )}
+
+              {statusData && (
+                <div className="space-y-4">
+                  {/* Status Card */}
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                          statusData.status === "ready" ? "bg-green-100" :
+                          statusData.status === "training" ? "bg-blue-100" :
+                          statusData.status === "queued" ? "bg-yellow-100" :
+                          statusData.status === "failed" ? "bg-red-100" : "bg-gray-100"
+                        }`}>
+                          {getStatusIcon(statusData.status)}
+                        </div>
+                        <div>
+                          <p className="text-xs font-body uppercase tracking-wide text-gray-500">Model ID</p>
+                          <p className="text-lg font-heading font-bold text-gray-900">{statusData.id}</p>
+                        </div>
+                      </div>
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold font-body ${getStatusBadgeClass(statusData.status)}`}>
+                        {statusLabel(statusData.status)}
+                      </span>
+                    </div>
+
+                    {/* Progress bar for training/queued */}
+                    {(statusData.status === "training" || statusData.status === "queued") && (
+                      <div className="mb-4">
+                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full ${
+                            statusData.status === "training" 
+                              ? "bg-blue-500 animate-pulse w-2/3" 
+                              : "bg-yellow-500 w-1/4"
+                          }`} />
+                        </div>
+                        <p className="text-xs text-gray-500 font-body mt-1">
+                          {statusData.status === "training" ? "Training in progress..." : "Waiting in queue..."}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Details Grid */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white rounded-lg p-3 border border-gray-200">
+                        <p className="text-xs font-body text-gray-500 uppercase tracking-wide">Type</p>
+                        <p className="text-sm font-body font-semibold text-gray-800 capitalize mt-1">
+                          {statusData.model_type || "Unknown"}
+                        </p>
+                      </div>
+                      <div className="bg-white rounded-lg p-3 border border-gray-200">
+                        <p className="text-xs font-body text-gray-500 uppercase tracking-wide">Last Updated</p>
+                        <p className="text-sm font-body font-semibold text-gray-800 mt-1">
+                          {formatDateTime(statusData.updated_at)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status Message */}
+                  {statusData.status === "ready" && (
+                    <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+                      <FiCheck className="text-green-600" />
+                      <p className="text-green-700 font-body text-sm">
+                        Model is ready for predictions!
+                      </p>
+                    </div>
+                  )}
+                  {statusData.status === "failed" && (
+                    <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+                      <FiX className="text-red-600" />
+                      <p className="text-red-700 font-body text-sm">
+                        Training failed. Please try again.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+              {statusData?.status === "ready" && onNavigateToPredict && (
+                <button
+                  onClick={() => {
+                    closeStatusModal();
+                    onNavigateToPredict(statusData.id);
+                  }}
+                  className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg font-body font-semibold transition-colors cursor-pointer"
+                >
+                  <FiZap />
+                  Make Prediction
+                </button>
+              )}
+              <button
+                onClick={closeStatusModal}
+                className="px-4 py-2 rounded-lg border border-gray-300 font-body font-semibold text-gray-700 hover:bg-gray-100 transition cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
