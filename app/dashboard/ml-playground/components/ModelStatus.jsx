@@ -28,7 +28,7 @@ export default function ModelStatus() {
         setError(null);
       } else if (res.status === 404) {
         setStatus(null);
-        setError(`Model "${id}" not found`);
+        setError(data.message ? `Model "${id}" not found: ${data.message}` : `Model "${id}" not found`);
       } else {
         setError(data.message || "Failed to fetch status");
         setStatus(null);
