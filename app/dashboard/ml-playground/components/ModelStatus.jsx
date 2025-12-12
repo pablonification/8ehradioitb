@@ -137,7 +137,6 @@ export default function ModelStatus() {
     });
   };
 
-  // TODO: Implement the UI based on wireframe above
 
   return (
     <div className="p-6 bg-white shadow-xl rounded-xl max-w-xl mx-auto border border-gray-100">
