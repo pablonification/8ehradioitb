@@ -66,6 +66,23 @@ export default function MLPlaygroundPage() {
 
   const ActiveComponent = TABS.find((tab) => tab.id === activeTab)?.component;
 
+  const handleNavigateToPredict = (modelId) => {
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem("selectedPredictModel", modelId);
+    }
+    setActiveTab("predict");
+  };
+
+  const renderActiveComponent = () => {
+    if (!ActiveComponent) return null;
+    
+    if (activeTab === "models") {
+      return <ActiveComponent onNavigateToPredict={handleNavigateToPredict} />;
+    }
+    
+    return <ActiveComponent />;
+  };
+
   return (
     <div className="max-w-6xl mx-auto">
       {/* Header */}
@@ -104,7 +121,7 @@ export default function MLPlaygroundPage() {
         </div>
 
         {/* Tab Content */}
-        <div className="p-6">{ActiveComponent && <ActiveComponent />}</div>
+        <div className="p-6">{renderActiveComponent()}</div>
       </div>
     </div>
   );
