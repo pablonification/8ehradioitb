@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { FiSearch, FiCheck, FiX, FiClock, FiLoader, FiAlertTriangle } from "react-icons/fi"; // Menambahkan FiAlertTriangle untuk error
+import { FiSearch, FiCheck, FiX, FiClock, FiLoader, FiAlertTriangle } from "react-icons/fi"; // Icons for representing model status and actions (search, success, error, loading, warning)
 
 export default function ModelStatus() {
   const [modelId, setModelId] = useState("");
