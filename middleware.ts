@@ -6,6 +6,7 @@ const ALLOWED_ORIGINS = [
   "https://localhost:3000",
   "https://api.prediksi.my.id",
   "https://prediksi.my.id",
+  "https://tstradio.wtf",
 ];
 
 const RESERVED = [
