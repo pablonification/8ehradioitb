@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const ALLOWED_ORIGINS = [
+  "http://localhost:3000",
+  "https://localhost:3000",
+  "https://api.prediksi.my.id",
+  "https://prediksi.my.id",
+];
+
 const RESERVED = [
   "",
   "api",
@@ -27,12 +34,15 @@ export async function middleware(request: NextRequest) {
 
   // --- CORS handling for all API routes ---
   if (pathname.startsWith("/api/")) {
+    const origin = request.headers.get("origin") || "";
+    const isAllowedOrigin = ALLOWED_ORIGINS.includes(origin);
+
     // Handle preflight requests
     if (request.method === "OPTIONS") {
       return new NextResponse(null, {
         status: 200,
         headers: {
-          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Origin": isAllowedOrigin ? origin : "",
           "Access-Control-Allow-Methods":
             "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH",
           "Access-Control-Allow-Headers":
@@ -40,13 +50,22 @@ export async function middleware(request: NextRequest) {
           "Access-Control-Max-Age": "86400",
           "Access-Control-Expose-Headers":
             "Content-Length, Content-Range, Accept-Ranges",
+          "Access-Control-Allow-Credentials": "true",
         },
       });
     }
-    // For all API routes, allow CORS headers on response (for GET, POST, etc)
-    // Note: You may want to add CORS headers to all API responses here if needed.
-    // But for now, just let the request continue.
-    return NextResponse.next();
+
+    // Attach CORS headers to all API responses
+    const response = NextResponse.next();
+    if (isAllowedOrigin) {
+      response.headers.set("Access-Control-Allow-Origin", origin);
+      response.headers.set("Access-Control-Allow-Credentials", "true");
+      response.headers.set(
+        "Access-Control-Expose-Headers",
+        "Content-Length, Content-Range, Accept-Ranges",
+      );
+    }
+    return response;
   }
 
   // Logika rewrite untuk shortlink

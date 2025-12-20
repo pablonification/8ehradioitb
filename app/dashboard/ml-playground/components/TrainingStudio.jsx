@@ -516,176 +516,240 @@ function BlogPredictionScenario() {
 
 function PodcastSimilarityScenario() {
   const [podcasts, setPodcasts] = useState([]);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDescription, setNewDescription] = useState("");
   const [loading, setLoading] = useState(false);
-  const [similarityResult, setSimilarityResult] = useState(null);
-  const [inputTitle, setInputTitle] = useState("");
-  const [inputContent, setInputContent] = useState("");
+  const [analysisResults, setAnalysisResults] = useState([]);
+  const [progress, setProgress] = useState({ current: 0, total: 0 });
+  const [hasAnalyzed, setHasAnalyzed] = useState(false);
+
+  useEffect(() => {
+    fetchPodcasts();
+  }, []);
 
   const fetchPodcasts = async () => {
-    setLoading(true);
     try {
       const res = await fetch("/api/podcast");
       if (!res.ok) throw new Error("Failed to fetch podcasts");
       const data = await res.json();
-      setPodcasts(Array.isArray(data) ? data : data.podcasts || []);
+      setPodcasts(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
-      alert("Error fetching podcasts: " + err.message);
-    } finally {
-      setLoading(false);
     }
   };
 
   const checkSimilarity = async () => {
-    if (!inputTitle || !inputContent) return;
-    setLoading(true);
-    setSimilarityResult(null);
+    if ((!newTitle && !newDescription) || podcasts.length === 0) return;
 
-    try {
-      const res = await fetch("/api/ml/similarity-check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: inputTitle, content: inputContent }),
-      });
-      const result = await res.json();
-      setSimilarityResult(result);
-    } catch (err) {
-      console.error(err);
-      alert("Similarity check failed: " + err.message);
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    setAnalysisResults([]);
+    setHasAnalyzed(false);
+    setProgress({ current: 0, total: podcasts.length });
+
+    const newContent = `Title: ${newTitle}\n\nDescription: ${newDescription}`;
+    const foundSimilar = [];
+
+    for (let i = 0; i < podcasts.length; i++) {
+      const p = podcasts[i];
+      const existingContent = `Title: ${p.title}\n\nDescription: ${
+        p.description || ""
+      }`;
+
+      try {
+        const res = await fetch("/api/ml/similarity-check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content_1: existingContent,
+            content_2: newContent,
+          }),
+        });
+        const result = await res.json();
+
+        if (result.is_similar) {
+          foundSimilar.push({
+            podcast: p,
+            ...result,
+          });
+        }
+      } catch (err) {
+        console.error(`Failed to check similarity for ${p.title}`, err);
+      }
+
+      setProgress((prev) => ({ ...prev, current: i + 1 }));
     }
+
+    setAnalysisResults(foundSimilar);
+    setHasAnalyzed(true);
+    setLoading(false);
   };
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="border-b border-gray-200 pb-4">
         <h3 className="text-2xl font-heading font-bold text-gray-900">
-          Podcast Similarity Check
+          Podcast Idea Validator
         </h3>
         <p className="text-gray-900 mt-1">
-          Detect content duplication by comparing new scripts against existing
-          podcasts.
+          Enter your new podcast idea to check for similarities against our
+          entire episode database.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 flex flex-col">
-          <div className="flex justify-between items-center mb-4">
-            <h4 className="font-bold text-gray-900 flex items-center gap-2">
-              <span className="bg-red-100 text-red-600 w-6 h-6 rounded-full flex items-center justify-center text-sm">
-                1
-              </span>
-              Existing Podcasts
-            </h4>
-            <button
-              onClick={fetchPodcasts}
-              disabled={loading}
-              className="bg-white border border-gray-300 text-gray-900 hover:bg-gray-50 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
-            >
-              Fetch Podcasts
-            </button>
-          </div>
-
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm flex-1 overflow-hidden min-h-[300px]">
-            {podcasts.length > 0 ? (
-              <div className="overflow-y-auto max-h-[400px] divide-y divide-gray-100">
-                {podcasts.map((pod, idx) => (
-                  <div key={idx} className="p-3 hover:bg-gray-50">
-                    <h5 className="font-medium text-sm text-gray-900 mb-1">
-                      {pod.title}
-                    </h5>
-                    <p className="text-xs text-gray-900 line-clamp-2">
-                      {pod.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-gray-800 text-xs p-8 text-center">
-                Click "Fetch Podcasts" to load database
-              </div>
-            )}
-          </div>
-        </div>
+      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+        <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <span className="bg-red-100 text-red-600 w-6 h-6 rounded-full flex items-center justify-center text-sm">
+          •
+          </span>
+          New Podcast Concept
+        </h4>
 
         <div className="space-y-4">
-          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-            <h4 className="font-bold text-gray-900 flex items-center gap-2 mb-4">
-              <span className="bg-red-100 text-red-600 w-6 h-6 rounded-full flex items-center justify-center text-sm">
-                2
-              </span>
-              Check New Content
-            </h4>
-
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-900 mb-1">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  value={inputTitle}
-                  onChange={(e) => setInputTitle(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-red-500 outline-none"
-                  placeholder="Episode title..."
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-900 mb-1">
-                  Content Script / Description
-                </label>
-                <textarea
-                  value={inputContent}
-                  onChange={(e) => setInputContent(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-red-500 outline-none h-32 resize-none"
-                  placeholder="Paste script content here..."
-                />
-              </div>
-
-              <button
-                onClick={checkSimilarity}
-                disabled={loading || !inputTitle || !inputContent}
-                className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-all disabled:opacity-50"
-              >
-                {loading ? "Checking..." : "Check Similarity"}
-              </button>
-            </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Title
+            </label>
+            <input
+              type="text"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-red-500 outline-none"
+              placeholder="Enter the title of your podcast idea..."
+            />
           </div>
 
-          {similarityResult && (
-            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm animate-in fade-in slide-in-from-bottom-2">
-              <h4 className="text-sm font-bold text-gray-900 mb-2 border-b border-gray-100 pb-2">
-                Analysis Result
-              </h4>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs text-gray-900">Similarity Score</span>
-                <span
-                  className={`text-lg font-mono font-bold ${
-                    similarityResult.similarity_score > 0.7
-                      ? "text-red-600"
-                      : similarityResult.similarity_score > 0.4
-                        ? "text-orange-500"
-                        : "text-green-600"
-                  }`}
-                >
-                  {(similarityResult.similarity_score * 100).toFixed(1)}%
-                </span>
-              </div>
-              {similarityResult.matched_source && (
-                <div className="bg-gray-50 p-3 rounded-lg text-xs">
-                  <span className="font-semibold block text-gray-900 mb-1">
-                    Matched With:
-                  </span>
-                  <p className="text-gray-900">
-                    {similarityResult.matched_source}
-                  </p>
-                </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Description & Content
+            </label>
+            <textarea
+              value={newDescription}
+              onChange={(e) => setNewDescription(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-red-500 outline-none min-h-[120px] resize-y"
+              placeholder="Describe the topics, themes, and content of the episode..."
+            />
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <button
+              onClick={checkSimilarity}
+              disabled={
+                loading ||
+                (!newTitle && !newDescription) ||
+                podcasts.length === 0
+              }
+              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-sm transition-all disabled:opacity-50 flex items-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <svg
+                    className="animate-spin h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Checking ({progress.current}/{progress.total})...
+                </>
+              ) : (
+                "Check Similarity"
               )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {hasAnalyzed && (
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+          <div className="flex items-center justify-between border-b border-gray-200 pb-2">
+            <h4 className="text-lg font-bold text-gray-900">
+              Analysis Results
+            </h4>
+            {analysisResults.length === 0 ? (
+              <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold border border-green-200">
+                Original Idea
+              </span>
+            ) : (
+              <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold border border-red-200">
+                {analysisResults.length} Similar Found
+              </span>
+            )}
+          </div>
+
+          {analysisResults.length === 0 ? (
+            <div className="bg-green-50 rounded-xl border border-green-200 p-8 text-center">
+              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+                ✨
+              </div>
+              <h5 className="text-lg font-bold text-green-900 mb-2">
+                Your Idea is Original!
+              </h5>
+              <p className="text-green-800 text-sm">
+                We checked against {progress.total} existing episodes and found
+                no significant similarities. You're good to go!
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-6">
+              {analysisResults.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-gray-100 pb-4">
+                    <div>
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                        Similar to Existing Episode
+                      </span>
+                      <h5 className="text-lg font-bold text-gray-900 mt-1">
+                        {item.podcast.title}
+                      </h5>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-bold border border-red-200 whitespace-nowrap uppercase">
+                        {item.similarity_level?.replace("_", " ")}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <h6 className="font-semibold text-gray-900 text-xs uppercase mb-2">
+                        Originality Assessment
+                      </h6>
+                      <p className="text-gray-700 text-sm leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
+                        {item.originality_assessment}
+                      </p>
+                    </div>
+
+                    <div>
+                      <h6 className="font-semibold text-gray-900 text-xs uppercase mb-2">
+                        Detailed Analysis
+                      </h6>
+                      <p className="text-gray-700 text-sm leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
+                        {item.detailed_analysis}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -752,7 +816,7 @@ function SocialCaptionScenario() {
         <div className="flex justify-between items-center mb-4">
           <h4 className="font-bold text-gray-900 flex items-center gap-2">
             <span className="bg-red-100 text-red-600 w-6 h-6 rounded-full flex items-center justify-center text-sm">
-              1
+              •
             </span>
             Select Video Content
           </h4>
@@ -944,7 +1008,7 @@ function ChartSummarizerScenario() {
           <div className="flex justify-between items-center mb-4 flex-shrink-0">
             <h4 className="font-bold text-gray-900 flex items-center gap-2">
               <span className="bg-red-100 text-red-600 w-6 h-6 rounded-full flex items-center justify-center text-sm">
-                1
+                •
               </span>
               Raw Chart Data
             </h4>

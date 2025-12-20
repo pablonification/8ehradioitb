@@ -18,11 +18,11 @@ export async function POST(request) {
   try {
     const body = await request.json();
 
-    if (!body.title || !body.content) {
+    if (!body.content_1 || !body.content_2) {
       return NextResponse.json(
         {
           error: "validation_error",
-          message: "Missing required fields: title, content",
+          message: "Missing required fields: content_1, content_2",
         },
         { status: 400 },
       );
@@ -34,8 +34,8 @@ export async function POST(request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        title: body.title,
-        content: body.content,
+        content_1: body.content_1,
+        content_2: body.content_2,
       }),
     });
 
