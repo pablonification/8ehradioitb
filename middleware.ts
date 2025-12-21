@@ -7,6 +7,7 @@ const ALLOWED_ORIGINS = [
   "https://api.prediksi.my.id",
   "https://prediksi.my.id",
   "https://tstradio.wtf",
+  "https://predictia.vercel.app",
 ];
 
 const RESERVED = [
