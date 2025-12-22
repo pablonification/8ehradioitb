@@ -101,6 +101,7 @@ export default function TrainingStudio() {
   );
 }
 
+
 function BlogTrainingScenario() {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(false);
