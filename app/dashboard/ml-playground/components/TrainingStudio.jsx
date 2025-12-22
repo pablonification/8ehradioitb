@@ -1,17 +1,62 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 export default function TrainingStudio() {
   const [activeTab, setActiveTab] = useState(1);
 
   const tabs = [
-    { id: 1, label: "Blog Engagement Training", icon: "📈", implemented: true },
-    { id: 2, label: "New Blog Prediction", icon: "🔮", implemented: true },
-    { id: 3, label: "Podcast Similarity", icon: "🎙️", implemented: true },
-    { id: 4, label: "Social Captions", icon: "📱", implemented: true },
-    { id: 5, label: "Chart Summarizer", icon: "📊", implemented: true },
+    { id: 1, label: "Blog Engagement Training", implemented: true },
+    { id: 2, label: "New Blog Prediction", implemented: true },
+    { id: 3, label: "Podcast Similarity", implemented: true },
+    { id: 4, label: "Social Captions", implemented: true },
+    { id: 5, label: "Chart Summarizer", implemented: true },
   ];
+
+  const TabIcon = ({ id }) => {
+    const common = "w-4 h-4 text-gray-500";
+    switch (id) {
+      case 1:
+        return (
+          <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 19V8" />
+            <path d="M10 19V5" />
+            <path d="M16 19v-7" />
+            <path d="M4 19h16" />
+          </svg>
+        );
+      case 2:
+        return (
+          <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 3 13.5 7.5 18 9 13.5 10.5 12 15 10.5 10.5 6 9 10.5 7.5 12 3Z" />
+            <path d="M5 20h14" />
+          </svg>
+        );
+      case 3:
+        return (
+          <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 3a4 4 0 0 1 4 4v4a4 4 0 0 1-8 0V7a4 4 0 0 1 4-4Z" />
+            <path d="M8 13v2a4 4 0 0 0 8 0v-2" />
+            <path d="M10 21h4" />
+          </svg>
+        );
+      case 4:
+        return (
+          <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 8a7 7 0 0 1 7-7 7 7 0 0 1 7 7c0 3.866-3.134 7-7 7l-3 3v-3c-2.761 0-4-1.79-4-4Z" />
+          </svg>
+        );
+      case 5:
+        return (
+          <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 3v6l5 4" />
+            <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col md:flex-row min-h-[600px]">
@@ -33,7 +78,7 @@ export default function TrainingStudio() {
                   : "text-gray-900 hover:bg-gray-100 hover:text-gray-900"
               }`}
             >
-              <span className="text-lg">{tab.icon}</span>
+              <TabIcon id={tab.id} />
               <span className="flex-1">{tab.label}</span>
               {!tab.implemented && (
                 <span className="text-[10px] bg-gray-200 text-gray-900 px-1.5 py-0.5 rounded uppercase tracking-wider">
@@ -51,10 +96,11 @@ export default function TrainingStudio() {
         {activeTab === 3 && <PodcastSimilarityScenario />}
         {activeTab === 4 && <SocialCaptionScenario />}
         {activeTab === 5 && <ChartSummarizerScenario />}
-      </div>
+      </div> 
     </div>
   );
 }
+
 
 function BlogTrainingScenario() {
   const [blogs, setBlogs] = useState([]);
@@ -62,6 +108,26 @@ function BlogTrainingScenario() {
   const [trainingStatus, setTrainingStatus] = useState(null);
   const [modelId, setModelId] = useState("blog-engagement-v1");
   const [visibleCount, setVisibleCount] = useState(5);
+  const [modelStatus, setModelStatus] = useState(null);
+  const [modelStatusLoading, setModelStatusLoading] = useState(false);
+  const [lastModelId, setLastModelId] = useState("blog-engagement-v1");
+  const [featurePreview, setFeaturePreview] = useState(null);
+  const [insights, setInsights] = useState(null);
+  const [insightLoading, setInsightLoading] = useState(false);
+  const [insightLanguage, setInsightLanguage] = useState("en");
+  const [modelsList, setModelsList] = useState([]);
+  const [modelsLoading, setModelsLoading] = useState(false);
+  const [deletingModelId, setDeletingModelId] = useState(null);
+
+  // Used to scale the simple bar visualization for numeric features
+  const featureScaleMax = useMemo(() => {
+    if (!featurePreview) return 0;
+    const numericValues = Object.values(featurePreview).filter(
+      (val) => typeof val === "number"
+    );
+    if (numericValues.length === 0) return 0;
+    return Math.max(...numericValues, 0);
+  }, [featurePreview]);
 
   const fetchBlogs = async () => {
     setLoading(true);
@@ -86,6 +152,7 @@ function BlogTrainingScenario() {
     if (blogs.length === 0) return;
     setLoading(true);
     setTrainingStatus(null);
+    setInsights(null);
 
     try {
       const training_data = blogs.map((b) => ({
@@ -97,6 +164,9 @@ function BlogTrainingScenario() {
         read_count: b.readCount || 0,
       }));
 
+      // Keep a snapshot of the first row so we can show feature/value pairs in the UI
+      setFeaturePreview(training_data[0] || null);
+
       const res = await fetch("/api/ml/training", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -107,15 +177,237 @@ function BlogTrainingScenario() {
         }),
       });
 
-      const result = await res.json();
-      setTrainingStatus(result);
+      let payload = {};
+      try {
+        payload = await res.json();
+      } catch (e) {
+        payload = {};
+      }
+
+      if (res.status === 202) {
+        setTrainingStatus({
+          kind: "queued",
+          message: payload.message || "Training queued",
+          id: payload.id || modelId,
+        });
+        setLastModelId(payload.id || modelId);
+      } else if (res.status === 409) {
+        setTrainingStatus({
+          kind: "error",
+          code: 409,
+          message: payload.message || "Model ID already exists",
+          detail: payload.detail || payload.error,
+        });
+        setLastModelId(modelId);
+      } else if (res.status === 422) {
+        setTrainingStatus({
+          kind: "validation",
+          code: 422,
+          message: "Validation error",
+          detail: payload.detail || [],
+        });
+        setLastModelId(modelId);
+      } else if (!res.ok) {
+        setTrainingStatus({
+          kind: "error",
+          code: res.status,
+          message: payload.message || "Training failed",
+          detail: payload,
+        });
+        setLastModelId(modelId);
+      } else {
+        setTrainingStatus({ kind: "info", ...payload });
+        setLastModelId(payload.id || modelId);
+      }
     } catch (err) {
       console.error(err);
-      setTrainingStatus({ status: "error", message: err.message });
+      setTrainingStatus({ kind: "error", message: err.message });
     } finally {
       setLoading(false);
     }
   };
+
+  const fetchModelStatus = async () => {
+    if (!lastModelId) return;
+    setModelStatusLoading(true);
+    try {
+      const res = await fetch(`/api/ml/models/${lastModelId}`);
+      let payload = {};
+      try {
+        payload = await res.json();
+      } catch (e) {
+        payload = {};
+      }
+
+      if (res.ok) {
+        setModelStatus({ kind: "status", code: res.status, data: payload });
+      } else {
+        setModelStatus({
+          kind: "error",
+          code: res.status,
+          message: payload.message || "Cannot fetch model status",
+          detail: payload.detail || payload.error,
+        });
+      }
+    } catch (err) {
+      setModelStatus({ kind: "error", message: err.message });
+    } finally {
+      setModelStatusLoading(false);
+    }
+  };
+
+  const deleteModel = async (id) => {
+    if (!id) return;
+    setDeletingModelId(id);
+    try {
+      const res = await fetch(`/api/ml/models/${id}`, { method: "DELETE" });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(payload.message || payload.error || "Failed to delete model");
+      }
+      setModelsList((prev) => prev.filter((m) => m.id !== id));
+      if (lastModelId === id) {
+        setLastModelId("");
+        setModelStatus(null);
+      }
+    } catch (e) {
+      alert(`Delete failed: ${e.message}`);
+    } finally {
+      setDeletingModelId(null);
+    }
+  };
+
+  // Auto-check model status shortly after a training request is accepted
+  useEffect(() => {
+    if (trainingStatus?.kind === "queued" && lastModelId) {
+      const timer = setTimeout(() => {
+        fetchModelStatus();
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [trainingStatus, lastModelId]);
+
+  useEffect(() => {
+    async function fetchModels() {
+      setModelsLoading(true);
+      try {
+        const res = await fetch("/api/ml/models");
+        if (!res.ok) return;
+        const payload = await res.json();
+        if (payload?.models) setModelsList(payload.models);
+      } catch (e) {
+        console.error("Failed to fetch models list", e);
+      } finally {
+        setModelsLoading(false);
+      }
+    }
+    fetchModels();
+  }, []);
+
+  const buildInsightPayload = () => {
+    if (blogs.length === 0) return null;
+
+    const count = blogs.length;
+    const avg = (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0);
+
+    const readCounts = blogs.map((b) => b.readCount || 0);
+    const titleLengths = blogs.map((b) => (b.title?.length ? b.title.length : 0));
+    const contentLengths = blogs.map((b) => (b.content?.length ? b.content.length : 0));
+    const tagCounts = blogs.map((b) => (b.tags?.length ? b.tags.length : 0));
+    const hasImageCounts = blogs.map((b) => (b.mainImage ? 1 : 0));
+
+    const categoryCounts = blogs.reduce((acc, b) => {
+      const c = b.category || "uncategorized";
+      acc[c] = (acc[c] || 0) + 1;
+      return acc;
+    }, {});
+
+    const topCategories = Object.entries(categoryCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([cat, freq]) => `${cat} (${freq})`);
+
+    const summary = {
+      total_rows: count,
+      avg_read_count: Number(avg(readCounts).toFixed(2)),
+      max_read_count: Math.max(...readCounts, 0),
+      min_read_count: Math.min(...readCounts, 0),
+      avg_title_length: Number(avg(titleLengths).toFixed(2)),
+      avg_content_length: Number(avg(contentLengths).toFixed(2)),
+      avg_tag_count: Number(avg(tagCounts).toFixed(2)),
+      pct_with_image: Number(((avg(hasImageCounts)) * 100).toFixed(1)),
+      top_categories: topCategories,
+    };
+
+    const samples = blogs.slice(0, 5).map((b) => ({
+      title: b.title,
+      category: b.category,
+      tags: b.tags?.slice(0, 5) || [],
+      has_image: Boolean(b.mainImage),
+      title_length: b.title?.length || 0,
+      content_length: b.content?.length || 0,
+      tag_count: b.tags?.length || 0,
+      read_count: b.readCount || 0,
+    }));
+
+    return { summary, samples };
+  };
+
+  const formatInsights = (text) => {
+    if (!text) return [];
+    return text
+      .split("\n")
+      .map((line) => line.trim())
+      // strip any leading bullet/dash/asterisk and whitespace
+      .map((line) => line.replace(/^[\s\-*•]+/, "").trim())
+      // drop empties and standalone markers
+      .filter((line) => line && line !== "•" && line !== "*" && line !== "-")
+      // drop generic intro lines
+      .filter((line) => !/^berikut adalah insight/i.test(line))
+      // aggressively remove all asterisk markers to avoid malformed bold
+      .map((line) => line.replace(/\*/g, ""))
+      // remove inline math markers and latex-style approx
+      .map((line) => line.replace(/\$/g, "").replace(/\\approx/g, "approx"))
+      // remove stray backslashes before underscores
+      .map((line) => line.replace(/\\_/g, "_"))
+      // strip leading punctuation like colons
+      .map((line) => line.replace(/^:+/, ""))
+      .map((line) => line.trim())
+      .filter(Boolean);
+  };
+
+  const generateInsights = async () => {
+    const payload = buildInsightPayload();
+    if (!payload) return;
+    setInsightLoading(true);
+    setInsights(null);
+    try {
+      const res = await fetch("/api/ml/insight", {
+        method: "POST",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, language: insightLanguage }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        const detail = data.detail ? ` (${data.detail})` : "";
+        throw new Error(data.error || data.message || "Failed to generate insights" + detail);
+      }
+      setInsights(data.insights || data.text || "");
+    } catch (err) {
+      setInsights(`Gagal membuat insight: ${err.message}`);
+    } finally {
+      setInsightLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!insights) return; // nothing to refresh yet
+    if (insightLoading) return;
+    if (blogs.length === 0) return;
+    generateInsights();
+  }, [insightLanguage]);
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -129,11 +421,77 @@ function BlogTrainingScenario() {
         </p>
       </div>
 
+      {/* 1. List Models */}
       <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
         <div className="flex justify-between items-center mb-4">
           <h4 className="font-bold text-gray-900 flex items-center gap-2">
             <span className="bg-red-100 text-red-600 w-6 h-6 rounded-full flex items-center justify-center text-sm">
               1
+            </span>
+            List Models
+          </h4>
+          <span className="text-xs text-gray-600">Latest trained models (read-only)</span>
+        </div>
+
+        {modelsLoading ? (
+          <div className="text-sm text-gray-700">Loading models...</div>
+        ) : modelsList.length === 0 ? (
+          <div className="text-sm text-gray-700">No models found yet. Train a model to see it here.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {modelsList.slice(0, 6).map((m) => (
+              <div key={m.id} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-900 truncate">{m.id}</span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-[11px] px-2 py-0.5 rounded-full uppercase tracking-wide font-semibold ${
+                        m.status === "ready"
+                          ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                          : m.status === "training" || m.status === "queued"
+                            ? "bg-blue-100 text-blue-800 border border-blue-200"
+                            : "bg-gray-100 text-gray-700 border border-gray-200"
+                      }`}
+                    >
+                      {m.status || "unknown"}
+                    </span>
+                    <button
+                      onClick={() => deleteModel(m.id)}
+                      disabled={deletingModelId === m.id}
+                      className="text-[11px] px-2 py-0.5 rounded border border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 disabled:opacity-50"
+                    >
+                      {deletingModelId === m.id ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 text-[11px] text-gray-700">
+                  {m.model_type && (
+                    <span className="px-2 py-0.5 rounded bg-gray-100 border border-gray-200">{m.model_type}</span>
+                  )}
+                  {m.target_col && (
+                    <span className="px-2 py-0.5 rounded bg-gray-100 border border-gray-200">target: {m.target_col}</span>
+                  )}
+                  {Array.isArray(m.feature_cols) && m.feature_cols.length > 0 && (
+                    <span className="px-2 py-0.5 rounded bg-gray-100 border border-gray-200">
+                      features: {m.feature_cols.slice(0, 3).join(", ")}{m.feature_cols.length > 3 ? "…" : ""}
+                    </span>
+                  )}
+                  {m.updated_at && (
+                    <span className="px-2 py-0.5 rounded bg-gray-100 border border-gray-200">updated: {m.updated_at}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 2. Load Training Data */}
+      <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
+        <div className="flex justify-between items-center mb-4">
+          <h4 className="font-bold text-gray-900 flex items-center gap-2">
+            <span className="bg-red-100 text-red-600 w-6 h-6 rounded-full flex items-center justify-center text-sm">
+              2
             </span>
             Load Training Data
           </h4>
@@ -203,7 +561,7 @@ function BlogTrainingScenario() {
       <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
         <h4 className="font-bold text-gray-900 flex items-center gap-2 mb-4">
           <span className="bg-red-100 text-red-600 w-6 h-6 rounded-full flex items-center justify-center text-sm">
-            2
+            3
           </span>
           Train Model
         </h4>
@@ -256,30 +614,424 @@ function BlogTrainingScenario() {
           </button>
         </div>
 
+        {/* REPLACEMENT FOR THE OUTPUT SECTION */}
         {trainingStatus && (
-          <div
-            className={`mt-4 p-4 rounded-lg border ${
-              trainingStatus.status === "error"
-                ? "bg-red-50 border-red-200 text-red-700"
-                : "bg-green-50 border-green-200"
-            }`}
-          >
-            <h5
-              className={`font-bold text-sm mb-2 ${
-                trainingStatus.status === "error"
-                  ? "text-red-800"
-                  : "text-green-800"
+          <div className="mt-6 animate-fade-in-up">
+            {/* Header Status Bar */}
+            <div
+              className={`rounded-t-xl border-t border-x px-5 py-4 flex items-center justify-between ${
+                trainingStatus.kind === "error" ||
+                trainingStatus.kind === "validation"
+                  ? "bg-rose-50 border-rose-200"
+                  : trainingStatus.kind === "queued"
+                  ? "bg-blue-50 border-blue-200"
+                  : "bg-emerald-50 border-emerald-200"
               }`}
             >
-              {trainingStatus.status === "error"
-                ? "Training Failed"
-                : "Training Completed Successfully"}
-            </h5>
-            <pre className="text-xs font-mono whitespace-pre-wrap overflow-x-auto text-gray-900 bg-white/50 p-2 rounded">
-              {JSON.stringify(trainingStatus, null, 2)}
-            </pre>
+              <div className="flex items-center gap-3">
+                {/* Status Icons */}
+                <div
+                  className={`p-2 rounded-full ${
+                    trainingStatus.kind === "error" ||
+                    trainingStatus.kind === "validation"
+                      ? "bg-white text-rose-600 shadow-sm"
+                      : trainingStatus.kind === "queued"
+                      ? "bg-white text-blue-600 shadow-sm animate-pulse"
+                      : "bg-white text-emerald-600 shadow-sm"
+                  }`}
+                >
+                  {trainingStatus.kind === "queued" ? (
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  ) : trainingStatus.kind === "error" ||
+                    trainingStatus.kind === "validation" ? (
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <div>
+                  <h5
+                    className={`font-bold text-sm ${
+                      trainingStatus.kind === "error" ||
+                      trainingStatus.kind === "validation"
+                        ? "text-rose-900"
+                        : trainingStatus.kind === "queued"
+                        ? "text-blue-900"
+                        : "text-emerald-900"
+                    }`}
+                  >
+                    {trainingStatus.kind === "queued"
+                      ? "Training In Progress"
+                      : trainingStatus.kind === "error"
+                      ? "Training Failed"
+                      : trainingStatus.kind === "validation"
+                      ? "Validation Error"
+                      : "Training Successful"}
+                  </h5>
+                  <p
+                    className={`text-xs ${
+                      trainingStatus.kind === "error" ||
+                      trainingStatus.kind === "validation"
+                        ? "text-rose-700"
+                        : trainingStatus.kind === "queued"
+                        ? "text-blue-700"
+                        : "text-emerald-700"
+                    }`}
+                  >
+                    {trainingStatus.message}
+                  </p>
+                </div>
+              </div>
+
+              {/* Status Tags */}
+              <div className="flex flex-col items-end gap-1">
+                {trainingStatus.code && (
+                  <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-white/60 border border-black/5 text-gray-600">
+                    HTTP {trainingStatus.code}
+                  </span>
+                )}
+                {(trainingStatus.id || modelId) && (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/60 border border-black/5 text-gray-600 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                    {trainingStatus.id || modelId}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Content Body */}
+            <div className="bg-white border-x border-b border-gray-200 rounded-b-xl p-5 shadow-sm">
+              {/* QUEUED STATE Content */}
+              {trainingStatus.kind === "queued" && (
+                <div className="flex flex-col gap-4 py-6">
+                  <div className="bg-white border border-blue-100 rounded-lg p-4 shadow-sm text-gray-900 flex items-start gap-3">
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 border border-blue-200 font-semibold text-sm">✓</span>
+                    <div>
+                      <div className="text-sm font-semibold text-blue-900">Training accepted</div>
+                      <p className="text-sm text-gray-700 mt-1 leading-relaxed">Job queued. We will check status automatically.</p>
+                      <p className="text-xs text-gray-600 mt-2">
+                        Model ID: <span className="font-mono text-blue-800">{trainingStatus.id || modelId}</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SUCCESS / INFO STATE Content */}
+              {trainingStatus.kind === "info" && (
+                <div className="space-y-4">
+                  {trainingStatus.detail &&
+                  typeof trainingStatus.detail === "object" &&
+                  !Array.isArray(trainingStatus.detail) ? (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {Object.entries(trainingStatus.detail).map(([k, v]) => (
+                        <div
+                          key={k}
+                          className="bg-gray-50 border border-gray-100 rounded-lg p-3 hover:border-emerald-200 transition-colors group"
+                        >
+                          <div className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold mb-1 group-hover:text-emerald-600">
+                            {k.replace(/_/g, " ")}
+                          </div>
+                          <div className="text-lg font-mono font-bold text-gray-900 truncate">
+                            {typeof v === "number" ? v.toFixed(4) : String(v)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700">
+                      {trainingStatus.detail ? String(trainingStatus.detail) : "Model is ready to use for predictions."}
+                    </div>
+                  )}
+                  <div className="flex justify-end">
+                    <button className="text-xs text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1">
+                      Go to Predictions &rarr;
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ERROR STATE Content */}
+              {trainingStatus.kind === "error" && (
+                <div className="space-y-3">
+                  <div className="text-sm text-gray-700">
+                    Terjadi kesalahan saat proses training. Berikut detail teknisnya:
+                  </div>
+                  {trainingStatus.detail && typeof trainingStatus.detail === "string" && (
+                    <div className="bg-white border border-rose-100 rounded-lg p-3 text-sm text-rose-800 shadow-sm">
+                      {trainingStatus.detail}
+                    </div>
+                  )}
+
+                  {trainingStatus.detail &&
+                  typeof trainingStatus.detail === "object" &&
+                  !Array.isArray(trainingStatus.detail) && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {Object.entries(trainingStatus.detail).map(([k, v]) => (
+                        <div
+                          key={k}
+                          className="bg-white border border-rose-100 rounded-lg p-3 text-xs text-rose-900 shadow-sm"
+                        >
+                          <div className="text-[11px] uppercase tracking-wide text-rose-700 font-semibold">
+                            {k.replace(/_/g, " ")}
+                          </div>
+                          <div className="mt-1 text-sm font-medium text-rose-900">
+                            {typeof v === "number" ? v.toFixed(3) : String(v)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* VALIDATION ERROR Content */}
+              {trainingStatus.kind === "validation" && (
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600 mb-2">
+                    Data yang dikirim tidak sesuai format:
+                  </p>
+                  <div className="divide-y divide-gray-100 border border-gray-100 rounded-lg">
+                    {(trainingStatus.detail || []).map((d, idx) => (
+                      <div key={idx} className="p-3 text-sm flex gap-3 items-start bg-white first:rounded-t-lg last:rounded-b-lg hover:bg-gray-50">
+                        <span className="flex-shrink-0 mt-0.5 text-xs font-mono bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded border border-rose-200">
+                          {Array.isArray(d.loc)
+                            ? d.loc[d.loc.length - 1]
+                            : "Field"}
+                        </span>
+                        <span className="text-gray-700">
+                          {d.msg || JSON.stringify(d)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
+
+        {/* Model Status Viewer */}
+        <div className="mt-6 bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2">
+              <h5 className="text-sm font-bold text-gray-900">Model Status</h5>
+              {lastModelId && (
+                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-gray-100 border border-gray-200 text-gray-700">
+                  {lastModelId}
+                </span>
+              )}
+            </div>
+            <div className="text-[11px] text-gray-600">
+              Auto-updates after training is accepted
+            </div>
+          </div>
+
+          {modelStatusLoading && (
+            <p className="text-sm text-gray-700">Checking model status...</p>
+          )}
+
+          {!modelStatusLoading && !modelStatus && (
+            <p className="text-sm text-gray-600">
+              Run training to see the latest model status automatically.
+            </p>
+          )}
+
+          {!modelStatusLoading && modelStatus?.kind === "status" && (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`text-[11px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide ${
+                    modelStatus.data?.status === "ready"
+                      ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                      : modelStatus.data?.status === "queued" || modelStatus.data?.status === "training"
+                        ? "bg-blue-100 text-blue-800 border border-blue-200"
+                        : modelStatus.data?.status === "failed"
+                          ? "bg-rose-100 text-rose-800 border border-rose-200"
+                          : "bg-gray-100 text-gray-800 border border-gray-200"
+                  }`}
+                >
+                  {modelStatus.data?.status || "unknown"}
+                </span>
+                {modelStatus.data?.updated_at && (
+                  <span className="text-[11px] px-2 py-0.5 rounded bg-gray-100 border border-gray-200 text-gray-700">
+                    Updated: {modelStatus.data.updated_at}
+                  </span>
+                )}
+                {modelStatus.data?.model_type && (
+                  <span className="text-[11px] px-2 py-0.5 rounded bg-gray-100 border border-gray-200 text-gray-700">
+                    Type: {modelStatus.data.model_type}
+                  </span>
+                )}
+                {modelStatus.data?.target_col && (
+                  <span className="text-[11px] px-2 py-0.5 rounded bg-gray-100 border border-gray-200 text-gray-700">
+                    Target: {modelStatus.data.target_col}
+                  </span>
+                )}
+              </div>
+
+              {Array.isArray(modelStatus.data?.feature_cols) && modelStatus.data.feature_cols.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-gray-700">Features</p>
+                  <div className="flex flex-wrap gap-2">
+                    {modelStatus.data.feature_cols.slice(0, 12).map((f) => (
+                      <span
+                        key={f}
+                        className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 border border-gray-200 text-gray-800"
+                      >
+                        {f}
+                      </span>
+                    ))}
+                    {modelStatus.data.feature_cols.length > 12 && (
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-50 border border-dashed border-gray-200 text-gray-600">
+                        +{modelStatus.data.feature_cols.length - 12} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {!modelStatus.data?.feature_cols && (
+                <p className="text-sm text-gray-700">No feature metadata available yet.</p>
+              )}
+
+              {featurePreview && (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-gray-700">Feature Values (sample row)</p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {Object.entries(featurePreview).map(([key, value]) => (
+                      <div
+                        key={key}
+                        className="border border-gray-100 bg-gray-50 rounded-lg p-3 flex flex-col gap-1"
+                      >
+                        <span className="text-[10px] uppercase tracking-wide text-gray-500 font-semibold">
+                          {key.replace(/_/g, " ")}
+                        </span>
+                        <span className="text-sm font-mono text-gray-900">
+                          {key === "has_image"
+                            ? value
+                              ? "Yes"
+                              : "No"
+                            : typeof value === "number"
+                              ? value.toFixed(2)
+                              : String(value)}
+                        </span>
+
+                        {typeof value === "number" && featureScaleMax > 0 && (
+                          <div className="mt-1 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-red-400 to-red-600"
+                              style={{ width: `${Math.min((value / featureScaleMax) * 100, 100)}%` }}
+                            ></div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!modelStatusLoading && modelStatus?.kind === "error" && (
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-rose-800">Could not fetch model status</p>
+              <p className="text-sm text-gray-800">{modelStatus.message}</p>
+              {modelStatus.detail && (
+                <div className="text-xs text-gray-800 bg-white border border-rose-100 rounded-lg p-3">
+                  {typeof modelStatus.detail === "string"
+                    ? modelStatus.detail
+                    : JSON.stringify(modelStatus.detail, null, 2)}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Insights via Gemini */}
+        <div className="mt-6 bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h5 className="text-sm font-bold text-gray-900">AI Insights (Gemini)</h5>
+              <p className="text-xs text-gray-700">Concise, actionable notes based on the loaded training data.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={insightLanguage}
+                onChange={(e) => setInsightLanguage(e.target.value)}
+                className="text-xs border border-gray-300 rounded-lg px-2 py-1 bg-white text-gray-900 focus:ring-1 focus:ring-red-500"
+              >
+                <option value="en">English</option>
+                <option value="id">Bahasa</option>
+              </select>
+              <button
+                onClick={generateInsights}
+                disabled={insightLoading || blogs.length === 0}
+                className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 disabled:opacity-50"
+              >
+                {insightLoading ? "Generating..." : "Generate Insights"}
+              </button>
+            </div>
+          </div>
+
+          {blogs.length === 0 && (
+            <p className="text-sm text-gray-700">Load training data first to request insights.</p>
+          )}
+
+          {insightLoading && (
+            <p className="text-sm text-gray-700">Requesting insights from Gemini...</p>
+          )}
+
+          {!insightLoading && insights && (
+            <div className="bg-gray-50 border border-gray-100 rounded-lg p-4 text-sm text-gray-900 space-y-2">
+              {formatInsights(insights).map((item, idx) => (
+                <div key={idx} className="flex items-start gap-2">
+                  <span className="mt-0.5 text-red-500">•</span>
+                  <span>{item}</span>
+                </div>
+              ))}
+              {formatInsights(insights).length === 0 && (
+                <div className="text-sm text-gray-800 whitespace-pre-line">{insights}</div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
