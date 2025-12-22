@@ -96,7 +96,7 @@ export default function TrainingStudio() {
         {activeTab === 3 && <PodcastSimilarityScenario />}
         {activeTab === 4 && <SocialCaptionScenario />}
         {activeTab === 5 && <ChartSummarizerScenario />}
-      </div>
+      </div> 
     </div>
   );
 }
@@ -113,6 +113,7 @@ function BlogTrainingScenario() {
   const [featurePreview, setFeaturePreview] = useState(null);
   const [insights, setInsights] = useState(null);
   const [insightLoading, setInsightLoading] = useState(false);
+  const [insightLanguage, setInsightLanguage] = useState("en");
   const [modelsList, setModelsList] = useState([]);
   const [modelsLoading, setModelsLoading] = useState(false);
   const [deletingModelId, setDeletingModelId] = useState(null);
@@ -382,8 +383,9 @@ function BlogTrainingScenario() {
     try {
       const res = await fetch("/api/ml/insight", {
         method: "POST",
+        cache: "no-store",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, language: insightLanguage }),
       });
 
       const data = await res.json();
@@ -398,6 +400,13 @@ function BlogTrainingScenario() {
       setInsightLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!insights) return; // nothing to refresh yet
+    if (insightLoading) return;
+    if (blogs.length === 0) return;
+    generateInsights();
+  }, [insightLanguage]);
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -981,13 +990,23 @@ function BlogTrainingScenario() {
               <h5 className="text-sm font-bold text-gray-900">AI Insights (Gemini)</h5>
               <p className="text-xs text-gray-700">Concise, actionable notes based on the loaded training data.</p>
             </div>
-            <button
-              onClick={generateInsights}
-              disabled={insightLoading || blogs.length === 0}
-              className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 disabled:opacity-50"
-            >
-              {insightLoading ? "Generating..." : "Generate Insights"}
-            </button>
+            <div className="flex items-center gap-2">
+              <select
+                value={insightLanguage}
+                onChange={(e) => setInsightLanguage(e.target.value)}
+                className="text-xs border border-gray-300 rounded-lg px-2 py-1 bg-white text-gray-900 focus:ring-1 focus:ring-red-500"
+              >
+                <option value="en">English</option>
+                <option value="id">Bahasa</option>
+              </select>
+              <button
+                onClick={generateInsights}
+                disabled={insightLoading || blogs.length === 0}
+                className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 disabled:opacity-50"
+              >
+                {insightLoading ? "Generating..." : "Generate Insights"}
+              </button>
+            </div>
           </div>
 
           {blogs.length === 0 && (

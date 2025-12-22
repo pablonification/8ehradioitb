@@ -49,18 +49,35 @@ export async function POST(request) {
 
   const samples = Array.isArray(body.samples) ? body.samples : [];
 
-  const system = `Kamu adalah analis data konten blog untuk 8EH Radio ITB.
+  const lang = (body.language || "en").toLowerCase();
+
+  const system =
+    lang === "id"
+      ? `Kamu adalah analis data konten blog untuk 8EH Radio ITB.
 Buat insight singkat dan actionable dari ringkasan dataset yang diberikan.
 Fokus pada korelasi sederhana antara fitur (title_length, content_length, has_image, tag_count, category) dan target read_count.
-Jawab dalam 3-5 bullet, bahasa Indonesia, singkat, tanpa embel-embel berlebihan.`;
+Jawab dalam 3-5 bullet, bahasa Indonesia, singkat, tanpa embel-embel berlebihan.`
+      : `You are a blog content data analyst for 8EH Radio ITB.
+Produce concise, actionable insights from the dataset summary.
+Highlight simple correlations between features (title_length, content_length, has_image, tag_count, category) and the target read_count.
+Answer in 3-5 bullets, English, concise, no fluff.`;
 
-  const prompt = `Ringkasan dataset:
+  const prompt =
+    lang === "id"
+      ? `Ringkasan dataset:
 ${JSON.stringify(body.summary, null, 2)}
 
 Contoh sampel (maks 5):
 ${JSON.stringify(samples, null, 2)}
 
-Buatkan insight yang berguna dan rekomendasi singkat.`;
+Buatkan insight yang berguna dan rekomendasi singkat.`
+      : `Dataset summary:
+${JSON.stringify(body.summary, null, 2)}
+
+Sample rows (max 5):
+${JSON.stringify(samples, null, 2)}
+
+Provide useful insights and short recommendations.`;
 
   try {
     const model = PROVIDER === "groq" ? groq(GROQ_MODEL) : google(GEMINI_MODEL);
