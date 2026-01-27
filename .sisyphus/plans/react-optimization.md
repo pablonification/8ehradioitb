@@ -83,9 +83,12 @@ Refactor the `8ehradioitb` codebase to align with Vercel's React Best Practices,
   - Create `app/components/skeletons/TuneTrackerSkeleton.jsx`.
   - **Styling**: Use `animate-pulse` with gray backgrounds matching the real component layout.
 
-- [ ] 6. Implement Skeletons in Client Components
-  - Use `Suspense` with `fallback={<PodcastSkeleton />}` where applicable.
-  - Or render Skeletons when `isLoading` is true (e.g., when filtering/paginating).
+- [~] 6. Implement Skeletons in Client Components **[DEFERRED]**
+  - **Status**: Not needed - home page is now SSR (Server Component)
+  - **Reason**: Data fetches before render, no initial loading states exist
+  - **Future**: Only relevant if client-side filtering/pagination added later
+  - ~~Use `Suspense` with `fallback={<PodcastSkeleton />}` where applicable.~~
+  - ~~Or render Skeletons when `isLoading` is true (e.g., when filtering/paginating).~~
 
 ### Phase 4: Audio Asset Optimization (Public -> R2)
 
@@ -98,9 +101,13 @@ Refactor the `8ehradioitb` codebase to align with Vercel's React Best Practices,
   - Find/Replace references to the migrated audio files to use R2 domain URL.
   - Update `next.config.mjs` `remotePatterns` if needed.
 
-- [ ] 9. Cleanup Public Folder
-  - Delete ONLY the migrated audio files from `public/`.
-  - Leave images intact.
+- [ ] 9. Cleanup Public Folder **[BLOCKED - REQUIRES USER ACTION]**
+  - **Blocker**: User must upload to R2 and verify in production first
+  - **Dependencies**: R2 bucket setup, environment variables, migration execution, production verification
+  - **Safety**: Must monitor 24-48 hours before deletion
+  - **Action**: See `.sisyphus/notepads/react-optimization/IMPORTANT-TASK-9.md`
+  - Delete ONLY the migrated audio files from `public/` (26 files, 32.46 MB)
+  - Leave images intact (per user requirement)
 
 ### Phase 5: Advanced Performance
 
