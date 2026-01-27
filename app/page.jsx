@@ -1,12 +1,21 @@
 import Navbar from "@/app/components/Navbar";
 import FooterSection from "@/app/components/FooterSection";
-import BoardSliderAnnouncer from "@/app/components/BoardSliderAnnouncer";
+import dynamic from "next/dynamic";
 import HeroSection from "@/app/components/home/HeroSection";
 import PodcastList from "@/app/components/home/PodcastList";
 import NewsList from "@/app/components/home/NewsList";
 import TuneTracker from "@/app/components/home/TuneTracker";
 import ProgramsSection from "@/app/components/home/ProgramsSection";
 import { prisma } from "@/lib/prisma";
+
+const BoardSliderAnnouncer = dynamic(
+  () => import("@/app/components/BoardSliderAnnouncer"),
+  {
+    loading: () => (
+      <div className="h-96 animate-pulse bg-white/20 rounded-2xl w-full" />
+    ),
+  },
+);
 
 function AnnouncersSection() {
   return (

@@ -2,9 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import ButtonPrimary from "@/app/components/ButtonPrimary";
-import RadioPlayer from "@/app/components/RadioPlayer";
+
+const RadioPlayer = dynamic(() => import("@/app/components/RadioPlayer"), {
+  ssr: false,
+});
 
 export default function HeroSection() {
   const router = useRouter();

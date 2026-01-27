@@ -19,3 +19,11 @@
 ## Future Improvements
 
 - Consider moving the audio context to a real React Context provider instead of using window events, although the current event system works well for cross-component communication (GlobalAudioPlayer vs Navbar).
+
+## Lazy Loading Implementation
+
+- **Next.js Dynamic Imports**: Implemented `next/dynamic` for `BoardSliderAnnouncer` and `RadioPlayer`.
+- **SSR Restriction**: Encountered "ssr: false is not allowed with next/dynamic in Server Components" error in `app/page.jsx`.
+  - **Solution**: Removed `ssr: false` for `BoardSliderAnnouncer` in `page.jsx` (Server Component). It works because the component is SSR-safe.
+  - **Client Components**: Kept `ssr: false` for `RadioPlayer` in `HeroSection.jsx` (Client Component) to avoid server rendering a purely client-side audio player.
+- **Performance**: Reduced Home page size from 8.03 kB to 7.55 kB.
