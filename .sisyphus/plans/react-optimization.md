@@ -94,7 +94,7 @@ Refactor the `8ehradioitb` codebase to align with Vercel's React Best Practices,
   - Upload to R2 using env vars.
   - **Constraint**: Do NOT move images (`.png`, `.jpg`, `.svg`).
 
-- [ ] 8. Update Audio References
+- [x] 8. Update Audio References
   - Find/Replace references to the migrated audio files to use R2 domain URL.
   - Update `next.config.mjs` `remotePatterns` if needed.
 
