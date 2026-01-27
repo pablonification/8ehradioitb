@@ -77,7 +77,7 @@ Refactor the `8ehradioitb` codebase to align with Vercel's React Best Practices,
 
 ### Phase 3: Skeleton UI (For Client Interactions)
 
-- [ ] 5. Create Generic Skeleton Components
+- [x] 5. Create Generic Skeleton Components
   - Create `app/components/skeletons/PodcastSkeleton.jsx`.
   - Create `app/components/skeletons/NewsCardSkeleton.jsx`.
   - Create `app/components/skeletons/TuneTrackerSkeleton.jsx`.
