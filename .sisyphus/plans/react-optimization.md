@@ -65,11 +65,11 @@ Refactor the `8ehradioitb` codebase to align with Vercel's React Best Practices,
 
 ### Phase 2: Home & About Page Optimization (RSC)
 
-- [ ] 3. Create Client Wrappers for Home
+- [x] 3. Create Client Wrappers for Home
   - Extract `HeroSection.jsx`, `PodcastList.jsx`, `NewsList.jsx`, `TuneTracker.jsx`.
   - Ensure they accept data via props.
 
-- [ ] 4. Refactor `app/page.jsx` to Server Component
+- [x] 4. Refactor `app/page.jsx` to Server Component
   - Remove `"use client"`.
   - Fetch Podcasts, News, Tunes via `prisma` in parallel.
   - Pass data to Client Wrappers.
