@@ -89,7 +89,7 @@ Refactor the `8ehradioitb` codebase to align with Vercel's React Best Practices,
 
 ### Phase 4: Audio Asset Optimization (Public -> R2)
 
-- [ ] 7. Create Audio Migration Script
+- [x] 7. Create Audio Migration Script
   - Script to scan `public/` for **AUDIO FILES ONLY** (`.mp3`, `.wav`, `.m4a`, `.aac`, `.ogg`).
   - Upload to R2 using env vars.
   - **Constraint**: Do NOT move images (`.png`, `.jpg`, `.svg`).
@@ -107,7 +107,7 @@ Refactor the `8ehradioitb` codebase to align with Vercel's React Best Practices,
 - [x] 10. Implement Lazy Loading
   - Use `next/dynamic` for `RadioPlayer` and `BoardSlider` components.
 
-- [ ] 11. Dynamic Metadata
+- [x] 11. Dynamic Metadata
   - Add `generateMetadata` to `app/blog/[slug]/page.jsx`.
 
 ---
