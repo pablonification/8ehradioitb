@@ -5,6 +5,8 @@ import Image from "next/image";
 
 export default function TuneTracker({ tunes = [] }) {
   const [nowPlaying, setNowPlaying] = useState(null);
+  const [meta, setMeta] = useState(null);
+  const [loadingMeta, setLoadingMeta] = useState(true);
   const audioRef = useRef(null);
   const playerRef = useRef(null);
   const intervalRef = useRef(null);
@@ -16,6 +18,12 @@ export default function TuneTracker({ tunes = [] }) {
       const firstScriptTag = document.getElementsByTagName("script")[0];
       firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
     }
+
+    fetch("/api/tune-tracker/meta")
+      .then((res) => res.json())
+      .then((data) => setMeta(data))
+      .catch((err) => console.error("Failed to load meta", err))
+      .finally(() => setLoadingMeta(false));
   }, []);
 
   useEffect(() => {
@@ -158,6 +166,14 @@ export default function TuneTracker({ tunes = [] }) {
     return `/api/proxy-audio?key=${encodeURIComponent(coverImage)}`;
   };
 
+  const curatedBy = meta?.curatedBy;
+  const monthYear = meta?.editionDate
+    ? new Date(meta.editionDate).toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      })
+    : "";
+
   return (
     <section className="relative py-24 bg-white text-gray-900 overflow-hidden">
       <audio ref={audioRef} onEnded={() => setNowPlaying(null)} />
@@ -174,13 +190,42 @@ export default function TuneTracker({ tunes = [] }) {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mb-12">
-          <h2 className="font-accent text-6xl font-bold text-gray-900 mb-2">
-            Tune Tracker
-          </h2>
-          <p className="font-body text-gray-600 text-lg">
-            Discover the Hottest Tracks: Our Top 10 Music Charts
-          </p>
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12 gap-6">
+          <div className="max-w-3xl">
+            <h2 className="font-accent text-6xl font-bold text-gray-900 mb-2">
+              Tune Tracker
+            </h2>
+            <p className="font-body text-gray-600 text-lg">
+              Discover the Hottest Tracks: Our Top 10 Music Charts
+            </p>
+          </div>
+
+          {loadingMeta ? (
+            <div className="flex flex-col items-end gap-1 w-48">
+              <div className="h-4 bg-gray-100 rounded w-full animate-pulse"></div>
+              <div className="h-4 bg-gray-100 rounded w-2/3 animate-pulse"></div>
+            </div>
+          ) : (
+            (curatedBy || monthYear) && (
+              <div className="text-right flex flex-col gap-1 md:pb-1">
+                {curatedBy && (
+                  <div className="text-sm text-gray-500 font-body">
+                    Curated by{" "}
+                    <span className="font-semibold text-gray-900">
+                      {curatedBy}
+                    </span>
+                  </div>
+                )}
+                {monthYear && (
+                  <div className="flex items-center justify-end">
+                    <p className="font-heading text-gray-400 text-xs tracking-widest uppercase font-semibold">
+                      {monthYear} EDITION
+                    </p>
+                  </div>
+                )}
+              </div>
+            )
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">

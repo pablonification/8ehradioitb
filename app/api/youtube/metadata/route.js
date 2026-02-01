@@ -54,6 +54,16 @@ function extractVideoId(input) {
   }
 }
 
+function parseISO8601Duration(duration) {
+  if (!duration) return 0;
+  const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+  if (!match) return 0;
+  const hours = parseInt(match[1]) || 0;
+  const minutes = parseInt(match[2]) || 0;
+  const seconds = parseInt(match[3]) || 0;
+  return hours * 3600 + minutes * 60 + seconds;
+}
+
 export async function POST(req) {
   const session = await getServerSession(authOptions);
   if (!session || !isMusic(session.user.role)) {
@@ -77,35 +87,47 @@ export async function POST(req) {
       );
     }
 
-    const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
-    const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(watchUrl)}&format=json`;
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    if (!apiKey) {
+      console.error("YOUTUBE_API_KEY is not set");
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 },
+      );
+    }
 
-    const response = await fetch(oembedUrl, {
-      headers: {
-        Accept: "application/json",
-      },
-    });
+    const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${apiKey}`;
+    const response = await fetch(apiUrl);
 
     if (!response.ok) {
-      if (response.status === 404) {
-        return NextResponse.json(
-          { error: "Video not found or unavailable" },
-          { status: 404 },
-        );
-      }
       return NextResponse.json(
-        { error: "Failed to fetch video metadata" },
-        { status: 502 },
+        { error: "Failed to fetch video metadata from YouTube" },
+        { status: response.status },
       );
     }
 
     const data = await response.json();
 
+    if (!data.items || data.items.length === 0) {
+      return NextResponse.json({ error: "Video not found" }, { status: 404 });
+    }
+
+    const item = data.items[0];
+    const snippet = item.snippet;
+    const contentDetails = item.contentDetails;
+
+    const thumbnail =
+      snippet.thumbnails.maxres ||
+      snippet.thumbnails.high ||
+      snippet.thumbnails.medium ||
+      snippet.thumbnails.default;
+
     return NextResponse.json({
-      title: data.title,
-      thumbnailUrl: data.thumbnail_url,
+      title: snippet.title,
+      thumbnailUrl: thumbnail ? thumbnail.url : "",
       videoId,
-      canonicalUrl: watchUrl,
+      canonicalUrl: `https://www.youtube.com/watch?v=${videoId}`,
+      duration: parseISO8601Duration(contentDetails.duration),
     });
   } catch (error) {
     console.error("Error fetching YouTube metadata:", error);

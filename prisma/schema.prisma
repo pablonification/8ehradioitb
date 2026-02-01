@@ -173,6 +173,13 @@ model TuneTrackerEntry {
   updatedAt      DateTime @updatedAt
 }
 
+model TuneTrackerMeta {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  curatedBy   String?  // person who curated this chart
+  editionDate DateTime @default(now()) // date of this edition (month/year)
+  updatedAt   DateTime @updatedAt
+}
+
 model ProgramVideo {
   id           String   @id @default(cuid()) @map("_id")
   title        String
