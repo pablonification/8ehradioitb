@@ -8,8 +8,9 @@ import FooterSection from "@/app/components/FooterSection";
 import { prisma } from "@/lib/prisma";
 import ArticleStructuredData from "@/app/components/ArticleStructuredData";
 import TLDRSection from "@/app/components/TLDRSection";
+import { cache } from "react";
 
-async function getPost(slug) {
+const getPost = cache(async (slug) => {
   const post = await prisma.blogPost.findUnique({
     where: { slug },
     include: {
@@ -26,7 +27,7 @@ async function getPost(slug) {
     },
   });
   return post;
-}
+});
 
 export async function generateMetadata({ params }) {
   const slug = await params.slug;
@@ -39,16 +40,18 @@ export async function generateMetadata({ params }) {
     };
   }
 
+  const description = post.description || post.content?.substring(0, 160);
+
   return {
     title: post.title,
-    description: post.description,
+    description: description,
     keywords: post.tags,
     alternates: {
       canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/blog/${post.slug}`,
     },
     openGraph: {
       title: post.title,
-      description: post.description,
+      description: description,
       url: `${process.env.NEXT_PUBLIC_SITE_URL}/blog/${post.slug}`,
       images: [
         {
@@ -68,7 +71,7 @@ export async function generateMetadata({ params }) {
     twitter: {
       card: "summary_large_image",
       title: post.title,
-      description: post.description,
+      description: description,
       images: [post.mainImage || "/8eh-real-long.png"],
     },
   };

@@ -6,6 +6,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Grid } from "swiper/modules";
 import announcerData from "@/public/list_name_linkedin_ig_ann_agency.json";
 import Waveform from "./Waveform"; // Import the Waveform component
+import { getAudioUrl } from "@/lib/audioUtils";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/grid";
@@ -14,10 +15,8 @@ const photoPaths = {
   "Virasiska Yuliana": "",
   "Nudia Salsabila": "/foto-agency/nudia.png",
   "Alifia Ayena": "/foto-agency/alifia.png",
-  "Darren Valerian":
-    "/foto-agency/darren.png",
-  "Maurana Idzil Fikryansyah":
-    "/foto-agency/fiki.png",
+  "Darren Valerian": "/foto-agency/darren.png",
+  "Maurana Idzil Fikryansyah": "/foto-agency/fiki.png",
   "Benedictus Alfian Wibisono": "",
   "Alika Mirfatya": "/foto-agency/lily.png",
   "Marsela Wanda Arista": "/foto-agency/wanda.png",
@@ -32,18 +31,15 @@ const photoPaths = {
   "Queenie Angelica Juwanda": "/foto-agency/queenie.png",
   "Naura Tsabita Wibowo": "/foto-agency/naura.png",
   "Khalisa Nadya Lazuardi": "/foto-agency/zuzu.png",
-  "Dicky Ardiansyah":
-    "/foto-agency/dicky.png",
+  "Dicky Ardiansyah": "/foto-agency/dicky.png",
   "Emir Muhammad Firassiyan": "/foto-agency/emir.png",
   "Hamzah Abdul Rahim": "/foto-agency/hamzah.png",
   "Abdullah Sulaiman Tidar Nasution": "/foto-agency/abdul.png",
   "Claudine Mayra Hartono": "/foto-agency/claudine.png",
   "Muhammad Jordan Ferimeison": "/foto-agency/jordan.png",
-  "Juliene Najla Aninditya":
-    "/foto-agency/juliene.png",
+  "Juliene Najla Aninditya": "/foto-agency/juliene.png",
   "Ivan Sultan Firmansyah": "/foto-agency/ivan.png",
-  "Nadhifa Zavrina Musmarliansyah":
-    "/foto-agency/nadhifa.png",
+  "Nadhifa Zavrina Musmarliansyah": "/foto-agency/nadhifa.png",
   "Zahrah Nur Azizah": "/foto-agency/ara.png",
   "Evangeline Agnesia": "/foto-agency/evangeline.png",
   "Galuh Maharani Putriku": "/foto-agency/galuh.png",
@@ -90,7 +86,7 @@ const allMembers = announcerData.Announcers.map((announcer) => ({
   ig: announcer.ig,
   linkedin: announcer.linkedin,
   photoUrl: photoPaths[announcer.name] || "/placeholder.jpg",
-  voiceUrl: voicePaths[announcer.name] || "",
+  voiceUrl: getAudioUrl(voicePaths[announcer.name]) || "",
 }));
 
 export default function BoardSliderAnnouncerAgency() {
