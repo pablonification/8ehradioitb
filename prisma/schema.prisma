@@ -16,18 +16,18 @@ enum Role {
 }
 
 model User {
-  id        String         @id @default(auto()) @map("_id") @db.ObjectId
-  name      String?
-  email     String?        @unique
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String?        @unique
   emailVerified DateTime?
-  image     String?
-  role      String         @default("KRU")
-  createdAt DateTime       @default(now())
-  authored  AuthorOnPost[]
-  accounts  Account[]
-  sessions  Session[]
-  shortLinks ShortLink[]
-  podcasts  Podcast[]
+  image         String?
+  role          String         @default("KRU")
+  createdAt     DateTime       @default(now())
+  authored      AuthorOnPost[]
+  accounts      Account[]
+  sessions      Session[]
+  shortLinks    ShortLink[]
+  podcasts      Podcast[]
 }
 
 model BlogPost {
@@ -55,30 +55,30 @@ model AuthorOnPost {
 }
 
 model ShortLink {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String           @id @default(auto()) @map("_id") @db.ObjectId
   destination String
-  slug        String   @unique
+  slug        String           @unique
   title       String?
-  domain      String   @default("8eh.link")
+  domain      String           @default("8eh.link")
   password    String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  userId      String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  userId      String           @db.ObjectId
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   clicks      ShortLinkClick[]
 }
 
 model ShortLinkClick {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  shortLinkId String   @db.ObjectId
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  shortLinkId String    @db.ObjectId
   shortLink   ShortLink @relation(fields: [shortLinkId], references: [id], onDelete: Cascade)
   ipAddress   String?
   userAgent   String?
   referer     String?
   country     String?
   city        String?
-  clickedAt   DateTime @default(now())
+  clickedAt   DateTime  @default(now())
 }
 
 model Account {
@@ -119,8 +119,8 @@ model VerificationToken {
 }
 
 model WhitelistedEmail {
-  id    String @id @default(auto()) @map("_id") @db.ObjectId
-  email String @unique
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
   createdAt DateTime @default(now())
 }
 
@@ -141,39 +141,44 @@ model Podcast {
 }
 
 model PlayerConfig {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  subtitle  String?
-  coverImage String?
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  subtitle    String?
+  coverImage  String?
   coverImages String[] // semua cover image yang pernah diupload
-  updatedAt DateTime @updatedAt
+  updatedAt   DateTime @updatedAt
 }
 
 model StreamConfig {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  baseUrls   String[]
-  defaultUrl String
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  baseUrls    String[]
+  defaultUrl  String
   fallbackUrl String
-  onAir      Boolean  @default(true)
-  updatedAt  DateTime @updatedAt
+  onAir       Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
 }
 
 model TuneTrackerEntry {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  order      Int      // 1-10, chart position
-  title      String
-  artist     String
-  coverImage String?  // R2 URL
-  audioUrl   String?  // R2 URL
-  updatedAt  DateTime @updatedAt
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  order          Int // 1-10, chart position
+  title          String
+  artist         String
+  coverImage     String? // R2 URL
+  audioUrl       String? // R2 URL
+  youtubeUrl     String? // canonical YouTube URL
+  youtubeVideoId String? // 11-character YouTube video ID
+  startSeconds   Int? // start time in seconds
+  endSeconds     Int? // end time in seconds
+  sourceType     String? // enum discriminator: "AUDIO_URL" | "YOUTUBE"
+  updatedAt      DateTime @updatedAt
 }
 
 model ProgramVideo {
-  id          String   @id @default(cuid()) @map("_id")
-  title       String
-  link        String
-  thumbnail   String
+  id           String   @id @default(cuid()) @map("_id")
+  title        String
+  link         String
+  thumbnail    String
   thumbnailKey String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

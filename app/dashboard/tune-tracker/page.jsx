@@ -1,10 +1,42 @@
 "use client";
 import { useSession } from "next-auth/react";
 import { useEffect, useState, useRef } from "react";
-import { FiSave, FiUpload, FiX, FiMusic } from "react-icons/fi";
+import {
+  FiSave,
+  FiUpload,
+  FiX,
+  FiMusic,
+  FiPlay,
+  FiStopCircle,
+  FiYoutube,
+  FiRefreshCw,
+} from "react-icons/fi";
 import { hasAnyRole } from "@/lib/roleUtils";
 
 const MAX_ENTRIES = 10;
+
+const formatTime = (seconds) => {
+  if (seconds === null || seconds === undefined || isNaN(seconds)) return "";
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+};
+
+const parseTime = (timeStr) => {
+  if (!timeStr) return null;
+  const parts = timeStr.trim().split(":");
+  if (parts.length === 1) {
+    const val = parseInt(parts[0], 10);
+    return isNaN(val) ? null : val;
+  }
+  if (parts.length === 2) {
+    const m = parseInt(parts[0], 10);
+    const s = parseInt(parts[1], 10);
+    if (isNaN(m) || isNaN(s)) return null;
+    return m * 60 + s;
+  }
+  return null;
+};
 
 // Komponen untuk satu baris entri lagu
 function TuneEntryForm({ initialEntry, onSaveSuccess }) {
@@ -12,13 +44,39 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const coverInputRef = useRef(null);
-  const audioInputRef = useRef(null);
+
+  const [mode, setMode] = useState(
+    entry.sourceType === "AUDIO_URL" ||
+      (entry.audioUrl && !entry.youtubeVideoId)
+      ? "AUDIO_URL"
+      : "YOUTUBE",
+  );
+
+  const [previewing, setPreviewing] = useState(false);
+  const [fetchingMeta, setFetchingMeta] = useState(false);
+
+  useEffect(() => {
+    setEntry((prev) => ({ ...prev, sourceType: mode }));
+  }, [mode]);
 
   const handleChange = (field, value) => {
     setEntry((prev) => ({ ...prev, [field]: value }));
     setSuccess("");
     setError("");
+    if (
+      field === "youtubeUrl" ||
+      field === "startSeconds" ||
+      field === "endSeconds"
+    ) {
+      setPreviewing(false);
+    }
+  };
+
+  const handleTimeChange = (field, value) => {
+    const seconds = parseTime(value);
+    if (seconds !== null) {
+      handleChange(field, seconds);
+    }
   };
 
   const handleFileChange = (e, field) => {
@@ -47,6 +105,59 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
       onSaveSuccess(); // Refresh parent state
     } catch (err) {
       setError(err.message);
+    }
+  };
+
+  const fetchYoutubeMetadata = async () => {
+    const url = entry.youtubeUrl || entry.youtubeVideoId;
+    if (!url) {
+      setError("Please enter a YouTube URL or ID first.");
+      return;
+    }
+
+    setFetchingMeta(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/youtube/metadata", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(url.length === 11 ? { id: url } : { url }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Failed to fetch metadata");
+
+      setEntry((prev) => ({
+        ...prev,
+        title: prev.title || data.title, // Only auto-fill if empty? or just overwrite? "If successful and title is empty, auto-fill title"
+        youtubeVideoId: data.videoId,
+        youtubeUrl: data.canonicalUrl,
+        coverImage:
+          !prev.coverImage ||
+          typeof prev.coverImage !== "string" ||
+          prev.coverImage.startsWith("http")
+            ? data.thumbnailUrl
+            : prev.coverImage, // "Set coverImage to YouTube thumbnail... as default". We'll set it if it's empty or currently an external URL. If user uploaded a custom file (R2 key), maybe keep it? Let's just set it if empty or currently a youtube thumb.
+      }));
+
+      // If we just fetched, and coverImage was empty, set it
+      if (!entry.coverImage) {
+        handleChange("coverImage", data.thumbnailUrl);
+      } else if (
+        typeof entry.coverImage === "string" &&
+        entry.coverImage.startsWith("http")
+      ) {
+        // Overwrite existing external URL (likely old youtube thumb)
+        handleChange("coverImage", data.thumbnailUrl);
+      }
+
+      setSuccess("Metadata fetched successfully");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setFetchingMeta(false);
     }
   };
 
@@ -80,11 +191,44 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
       setError("Song Title and Artist are required.");
       return;
     }
+
+    // Validation for YouTube mode
+    if (mode === "YOUTUBE") {
+      if (!entry.youtubeVideoId) {
+        setError("YouTube Video ID is required for YouTube mode.");
+        return;
+      }
+      if (entry.startSeconds === undefined || entry.startSeconds === null) {
+        setError("Start time is required.");
+        return;
+      }
+      if (entry.endSeconds === undefined || entry.endSeconds === null) {
+        setError("End time is required.");
+        return;
+      }
+      if (entry.endSeconds <= entry.startSeconds) {
+        setError("End time must be greater than start time.");
+        return;
+      }
+    } else {
+      if (!entry.audioUrl) {
+        setError("Audio file is required for Audio Upload mode.");
+        return;
+      }
+    }
+
     setSaving(true);
     setError("");
     setSuccess("");
 
-    let finalPayload = { ...entry };
+    let finalPayload = {
+      ...entry,
+      sourceType: mode,
+      // Ensure numbers are numbers
+      startSeconds:
+        entry.startSeconds !== "" ? parseInt(entry.startSeconds) : null,
+      endSeconds: entry.endSeconds !== "" ? parseInt(entry.endSeconds) : null,
+    };
 
     try {
       if (entry.coverImage instanceof File) {
@@ -112,6 +256,16 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
     }
   };
 
+  const getCoverSrc = (img) => {
+    if (!img || img instanceof File) return null;
+    if (img.startsWith("http")) return img;
+    return `/api/proxy-audio?key=${encodeURIComponent(img)}`;
+  };
+
+  const togglePreview = () => {
+    setPreviewing(!previewing);
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 flex flex-col md:flex-row gap-6 items-start">
       <div className="w-12 text-3xl font-heading text-gray-400 pt-2 font-bold flex-shrink-0">
@@ -130,7 +284,125 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
           </div>
         )}
 
+        {/* Mode Toggle */}
+        <div className="flex mb-4 border-b border-gray-200">
+          <button
+            className={`pb-2 px-4 font-semibold text-sm ${mode === "YOUTUBE" ? "text-red-600 border-b-2 border-red-600" : "text-gray-500 hover:text-gray-700"}`}
+            onClick={() => setMode("YOUTUBE")}
+          >
+            <div className="flex items-center gap-2">
+              <FiYoutube /> YouTube
+            </div>
+          </button>
+          <button
+            className={`pb-2 px-4 font-semibold text-sm ${mode === "AUDIO_URL" ? "text-red-600 border-b-2 border-red-600" : "text-gray-500 hover:text-gray-700"}`}
+            onClick={() => setMode("AUDIO_URL")}
+          >
+            <div className="flex items-center gap-2">
+              <FiMusic /> Audio Upload
+            </div>
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* YouTube Specific Inputs */}
+          {mode === "YOUTUBE" && (
+            <div className="md:col-span-2 space-y-4">
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold text-gray-700 font-body mb-1">
+                    YouTube URL / ID
+                  </label>
+                  <input
+                    className="w-full border border-gray-300 p-2 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    value={entry.youtubeUrl || entry.youtubeVideoId || ""}
+                    onChange={(e) => handleChange("youtubeUrl", e.target.value)}
+                    onBlur={() => {
+                      // Optional: simple format check on blur
+                    }}
+                    placeholder="https://youtube.com/watch?v=..."
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={fetchYoutubeMetadata}
+                  disabled={fetchingMeta}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-800 p-2.5 rounded-md border border-gray-300 flex items-center gap-2 font-semibold disabled:opacity-50"
+                >
+                  {fetchingMeta ? (
+                    <FiRefreshCw className="animate-spin" />
+                  ) : (
+                    <FiRefreshCw />
+                  )}
+                  Fetch
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 font-body mb-1">
+                    Start Time (mm:ss)
+                  </label>
+                  <input
+                    className="w-full border border-gray-300 p-2 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    key={entry.startSeconds}
+                    defaultValue={formatTime(entry.startSeconds)}
+                    onBlur={(e) =>
+                      handleTimeChange("startSeconds", e.target.value)
+                    }
+                    placeholder="0:00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 font-body mb-1">
+                    End Time (mm:ss)
+                  </label>
+                  <input
+                    className="w-full border border-gray-300 p-2 rounded-md font-body text-gray-900 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    key={entry.endSeconds}
+                    defaultValue={formatTime(entry.endSeconds)}
+                    onBlur={(e) =>
+                      handleTimeChange("endSeconds", e.target.value)
+                    }
+                    placeholder="0:30"
+                  />
+                </div>
+              </div>
+
+              {/* Preview Button */}
+              {entry.youtubeVideoId &&
+                entry.startSeconds != null &&
+                entry.endSeconds != null && (
+                  <div className="mt-2">
+                    <button
+                      type="button"
+                      onClick={togglePreview}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-md font-semibold text-sm ${previewing ? "bg-red-100 text-red-700 border border-red-200" : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"}`}
+                    >
+                      {previewing ? <FiStopCircle /> : <FiPlay />}
+                      {previewing ? "Stop Preview" : "Preview Segment"}
+                    </button>
+
+                    {/* Hidden iframe for audio playback */}
+                    {previewing && (
+                      <div className="mt-2 rounded-md overflow-hidden bg-black h-0 w-0 opacity-0 relative">
+                        <iframe
+                          width="0"
+                          height="0"
+                          src={`https://www.youtube.com/embed/${entry.youtubeVideoId}?start=${entry.startSeconds}&end=${entry.endSeconds}&autoplay=1&controls=0&modestbranding=1&rel=0`}
+                          title="YouTube video player"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        ></iframe>
+                      </div>
+                    )}
+                  </div>
+                )}
+            </div>
+          )}
+
+          {/* Basic Info */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 font-body mb-1">
               Song Title
@@ -154,7 +426,12 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
 
           <div className="md:col-span-2">
             <label className="block text-sm font-semibold text-gray-700 font-body mb-1">
-              Cover Image
+              Cover Image{" "}
+              {mode === "YOUTUBE" && (
+                <span className="text-gray-400 font-normal ml-2">
+                  (Default: YouTube Thumbnail)
+                </span>
+              )}
             </label>
             <div className="flex items-center gap-3">
               <label className="flex-1">
@@ -169,17 +446,27 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
                   <span className="truncate text-sm">
                     {entry.coverImage instanceof File
                       ? entry.coverImage.name
-                      : "Choose file..."}
+                      : "Upload Custom Cover..."}
                   </span>
                 </div>
               </label>
-              {typeof entry.coverImage === "string" && entry.coverImage && (
+              {(entry.coverImage instanceof File || entry.coverImage) && (
                 <>
-                  <img
-                    src={`/api/proxy-audio?key=${encodeURIComponent(entry.coverImage)}`}
-                    alt="cover"
-                    className="w-12 h-12 object-cover rounded-md border"
-                  />
+                  <div className="relative">
+                    {entry.coverImage instanceof File ? (
+                      // Display nothing for file object preview in this simplified view or maybe just the name above is enough.
+                      // Actually let's try to create a URL for preview if it's a file
+                      <div className="w-12 h-12 bg-gray-100 rounded-md border flex items-center justify-center text-xs text-gray-500">
+                        File
+                      </div>
+                    ) : (
+                      <img
+                        src={getCoverSrc(entry.coverImage)}
+                        alt="cover"
+                        className="w-12 h-12 object-cover rounded-md border"
+                      />
+                    )}
+                  </div>
                   <button
                     type="button"
                     className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full cursor-pointer"
@@ -192,45 +479,48 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
             </div>
           </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-gray-700 font-body mb-1">
-              Audio Clip (Preview)
-            </label>
-            <div className="flex flex-col gap-2">
-              <label className="flex-1">
-                <input
-                  type="file"
-                  accept="audio/*"
-                  onChange={(e) => handleFileChange(e, "audioUrl")}
-                  className="hidden"
-                />
-                <div className="w-full border border-gray-300 p-2 rounded-md font-body text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2 cursor-pointer">
-                  <FiMusic />
-                  <span className="truncate text-sm">
-                    {entry.audioUrl instanceof File
-                      ? entry.audioUrl.name
-                      : "Choose file..."}
-                  </span>
-                </div>
+          {/* Audio Upload (Legacy) - Only show in AUDIO_URL mode */}
+          {mode === "AUDIO_URL" && (
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold text-gray-700 font-body mb-1">
+                Audio Clip (Preview)
               </label>
-              {typeof entry.audioUrl === "string" && entry.audioUrl && (
-                <div className="flex items-center gap-3 mt-1">
-                  <audio
-                    src={`/api/proxy-audio?key=${encodeURIComponent(entry.audioUrl)}`}
-                    controls
-                    className="h-10 rounded-md"
+              <div className="flex flex-col gap-2">
+                <label className="flex-1">
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    onChange={(e) => handleFileChange(e, "audioUrl")}
+                    className="hidden"
                   />
-                  <button
-                    type="button"
-                    className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full cursor-pointer"
-                    onClick={() => handleRemoveFile("audioUrl")}
-                  >
-                    <FiX />
-                  </button>
-                </div>
-              )}
+                  <div className="w-full border border-gray-300 p-2 rounded-md font-body text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2 cursor-pointer">
+                    <FiMusic />
+                    <span className="truncate text-sm">
+                      {entry.audioUrl instanceof File
+                        ? entry.audioUrl.name
+                        : "Choose file..."}
+                    </span>
+                  </div>
+                </label>
+                {typeof entry.audioUrl === "string" && entry.audioUrl && (
+                  <div className="flex items-center gap-3 mt-1">
+                    <audio
+                      src={`/api/proxy-audio?key=${encodeURIComponent(entry.audioUrl)}`}
+                      controls
+                      className="h-10 rounded-md"
+                    />
+                    <button
+                      type="button"
+                      className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full cursor-pointer"
+                      onClick={() => handleRemoveFile("audioUrl")}
+                    >
+                      <FiX />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -274,6 +564,11 @@ export default function TuneTrackerDashboard() {
             artist: "",
             coverImage: null,
             audioUrl: null,
+            youtubeUrl: "",
+            youtubeVideoId: "",
+            startSeconds: null,
+            endSeconds: null,
+            sourceType: "YOUTUBE",
             id: undefined,
           }
         );
