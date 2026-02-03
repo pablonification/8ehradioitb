@@ -11,6 +11,7 @@ export default function TuneTracker({ tunes = [] }) {
   const playerRef = useRef(null);
   const intervalRef = useRef(null);
   const scriptRef = useRef(null);
+  const boundariesRef = useRef({ start: 0, end: null });
 
   useEffect(() => {
     if (!window.YT && !document.getElementById("youtube-iframe-api")) {
@@ -101,6 +102,8 @@ export default function TuneTracker({ tunes = [] }) {
       const start = tune.startSeconds || 0;
       const end = tune.endSeconds;
 
+      boundariesRef.current = { start, end };
+
       const onStateChange = (event) => {
         if (event.data === window.YT.PlayerState.ENDED) {
           setNowPlaying(null);
@@ -111,15 +114,17 @@ export default function TuneTracker({ tunes = [] }) {
           intervalRef.current = setInterval(() => {
             if (!playerRef.current || !playerRef.current.getCurrentTime) return;
             const curr = playerRef.current.getCurrentTime();
+            const { start: currentStart, end: currentEnd } =
+              boundariesRef.current;
 
-            if (end && curr >= end) {
+            if (currentEnd && curr >= currentEnd) {
               playerRef.current.stopVideo();
               setNowPlaying(null);
               clearInterval(intervalRef.current);
             }
 
-            if (curr < start) {
-              playerRef.current.seekTo(start);
+            if (curr < currentStart) {
+              playerRef.current.seekTo(currentStart);
             }
           }, 1000);
         }

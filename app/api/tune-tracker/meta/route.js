@@ -32,6 +32,16 @@ export async function POST(req) {
   const body = await req.json();
   const { curatedBy, editionDate } = body;
 
+  if (editionDate !== undefined) {
+    const parsedDate = new Date(editionDate);
+    if (isNaN(parsedDate.getTime())) {
+      return NextResponse.json(
+        { error: "Invalid editionDate format" },
+        { status: 400 },
+      );
+    }
+  }
+
   let meta = await prisma.tuneTrackerMeta.findFirst();
 
   const data = {};

@@ -174,42 +174,32 @@ export async function PATCH(req) {
     data.endSeconds !== undefined ||
     data.youtubeUrl
   ) {
+    const current = await prisma.tuneTrackerEntry.findUnique({
+      where: { id },
+    });
+    if (!current)
+      return NextResponse.json({ error: "Entry not found" }, { status: 404 });
+
+    const mergedStart =
+      data.startSeconds !== undefined
+        ? data.startSeconds
+        : current.startSeconds;
+    const mergedEnd =
+      data.endSeconds !== undefined ? data.endSeconds : current.endSeconds;
+    const mergedVideoId =
+      data.youtubeVideoId !== undefined
+        ? data.youtubeVideoId
+        : current.youtubeVideoId;
+    const mergedUrl =
+      data.youtubeUrl !== undefined ? data.youtubeUrl : current.youtubeUrl;
+
     const error = validateYoutubeFields(
-      data.youtubeVideoId,
-      data.startSeconds,
-      undefined,
-      data.youtubeUrl,
+      mergedVideoId,
+      mergedStart,
+      mergedEnd,
+      mergedUrl,
     );
     if (error) return NextResponse.json({ error }, { status: 400 });
-
-    if (data.startSeconds !== undefined || data.endSeconds !== undefined) {
-      let s = data.startSeconds;
-      let e = data.endSeconds;
-
-      if (s === undefined || e === undefined) {
-        const current = await prisma.tuneTrackerEntry.findUnique({
-          where: { id },
-        });
-        if (!current)
-          return NextResponse.json(
-            { error: "Entry not found" },
-            { status: 404 },
-          );
-        if (s === undefined) s = current.startSeconds;
-        if (e === undefined) e = current.endSeconds;
-      }
-
-      if (s !== null && s !== undefined && e !== null && e !== undefined) {
-        const sVal = parseInt(s);
-        const eVal = parseInt(e);
-        if (!isNaN(sVal) && !isNaN(eVal) && eVal <= sVal) {
-          return NextResponse.json(
-            { error: "endSeconds must be > startSeconds" },
-            { status: 400 },
-          );
-        }
-      }
-    }
   }
 
   const entry = await prisma.tuneTrackerEntry.update({ where: { id }, data });
