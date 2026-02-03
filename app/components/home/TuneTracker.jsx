@@ -1,11 +1,49 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 
 export default function TuneTracker({ tunes = [] }) {
   const [nowPlaying, setNowPlaying] = useState(null);
+  const [meta, setMeta] = useState(null);
+  const [loadingMeta, setLoadingMeta] = useState(true);
   const audioRef = useRef(null);
+  const playerRef = useRef(null);
+  const intervalRef = useRef(null);
+  const scriptRef = useRef(null);
+  const boundariesRef = useRef({ start: 0, end: null });
+
+  useEffect(() => {
+    if (!window.YT && !document.getElementById("youtube-iframe-api")) {
+      const tag = document.createElement("script");
+      tag.id = "youtube-iframe-api";
+      tag.src = "https://www.youtube.com/iframe_api";
+      tag.async = true;
+      const firstScriptTag = document.getElementsByTagName("script")[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      scriptRef.current = tag;
+    }
+
+    fetch("/api/tune-tracker/meta")
+      .then((res) => res.json())
+      .then((data) => setMeta(data))
+      .catch((err) => console.error("Failed to load meta", err))
+      .finally(() => setLoadingMeta(false));
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      if (
+        playerRef.current &&
+        typeof playerRef.current.destroy === "function"
+      ) {
+        playerRef.current.destroy();
+        playerRef.current = null;
+      }
+    };
+  }, []);
 
   // Fill array to ensure 10 items
   const filledTunes = Array.from({ length: 10 }, (_, i) => {
@@ -24,22 +62,140 @@ export default function TuneTracker({ tunes = [] }) {
     );
   });
 
-  const handlePlay = (idx) => {
-    if (nowPlaying === idx) {
+  const stopPlayback = () => {
+    if (audioRef.current) {
       audioRef.current.pause();
-      setNowPlaying(null);
-    } else {
-      setNowPlaying(idx);
-      if (filledTunes[idx].audioUrl) {
-        audioRef.current.src = `/api/proxy-audio?key=${encodeURIComponent(filledTunes[idx].audioUrl)}`;
-        audioRef.current.play();
-      }
+      audioRef.current.currentTime = 0;
+    }
+    if (
+      playerRef.current &&
+      typeof playerRef.current.stopVideo === "function"
+    ) {
+      playerRef.current.stopVideo();
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
   };
+
+  const handlePlay = (idx) => {
+    const tune = filledTunes[idx];
+
+    if (nowPlaying === idx) {
+      stopPlayback();
+      setNowPlaying(null);
+      return;
+    }
+
+    stopPlayback();
+    setNowPlaying(idx);
+
+    const isYouTube = tune.youtubeVideoId || tune.sourceType === "YOUTUBE";
+
+    if (isYouTube && tune.youtubeVideoId) {
+      if (!window.YT || !window.YT.Player) {
+        console.error("YouTube API not loaded");
+        return;
+      }
+
+      const start = tune.startSeconds || 0;
+      const end = tune.endSeconds;
+
+      boundariesRef.current = { start, end };
+
+      const onStateChange = (event) => {
+        if (event.data === window.YT.PlayerState.ENDED) {
+          setNowPlaying(null);
+          if (intervalRef.current) clearInterval(intervalRef.current);
+        }
+        if (event.data === window.YT.PlayerState.PLAYING) {
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          intervalRef.current = setInterval(() => {
+            if (!playerRef.current || !playerRef.current.getCurrentTime) return;
+            const curr = playerRef.current.getCurrentTime();
+            const { start: currentStart, end: currentEnd } =
+              boundariesRef.current;
+
+            if (currentEnd && curr >= currentEnd) {
+              playerRef.current.stopVideo();
+              setNowPlaying(null);
+              clearInterval(intervalRef.current);
+            }
+
+            if (curr < currentStart) {
+              playerRef.current.seekTo(currentStart);
+            }
+          }, 1000);
+        }
+      };
+
+      if (!playerRef.current) {
+        playerRef.current = new window.YT.Player("youtube-player-hidden", {
+          height: "0",
+          width: "0",
+          videoId: tune.youtubeVideoId,
+          playerVars: {
+            controls: 0,
+            disablekb: 1,
+            fs: 0,
+            modestbranding: 1,
+            rel: 0,
+            start: start,
+            end: end,
+            autoplay: 1,
+          },
+          events: {
+            onStateChange: onStateChange,
+            onError: () => {
+              console.error("YouTube Player Error");
+              setNowPlaying(null);
+            },
+          },
+        });
+      } else {
+        playerRef.current.loadVideoById({
+          videoId: tune.youtubeVideoId,
+          startSeconds: start,
+          endSeconds: end,
+        });
+      }
+    } else if (tune.audioUrl) {
+      if (audioRef.current) {
+        audioRef.current.src = `/api/proxy-audio?key=${encodeURIComponent(
+          tune.audioUrl,
+        )}`;
+        audioRef.current.play().catch((e) => {
+          console.error("Audio playback failed", e);
+          setNowPlaying(null);
+        });
+      }
+    } else {
+      setNowPlaying(null);
+    }
+  };
+
+  const getCoverImageUrl = (coverImage) => {
+    if (!coverImage) return "/8eh-real.svg";
+    if (coverImage.startsWith("http") || coverImage.startsWith("/")) {
+      return coverImage;
+    }
+    return `/api/proxy-audio?key=${encodeURIComponent(coverImage)}`;
+  };
+
+  const curatedBy = meta?.curatedBy;
+  const monthYear = meta?.editionDate
+    ? new Date(meta.editionDate).toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      })
+    : "";
 
   return (
     <section className="relative py-24 bg-white text-gray-900 overflow-hidden">
       <audio ref={audioRef} onEnded={() => setNowPlaying(null)} />
+      <div id="youtube-player-hidden" className="hidden"></div>
+
       <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px]">
         <Image
           src="/tune-tracker.png"
@@ -51,18 +207,52 @@ export default function TuneTracker({ tunes = [] }) {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mb-12">
-          <h2 className="font-accent text-6xl font-bold text-gray-900 mb-2">
-            Tune Tracker
-          </h2>
-          <p className="font-body text-gray-600 text-lg">
-            Discover the Hottest Tracks: Our Top 10 Music Charts
-          </p>
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12 gap-6">
+          <div className="max-w-3xl">
+            <h2 className="font-accent text-6xl font-bold text-gray-900 mb-2">
+              Tune Tracker
+            </h2>
+            <p className="font-body text-gray-600 text-lg">
+              Discover the Hottest Tracks: Our Top 10 Music Charts
+            </p>
+          </div>
+
+          {loadingMeta ? (
+            <div className="flex flex-col items-end gap-1 w-48">
+              <div className="h-4 bg-gray-100 rounded w-full animate-pulse"></div>
+              <div className="h-4 bg-gray-100 rounded w-2/3 animate-pulse"></div>
+            </div>
+          ) : (
+            (curatedBy || monthYear) && (
+              <div className="text-right flex flex-col gap-1 md:pb-1">
+                {curatedBy && (
+                  <div className="text-sm text-gray-500 font-body">
+                    Curated by{" "}
+                    <span className="font-semibold text-gray-900">
+                      {curatedBy}
+                    </span>
+                  </div>
+                )}
+                {monthYear && (
+                  <div className="flex items-center justify-end">
+                    <p className="font-heading text-gray-400 text-xs tracking-widest uppercase font-semibold">
+                      {monthYear} EDITION
+                    </p>
+                  </div>
+                )}
+              </div>
+            )
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
           {filledTunes.map((tune, idx) => {
             const isPlaying = nowPlaying === idx;
+            const canPlay =
+              tune.audioUrl ||
+              tune.youtubeVideoId ||
+              tune.sourceType === "YOUTUBE";
+
             return (
               <div
                 key={idx}
@@ -73,13 +263,11 @@ export default function TuneTracker({ tunes = [] }) {
                 </div>
                 <div className="w-14 h-14 relative mx-4 rounded-full overflow-hidden flex-shrink-0 shadow-inner">
                   <img
-                    src={
-                      tune.coverImage
-                        ? `/api/proxy-audio?key=${encodeURIComponent(tune.coverImage)}`
-                        : "/8eh-real.svg"
-                    }
+                    src={getCoverImageUrl(tune.coverImage)}
                     alt={tune.title || `Song ${idx + 1}`}
-                    className={`object-cover w-full h-full absolute inset-0 ${isPlaying ? "animate-[spin_3s_linear_infinite]" : ""}`}
+                    className={`object-cover w-full h-full absolute inset-0 ${
+                      isPlaying ? "animate-[spin_3s_linear_infinite]" : ""
+                    }`}
                     style={{ position: "absolute", inset: 0 }}
                   />
                 </div>
@@ -99,7 +287,7 @@ export default function TuneTracker({ tunes = [] }) {
                   onClick={() => handlePlay(idx)}
                   className="w-12 h-12 rounded-full bg-white hover:bg-gray-200 flex items-center justify-center transition-colors flex-shrink-0 border border-gray-200/90 shadow-md cursor-pointer disabled:opacity-40"
                   aria-label={`Play ${tune.title}`}
-                  disabled={!tune.audioUrl}
+                  disabled={!canPlay}
                 >
                   <svg
                     viewBox="0 0 24 24"
