@@ -586,13 +586,13 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
               </div>
 
               {previewing && entry.youtubeVideoId && (
-                <div className="rounded-md overflow-hidden bg-black h-0 w-0 opacity-0 relative">
+                <div className="rounded-md overflow-hidden bg-black aspect-video w-full max-w-md mx-auto">
                   <iframe
-                    width="0"
-                    height="0"
+                    width="100%"
+                    height="100%"
                     src={`https://www.youtube.com/embed/${entry.youtubeVideoId}?start=${entry.startSeconds}&end=${entry.endSeconds}&autoplay=1&controls=0&modestbranding=1&rel=0`}
                     title="YouTube video player"
-                    frameBorder="0"
+                    className="w-full h-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   ></iframe>

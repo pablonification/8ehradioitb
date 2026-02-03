@@ -10,13 +10,17 @@ export default function TuneTracker({ tunes = [] }) {
   const audioRef = useRef(null);
   const playerRef = useRef(null);
   const intervalRef = useRef(null);
+  const scriptRef = useRef(null);
 
   useEffect(() => {
-    if (!window.YT) {
+    if (!window.YT && !document.getElementById("youtube-iframe-api")) {
       const tag = document.createElement("script");
+      tag.id = "youtube-iframe-api";
       tag.src = "https://www.youtube.com/iframe_api";
+      tag.async = true;
       const firstScriptTag = document.getElementsByTagName("script")[0];
       firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      scriptRef.current = tag;
     }
 
     fetch("/api/tune-tracker/meta")
@@ -24,11 +28,19 @@ export default function TuneTracker({ tunes = [] }) {
       .then((data) => setMeta(data))
       .catch((err) => console.error("Failed to load meta", err))
       .finally(() => setLoadingMeta(false));
-  }, []);
 
-  useEffect(() => {
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      if (
+        playerRef.current &&
+        typeof playerRef.current.destroy === "function"
+      ) {
+        playerRef.current.destroy();
+        playerRef.current = null;
+      }
     };
   }, []);
 
