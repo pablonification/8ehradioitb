@@ -1,0 +1,92 @@
+{
+  "$schema": "https://www.greptile.com/docs/code-review/greptile-json-reference",
+  "_description": "Greptile AI Code Review Configuration for 8EH Radio ITB",
+
+  "triggerOnUpdates": true,
+  "shouldUpdateDescription": false,
+
+  "labels": [],
+  "disabledLabels": ["wip", "draft", "ignore-greptile"],
+
+  "commentTypes": ["logic", "syntax", "style"],
+  "strictness": 2,
+
+  "comment": "🤖 AI-generated code review by Greptile",
+
+  "ignoreKeywords": "wip\ndraft\nignore-greptile\nWIP\nDRAFT",
+
+  "ignorePatterns": "*.lock\npackage-lock.json\nyarn.lock\npnpm-lock.yaml\nnode_modules/\ndist/\n.next/\n.sisyphus/\n*.min.js\n*.min.css\npublic/images/\npublic/audio/",
+
+  "includeBranches": ["main", "develop", "feat/*"],
+  "excludeBranches": ["dependabot/*", "renovate/*"],
+
+  "statusCheck": true,
+
+  "summarySection": {
+    "included": true,
+    "collapsible": true,
+    "defaultOpen": true
+  },
+  "issuesTableSection": {
+    "included": true,
+    "collapsible": false,
+    "defaultOpen": true
+  },
+  "confidenceScoreSection": {
+    "included": true,
+    "collapsible": false,
+    "defaultOpen": true
+  },
+  "sequenceDiagramSection": {
+    "included": true,
+    "collapsible": true,
+    "defaultOpen": false
+  },
+
+  "customContext": {
+    "rules": [
+      {
+        "scope": ["app/**/*.js", "app/**/*.jsx"],
+        "rule": "Use Next.js App Router patterns. Prefer Server Components unless client-side interactivity is needed."
+      },
+      {
+        "scope": ["app/api/**/*.js"],
+        "rule": "API routes must validate input before processing. Follow existing error handling patterns with clear error messages."
+      },
+      {
+        "scope": ["prisma/schema.prisma"],
+        "rule": "Schema changes must be backward compatible. Use @db.ObjectId for ObjectId fields in MongoDB."
+      },
+      {
+        "scope": ["app/components/**/*.jsx"],
+        "rule": "React components should be functional with arrow functions. Use hooks for state management. Follow existing component naming conventions."
+      }
+    ],
+    "files": [
+      {
+        "scope": ["*.js", "*.jsx", "*.ts", "*.tsx"],
+        "path": "AGENTS.md",
+        "description": "Project guidelines and conventions for 8EH Radio ITB"
+      },
+      {
+        "scope": ["app/**/*.js", "app/**/*.jsx"],
+        "path": "lib/roleUtils.js",
+        "description": "Role checking utilities for access control"
+      }
+    ],
+    "other": [
+      {
+        "scope": ["app/api/**/*.js"],
+        "content": "API routes use Prisma with MongoDB. Role checking follows pattern: import { hasAnyRole } from '@/lib/roleUtils' and check with isMusic(session.user.role)."
+      },
+      {
+        "scope": ["app/dashboard/**/*.jsx"],
+        "content": "Dashboard pages require MUSIC or DEVELOPER role. Use useSession from next-auth/react for authentication."
+      },
+      {
+        "scope": ["app/components/**/*.jsx"],
+        "content": "Components use Tailwind CSS for styling. Font classes: font-accent, font-heading, font-body. Colors follow red-600 as primary."
+      }
+    ]
+  }
+}
