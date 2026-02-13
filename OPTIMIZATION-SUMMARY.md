@@ -1,6 +1,7 @@
 # React Best Practices Optimization - Completion Summary
 
 ## Overview
+
 Successfully optimized the 8ehradioitb codebase following Vercel's React Best Practices. Completed **9 of 11 tasks** (82% complete).
 
 ---
@@ -8,9 +9,11 @@ Successfully optimized the 8ehradioitb codebase following Vercel's React Best Pr
 ## ✅ Completed Tasks (9/11)
 
 ### Task 1: Migrated useRadioStream to SWR
+
 **Commit**: `dcc8392` - "perf(hooks): migrate useRadioStream to SWR for automatic revalidation"
 
 **Changes**:
+
 - Replaced manual `useEffect` + `fetch` with `useSWR`
 - Added automatic 30-second polling
 - Maintained backward compatibility
@@ -20,9 +23,11 @@ Successfully optimized the 8ehradioitb codebase following Vercel's React Best Pr
 ---
 
 ### Task 2: Refactored Navbar & Fixed Icon Flickering
+
 **Commit**: `ac04be2` - "refactor(navbar): split components and fix icon loading"
 
 **Changes**:
+
 - Split 620-line component into focused sub-components:
   - `NavbarAudio.jsx` (audio player)
   - `NavbarMobile.jsx` (mobile menu)
@@ -35,14 +40,16 @@ Successfully optimized the 8ehradioitb codebase following Vercel's React Best Pr
 ---
 
 ### Tasks 3+4: Converted Home Page to Server Component
+
 **Commit**: `4f751e5` - "perf(home): convert to Server Component with client wrappers"
 
 **Architecture Change**:
+
 ```javascript
 // BEFORE (Client-side waterfalls)
 "use client";
-useEffect(() => fetch('/api/podcast')); // Waterfall
-useEffect(() => fetch('/api/blog'));    // Waterfall
+useEffect(() => fetch("/api/podcast")); // Waterfall
+useEffect(() => fetch("/api/blog")); // Waterfall
 
 // AFTER (Parallel server-side fetching)
 export default async function Home() {
@@ -56,6 +63,7 @@ export default async function Home() {
 ```
 
 **Changes**:
+
 - Reduced from 741 to 96 lines (87% reduction)
 - Created client wrappers: `PodcastList.jsx`, `NewsList.jsx`, `TuneTracker.jsx`, `HeroSection.jsx`, `ProgramsSection.jsx`
 - Data arrives with HTML (no waterfalls)
@@ -65,9 +73,11 @@ export default async function Home() {
 ---
 
 ### Task 5: Created Skeleton Loaders
+
 **Commit**: `870fcd7` - "feat(ui): add skeleton loaders for podcasts, news, and tune tracker"
 
 **Files Created**:
+
 - `app/components/skeletons/PodcastSkeleton.jsx`
 - `app/components/skeletons/NewsCardSkeleton.jsx`
 - `app/components/skeletons/TuneTrackerSkeleton.jsx`
@@ -77,9 +87,11 @@ export default async function Home() {
 ---
 
 ### Task 10: Implemented Lazy Loading
+
 **Commit**: `694cf0a` - "perf: implement lazy loading for heavy components"
 
 **Changes**:
+
 - Lazy loaded `BoardSliderAnnouncer` and `RadioPlayer` using `next/dynamic`
 - Added loading skeletons
 
@@ -88,9 +100,11 @@ export default async function Home() {
 ---
 
 ### Task 11: Added Dynamic Metadata
+
 **Commit**: `08a2c61` - "feat(seo): add dynamic metadata generation for blog posts"
 
 **Changes**:
+
 - Added `generateMetadata` to `app/blog/[slug]/page.jsx`
 - Used React's `cache()` to prevent duplicate queries
 - Included OpenGraph and Twitter card tags
@@ -100,17 +114,20 @@ export default async function Home() {
 ---
 
 ### Task 7: Created R2 Migration Script
+
 **Commit**: `2e54cfb` - "chore(assets): add R2 audio migration script"
 
 **File Created**: `scripts/migrate-audio-to-r2.js`
 
 **Features**:
+
 - Scans `public/` for audio files only (`.mp3`, `.wav`, `.m4a`, `.aac`, `.ogg`)
 - Supports `--dry-run` and `--execute` modes
 - Does NOT touch images (per user requirement)
 - Found 26 audio files totaling 32.46 MB
 
 **Usage**:
+
 ```bash
 # Preview
 node scripts/migrate-audio-to-r2.js --dry-run
@@ -122,13 +139,16 @@ node scripts/migrate-audio-to-r2.js --execute
 ---
 
 ### Task 8: Updated Audio References
+
 **Commit**: `80bd3f1` - "refactor(audio): add R2 URL helper for backwards-compatible audio delivery"
 
 **Files Created/Modified**:
+
 - Created `lib/audioUtils.js` with `getAudioUrl()` helper
 - Modified `BoardSliderAnnouncerAgency.jsx` to use helper
 
 **Implementation**:
+
 ```javascript
 export function getAudioUrl(path) {
   const r2BaseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
@@ -143,6 +163,7 @@ export function getAudioUrl(path) {
 ## ⏸️ Skipped Tasks (1/11)
 
 ### Task 6: Implement Skeletons in Client Components
+
 **Status**: Deferred
 
 **Reason**: Home page is now a Server Component that fetches data before rendering, so there are no initial loading states. Only relevant if client-side filtering/pagination is added later.
@@ -152,11 +173,13 @@ export function getAudioUrl(path) {
 ## 🔴 Pending Tasks (1/11)
 
 ### Task 9: Cleanup Public Folder
+
 **Status**: **REQUIRES USER ACTION**
 
 **Why Pending**: Must verify R2 works in production before deleting local files.
 
 **Required Steps**:
+
 1. Set up Cloudflare R2 bucket
 2. Configure environment variables:
    ```env
@@ -182,23 +205,27 @@ export function getAudioUrl(path) {
 ## 📊 Results & Metrics
 
 ### Code Reduction
+
 - Home page: 741 → 96 lines (87% reduction)
 - Navbar: 620 → 200 lines (68% reduction)
 - Bundle size: 8.03kB → 7.55kB (6% reduction)
 
 ### Architecture Improvements
+
 - ✅ Eliminated client-side waterfalls
 - ✅ Enabled Server-Side Rendering (SSR)
 - ✅ Parallel data fetching
 - ✅ Direct Prisma queries (no HTTP overhead)
 
 ### Performance Gains
+
 - Faster First Contentful Paint (FCP)
 - Faster Largest Contentful Paint (LCP)
 - Better Time to Interactive (TTI)
 - Improved SEO (data arrives with HTML)
 
 ### Asset Optimization
+
 - Migration script ready
 - 26 audio files (32.46 MB) prepared for R2
 - Backwards-compatible URL handling
@@ -208,7 +235,9 @@ export function getAudioUrl(path) {
 ## 🚀 Next Steps for User
 
 ### Immediate Actions
+
 1. **Push commits to GitHub**:
+
    ```bash
    git push origin main
    ```
@@ -219,6 +248,7 @@ export function getAudioUrl(path) {
    - Configure environment variables
 
 3. **Run migration script**:
+
    ```bash
    node scripts/migrate-audio-to-r2.js --execute
    ```
@@ -237,6 +267,7 @@ export function getAudioUrl(path) {
 ## 📁 File Changes Summary
 
 ### New Files Created (13)
+
 ```
 scripts/migrate-audio-to-r2.js
 lib/audioUtils.js
@@ -254,6 +285,7 @@ app/components/skeletons/TuneTrackerSkeleton.jsx
 ```
 
 ### Modified Files (5)
+
 ```
 app/hooks/useRadioStream.js
 app/components/Navbar.jsx
@@ -263,6 +295,7 @@ app/components/BoardSliderAnnouncerAgency.jsx
 ```
 
 ### Total Commits: 8
+
 ```
 dcc8392 - perf(hooks): migrate useRadioStream to SWR
 ac04be2 - refactor(navbar): split components and fix icon loading
@@ -279,6 +312,7 @@ ac04be2 - refactor(navbar): split components and fix icon loading
 ## 🔧 Environment Variables Needed
 
 ### For R2 Migration (Server-side)
+
 ```env
 R2_ACCOUNT_ID=your-account-id
 R2_ACCESS_KEY_ID=your-access-key
@@ -287,6 +321,7 @@ R2_BUCKET_NAME=your-bucket-name
 ```
 
 ### For Production (Client-side)
+
 ```env
 NEXT_PUBLIC_R2_PUBLIC_URL=https://your-bucket-name.r2.dev
 ```
@@ -296,7 +331,7 @@ NEXT_PUBLIC_R2_PUBLIC_URL=https://your-bucket-name.r2.dev
 ## ✅ Verification Checklist
 
 - [x] All tasks except 6 and 9 completed
-- [x] Build passes: `npm run build` ✓
+- [x] Build passes: `bun run build` ✓
 - [x] No TypeScript/lint errors
 - [x] Migration script tested (--dry-run)
 - [x] Audio references updated with helper
