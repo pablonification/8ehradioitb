@@ -19,6 +19,7 @@ const RESERVED = [
   "_next",
   "favicon.ico",
   "contributors",
+  "events",
 ];
 
 export async function middleware(request: NextRequest) {
