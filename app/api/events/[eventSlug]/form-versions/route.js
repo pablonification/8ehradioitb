@@ -98,10 +98,8 @@ async function getAuthorizedEvent(req, eventSlug) {
 
 export async function GET(req, { params }) {
   try {
-    const { errorResponse, event } = await getAuthorizedEvent(
-      req,
-      params.eventSlug,
-    );
+    const { eventSlug } = await params;
+    const { errorResponse, event } = await getAuthorizedEvent(req, eventSlug);
 
     if (errorResponse) {
       return errorResponse;
@@ -129,9 +127,10 @@ export async function GET(req, { params }) {
 
 export async function POST(req, { params }) {
   try {
+    const { eventSlug } = await params;
     const { errorResponse, event, session } = await getAuthorizedEvent(
       req,
-      params.eventSlug,
+      eventSlug,
     );
 
     if (errorResponse) {

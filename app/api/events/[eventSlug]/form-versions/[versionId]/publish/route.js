@@ -47,10 +47,11 @@ function handleRouteError(error, context) {
 
 export async function POST(req, { params }) {
   try {
+    const { eventSlug, versionId } = await params;
     const session = await requireSession(req);
     const event = await prisma.event.findUnique({
       where: {
-        slug: params.eventSlug,
+        slug: eventSlug,
       },
       select: {
         id: true,
@@ -73,7 +74,7 @@ export async function POST(req, { params }) {
 
     const draft = await prisma.eventFormVersion.findFirst({
       where: {
-        id: params.versionId,
+        id: versionId,
         eventId: event.id,
       },
     });

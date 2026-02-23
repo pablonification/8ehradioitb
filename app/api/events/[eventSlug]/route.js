@@ -34,11 +34,12 @@ function handleRouteError(error, context) {
 
 export async function GET(req, { params }) {
   try {
+    const { eventSlug } = await params;
     await requireSession(req);
 
     const event = await prisma.event.findUnique({
       where: {
-        slug: params.eventSlug,
+        slug: eventSlug,
       },
     });
 
@@ -54,11 +55,12 @@ export async function GET(req, { params }) {
 
 export async function PATCH(req, { params }) {
   try {
+    const { eventSlug } = await params;
     const session = await requireSession(req);
 
     const event = await prisma.event.findUnique({
       where: {
-        slug: params.eventSlug,
+        slug: eventSlug,
       },
       select: {
         id: true,
