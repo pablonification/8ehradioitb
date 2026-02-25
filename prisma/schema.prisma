@@ -111,6 +111,7 @@ model EventSubmission {
   participantProfile       ParticipantProfile? @relation(fields: [participantProfileId], references: [id])
   submitterUserId          String?             @db.ObjectId
   submitterUser            User?               @relation(fields: [submitterUserId], references: [id])
+  respondentEmail          String?
   status                   String?
   answers                  Json
   formSchemaSnapshot       Json
@@ -121,6 +122,7 @@ model EventSubmission {
   updatedAt                DateTime            @updatedAt
 
   @@index([eventId, submittedAt])
+  @@index([eventId, respondentEmail, submittedAt])
 }
 
 model EventExportLog {

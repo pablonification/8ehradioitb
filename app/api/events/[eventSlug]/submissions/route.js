@@ -93,6 +93,12 @@ function getSessionIdentity(sessionUser, fallbackEmail) {
   };
 }
 
+function normalizeRespondentEmail(value) {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toLowerCase();
+  return normalized || null;
+}
+
 export async function GET(req, { params }) {
   try {
     const session = await requireSession(req);
@@ -344,6 +350,9 @@ export async function POST(req, { params }) {
     const consentedProfileSnapshot = isInternalForm
       ? buildProfileSnapshot(schema.requestedProfileFields, biodata)
       : {};
+    const respondentEmail = normalizeRespondentEmail(
+      systemPayload.system.respondentEmail,
+    );
 
     let submission;
     if (existingSubmission && canEditWithPolicy(schema.settings.responsePolicy)) {
@@ -351,6 +360,7 @@ export async function POST(req, { params }) {
         where: { id: existingSubmission.id },
         data: {
           answers,
+          respondentEmail,
           participantProfileId: participantProfile?.id ?? null,
           consentedProfileSnapshot,
           consentTextSnapshot: schema.consentText,
@@ -364,6 +374,7 @@ export async function POST(req, { params }) {
         data: {
           eventId: event.id,
           formVersionId: formVersion.id,
+          respondentEmail,
           participantProfileId: participantProfile?.id ?? null,
           submitterUserId: session?.user?.id ?? null,
           status: "submitted",
