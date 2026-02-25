@@ -39,7 +39,8 @@
     "styled-components": "^6.1.19",
     "swiper": "^11.0.0",
     "swr": "^2.3.8",
-    "wavesurfer.js": "^7.10.1"
+    "wavesurfer.js": "^7.10.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",
