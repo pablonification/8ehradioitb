@@ -20,6 +20,8 @@ const RESERVED = [
   "favicon.ico",
   "contributors",
   "events",
+  "forms",
+  "profile",
 ];
 
 export async function middleware(request: NextRequest) {

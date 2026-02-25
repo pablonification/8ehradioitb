@@ -1,0 +1,8 @@
+{
+  "status": 400,
+  "body": {
+    "error": "consent_required"
+  },
+  "beforeCount": 0,
+  "afterCount": 0
+}

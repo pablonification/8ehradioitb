@@ -1,0 +1,17 @@
+$ eslint . --max-warnings=10
+
+/Users/macbook/Documents/coding/8ehradioitb/app/components/Navbar.jsx
+  15:3  warning  Unused eslint-disable directive (no problems were reported from 'no-unused-vars')
+
+/Users/macbook/Documents/coding/8ehradioitb/app/dashboard/tune-tracker/page.jsx
+  292:5  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+
+/Users/macbook/Documents/coding/8ehradioitb/app/hooks/useGlobalAudio.js
+  5:1  warning  Unused eslint-disable directive (no problems were reported)
+
+/Users/macbook/Documents/coding/8ehradioitb/app/hooks/useRadioStream.js
+  57:5  warning  Unused eslint-disable directive (no problems were reported)
+
+✖ 4 problems (0 errors, 4 warnings)
+  0 errors and 4 warnings potentially fixable with the `--fix` option.
+

@@ -1,0 +1,86 @@
+$ bun --bun next build
+   ▲ Next.js 15.5.12
+   - Environments: .env
+   - Experiments (use with caution):
+     ✓ optimizeCss
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 4.1s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/49) ...
+   Generating static pages (12/49) 
+   Generating static pages (24/49) 
+   Generating static pages (36/49) 
+ ✓ Generating static pages (49/49)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                    7.53 kB         160 kB
+├ ƒ /_not-found                            998 B         103 kB
+├ ƒ /about-us                            9.26 kB         159 kB
+├ ƒ /agency                                20 kB         170 kB
+├ ƒ /api/ai/blog                           206 B         102 kB
+├ ƒ /api/ai/chat                           206 B         102 kB
+├ ƒ /api/ai/summarize                      206 B         102 kB
+├ ƒ /api/ai/tags                           206 B         102 kB
+├ ƒ /api/ai/tldr                           206 B         102 kB
+├ ƒ /api/auth/[...nextauth]                206 B         102 kB
+├ ƒ /api/blog                              206 B         102 kB
+├ ƒ /api/blog/[slug]                       206 B         102 kB
+├ ƒ /api/blog/feature/[slug]               206 B         102 kB
+├ ƒ /api/player-config                     206 B         102 kB
+├ ƒ /api/player-config/upload              206 B         102 kB
+├ ƒ /api/podcast                           206 B         102 kB
+├ ƒ /api/podcast/[...media]                206 B         102 kB
+├ ƒ /api/podcast/upload-url                206 B         102 kB
+├ ƒ /api/program-videos                    206 B         102 kB
+├ ƒ /api/program-videos/upload-url         206 B         102 kB
+├ ƒ /api/proxy-audio                       206 B         102 kB
+├ ƒ /api/redirect/[slug]                   206 B         102 kB
+├ ƒ /api/shortlinks                        206 B         102 kB
+├ ƒ /api/shortlinks/[id]                   206 B         102 kB
+├ ƒ /api/shortlinks/[id]/analytics         206 B         102 kB
+├ ƒ /api/stream                            206 B         102 kB
+├ ƒ /api/stream-config                     206 B         102 kB
+├ ƒ /api/tune-tracker                      206 B         102 kB
+├ ƒ /api/tune-tracker/upload               206 B         102 kB
+├ ƒ /api/users                             206 B         102 kB
+├ ƒ /api/whitelist                         206 B         102 kB
+├ ƒ /api/whitelist/sync                    206 B         102 kB
+├ ƒ /blog                                  311 B         120 kB
+├ ƒ /blog/[slug]                         2.54 kB         123 kB
+├ ƒ /blog/all                              839 B         121 kB
+├ ƒ /contributors                          206 B         102 kB
+├ ƒ /dashboard                            3.6 kB         125 kB
+├ ƒ /dashboard/blog                      2.91 kB         124 kB
+├ ƒ /dashboard/blog/edit/[slug]            714 B         123 kB
+├ ƒ /dashboard/blog/new                    553 B         122 kB
+├ ƒ /dashboard/links                     4.37 kB         108 kB
+├ ƒ /dashboard/player-config             3.31 kB         116 kB
+├ ƒ /dashboard/podcast                   3.79 kB         117 kB
+├ ƒ /dashboard/program-videos            2.92 kB         121 kB
+├ ƒ /dashboard/stream-config             3.31 kB         116 kB
+├ ƒ /dashboard/tune-tracker              3.35 kB         116 kB
+├ ƒ /dashboard/users                     2.17 kB         119 kB
+├ ƒ /dashboard/whitelist                 3.19 kB         116 kB
+├ ƒ /faq                                 3.01 kB         123 kB
+├ ƒ /login                               1.27 kB         118 kB
+├ ƒ /media-partner                       6.25 kB         126 kB
+├ ƒ /not-found                           1.93 kB         109 kB
+├ ƒ /password/[slug]                     2.35 kB         106 kB
+├ ƒ /podcast                             5.15 kB         153 kB
+├ ƒ /programs                            3.32 kB         148 kB
+└ ○ /sitemap.xml                           206 B         102 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/1255-a390e12b70b4a9fb.js        46 kB
+  ├ chunks/4bd1b696-f785427dddbba9fb.js  54.2 kB
+  └ other shared chunks (total)          2.04 kB
+
+
+ƒ Middleware                               34 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

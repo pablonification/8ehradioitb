@@ -3,14 +3,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { hasAnyRole } from "@/lib/roleUtils";
-import {
-  EVENT_ACTIONS,
-  assertEventAction,
-  requireSession,
-} from "@/lib/events/auth";
+import { requireSession } from "@/lib/events/auth";
 import { validationError } from "@/lib/events/contracts";
-
-const DEVELOPER_CHECK_EVENT_ID = "000000000000000000000000";
 
 function toEventResponse(event) {
   return {
@@ -74,23 +68,6 @@ export async function POST(req) {
   try {
     const session =
       (await getServerSession(authOptions)) ?? (await requireSession(req));
-
-    const authResponse = await assertEventAction(
-      session.user.id,
-      DEVELOPER_CHECK_EVENT_ID,
-      EVENT_ACTIONS.FORM_EDIT,
-    );
-
-    if (authResponse) {
-      return authResponse;
-    }
-
-    if (!hasAnyRole(session.user.role, ["DEVELOPER"])) {
-      return NextResponse.json(
-        { error: "Forbidden", reason: "developer_required" },
-        { status: 403 },
-      );
-    }
 
     const body = await req.json();
     const slug = typeof body?.slug === "string" ? body.slug.trim() : "";

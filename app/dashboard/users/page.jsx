@@ -6,7 +6,7 @@ import { hasRole, splitRoles } from '@/lib/roleUtils';
 import Image from 'next/image';
 
 // Base roles
-const BASE_ROLES = ["DEVELOPER", "TECHNIC", "REPORTER", "KRU", "MUSIC"];
+const BASE_ROLES = ["DEVELOPER", "DATA", "TECHNIC", "REPORTER", "KRU", "MUSIC"];
 
 // Helper to generate combinations of roles
 function generateRoleCombinations(baseRoles) {
@@ -33,6 +33,7 @@ const getRoleClass = (roleString) => {
     switch (primary) {
         case 'DEVELOPER': return 'bg-red-100 text-red-800';
         case 'TECHNIC': return 'bg-blue-100 text-blue-800';
+        case 'DATA': return 'bg-amber-100 text-amber-800';
         case 'REPORTER': return 'bg-green-100 text-green-800';
         case 'MUSIC': return 'bg-purple-100 text-purple-800';
         case 'KRU':

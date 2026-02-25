@@ -1,0 +1,2 @@
+error: "/bin/test" exited with code 1
+note: a package.json script "test" was not found

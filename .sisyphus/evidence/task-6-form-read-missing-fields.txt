@@ -1,0 +1,88 @@
+{
+  "publishedEventResultForIncompleteProfile": {
+    "status": 200,
+    "body": {
+      "event": {
+        "id": "699c65a5dfa4b570777115b6",
+        "slug": "task6-published-1771857317559",
+        "title": "Task 6 Published Event"
+      },
+      "formVersion": {
+        "id": "699c65a5dfa4b570777115b7",
+        "version": 1,
+        "consentText": "I consent to share profile data for this event."
+      },
+      "requestedProfileFields": [
+        {
+          "key": "fullName",
+          "label": "Full Name",
+          "fieldType": "text",
+          "isRequired": true,
+          "options": null
+        },
+        {
+          "key": "activePhone",
+          "label": "Active Phone Number",
+          "fieldType": "phone",
+          "isRequired": true,
+          "options": null
+        }
+      ],
+      "missingProfileFields": [
+        "activePhone"
+      ],
+      "questions": [
+        {
+          "key": "motivation",
+          "label": "Why do you want to join?",
+          "fieldType": "textarea",
+          "isRequired": true,
+          "options": null
+        }
+      ],
+      "consentText": "I consent to share profile data for this event."
+    }
+  },
+  "publishedEventResultForCompleteProfile": {
+    "status": 200,
+    "body": {
+      "event": {
+        "id": "699c65a5dfa4b570777115b6",
+        "slug": "task6-published-1771857317559",
+        "title": "Task 6 Published Event"
+      },
+      "formVersion": {
+        "id": "699c65a5dfa4b570777115b7",
+        "version": 1,
+        "consentText": "I consent to share profile data for this event."
+      },
+      "requestedProfileFields": [
+        {
+          "key": "fullName",
+          "label": "Full Name",
+          "fieldType": "text",
+          "isRequired": true,
+          "options": null
+        },
+        {
+          "key": "activePhone",
+          "label": "Active Phone Number",
+          "fieldType": "phone",
+          "isRequired": true,
+          "options": null
+        }
+      ],
+      "missingProfileFields": [],
+      "questions": [
+        {
+          "key": "motivation",
+          "label": "Why do you want to join?",
+          "fieldType": "textarea",
+          "isRequired": true,
+          "options": null
+        }
+      ],
+      "consentText": "I consent to share profile data for this event."
+    }
+  }
+}

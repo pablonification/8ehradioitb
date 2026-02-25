@@ -1,0 +1,22 @@
+{
+  "submission": {
+    "id": "699c6e37cf876aaa74533f3f",
+    "formVersionId": "699c6e36cf876aaa74533f3b",
+    "consentVersion": "v1",
+    "consentTextSnapshot": "I consent to test.",
+    "formSchemaSnapshot": {
+      "requestedProfileFields": [
+        "fullName"
+      ],
+      "questions": [],
+      "consentText": "I consent to test."
+    },
+    "consentedProfileSnapshot": {
+      "fullName": "Test User"
+    },
+    "answers": {}
+  },
+  "profileBiodata": {
+    "fullName": "Test User"
+  }
+}

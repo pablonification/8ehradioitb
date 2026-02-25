@@ -6,24 +6,21 @@ import {
   requireSession,
 } from "@/lib/events/auth";
 import { validateFormSchema, validationError } from "@/lib/events/contracts";
+import { normalizeFormSchema } from "@/lib/forms/schema";
 
 function toFormVersionResponse(record) {
-  const schema =
-    record.formSchema && typeof record.formSchema === "object"
-      ? record.formSchema
-      : {};
-  const requestedProfileFields = Array.isArray(schema.requestedProfileFields)
-    ? schema.requestedProfileFields
-    : [];
-  const questions = Array.isArray(schema.questions) ? schema.questions : [];
+  const schema = normalizeFormSchema(record.formSchema);
 
   return {
     id: record.id,
     eventId: record.eventId,
     version: record.version,
     status: record.status,
-    requestedProfileFields,
-    questions,
+    requestedProfileFields: schema.requestedProfileFields,
+    sections: schema.sections,
+    questions: schema.questions,
+    settings: schema.settings,
+    confirmation: schema.confirmation,
     consentText: record.consentText,
     consentVersion: record.consentVersion,
     formSchemaSnapshot: record.status === "published" ? schema : null,
@@ -92,23 +89,13 @@ export async function POST(req, { params }) {
       );
     }
 
-    const schema =
-      draft.formSchema && typeof draft.formSchema === "object"
-        ? draft.formSchema
-        : {};
-    const requestedProfileFields = Array.isArray(schema.requestedProfileFields)
-      ? schema.requestedProfileFields
-      : [];
-    const questions = Array.isArray(schema.questions) ? schema.questions : [];
+    const schema = normalizeFormSchema(draft.formSchema);
     const consentText =
       typeof schema.consentText === "string" && schema.consentText.trim()
         ? schema.consentText.trim()
         : draft.consentText;
 
-    const schemaValidation = await validateFormSchema({
-      requestedProfileFields,
-      questions,
-    });
+    const schemaValidation = await validateFormSchema(schema);
 
     if (!schemaValidation.valid) {
       return validationError(
@@ -133,11 +120,7 @@ export async function POST(req, { params }) {
       });
 
       const nextVersion = (latestPublished?.version ?? 0) + 1;
-      const validatedSchemaSnapshot = {
-        requestedProfileFields,
-        questions,
-        consentText,
-      };
+      const validatedSchemaSnapshot = schemaValidation.normalized;
 
       const publishedRecord = await tx.eventFormVersion.create({
         data: {

@@ -1,0 +1,21 @@
+$ tsc --noEmit
+app/media-partner/page.tsx(349,24): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ shortTerm: { title: string; price: string; gradient: string; features: string[]; }[]; longTerm: { title: string; price: string; gradient: string; features: string[]; }[]; }'.
+  No index signature with a parameter of type 'string' was found on type '{ shortTerm: { title: string; price: string; gradient: string; features: string[]; }[]; longTerm: { title: string; price: string; gradient: string; features: string[]; }[]; }'.
+app/media-partner/page.tsx(399,30): error TS7006: Parameter 'plan' implicitly has an 'any' type.
+app/media-partner/page.tsx(399,36): error TS7006: Parameter 'index' implicitly has an 'any' type.
+app/media-partner/page.tsx(408,37): error TS7006: Parameter 'feature' implicitly has an 'any' type.
+app/media-partner/page.tsx(408,46): error TS7006: Parameter 'fIndex' implicitly has an 'any' type.
+app/media-partner/page.tsx(440,28): error TS7006: Parameter 'id' implicitly has an 'any' type.
+app/media-partner/page.tsx(441,28): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+app/media-partner/page.tsx(469,37): error TS2345: Argument of type '{}' is not assignable to parameter of type 'Element'.
+  Type '{}' is missing the following properties from type 'Element': attributes, classList, className, clientHeight, and 181 more.
+app/media-partner/page.tsx(474,41): error TS2345: Argument of type '{}' is not assignable to parameter of type 'Element'.
+  Type '{}' is missing the following properties from type 'Element': attributes, classList, className, clientHeight, and 181 more.
+app/media-partner/page.tsx(542,21): error TS2322: Type '(el: HTMLDivElement | null) => HTMLDivElement | null' is not assignable to type 'Ref<HTMLDivElement> | undefined'.
+  Type '(el: HTMLDivElement | null) => HTMLDivElement | null' is not assignable to type '(instance: HTMLDivElement | null) => void | (() => VoidOrUndefinedOnly)'.
+    Type 'HTMLDivElement | null' is not assignable to type 'void | (() => VoidOrUndefinedOnly)'.
+      Type 'null' is not assignable to type 'void | (() => VoidOrUndefinedOnly)'.
+app/media-partner/page.tsx(542,35): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+app/media-partner/page.tsx(723,13): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'.
+error: script "typecheck" exited with code 1

@@ -1,0 +1,19 @@
+[2m[WebServer] [22m[0m[2m[35m$[0m [2m[1mbun --bun next dev --turbopack[0m
+[2m[WebServer] [22m[next-auth][warn][DEBUG_ENABLED] 
+[2m[WebServer] [22mhttps://next-auth.js.org/warnings#debug_enabled
+
+Running 2 tests using 2 workers
+
+[2m[WebServer] [22mImage with src "/8eh.png" has legacy prop "objectFit". Did you forget to run the codemod?
+[2m[WebServer] [22mRead more: https://nextjs.org/docs/messages/next-image-upgrade-to-13
+  ✓  2 [chromium] › e2e/smoke.spec.ts:20:7 › Smoke Tests › login page loads and rejects invalid credentials (3.5s)
+[2m[WebServer] [22m[0m[31mError fetching from R2 for key vi/iRyKLQWY9CA/maxresdefault.jpg: NoSuchKey: The specified key does not exist.
+[2m[WebServer] [22m    at processTicksAndRejections (null) {
+[2m[WebServer] [22m  [32m'$fault'[39m: [32m'client'[39m,
+[2m[WebServer] [22m  [32m'$retryable'[39m: [90mundefined[39m,
+[2m[WebServer] [22m  [32m'$metadata'[39m: [36m[Object][39m,
+[2m[WebServer] [22m  Code: [32m'NoSuchKey'[39m
+[2m[WebServer] [22m}[0m
+  ✓  1 [chromium] › e2e/smoke.spec.ts:4:7 › Smoke Tests › home page loads successfully (7.8s)
+
+  2 passed (18.8s)

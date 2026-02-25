@@ -1,0 +1,3 @@
+- Extracted form primitives (FormShell, QuestionCard, FieldLabel, HelperText, FieldRenderer, AccountReveal) to `app/components/forms/`
+- Replaced inline form rendering logic in `app/events/[eventSlug]/register/page.jsx` and `app/profile/page.jsx` with the new shared primitives.
+- Ensured consistent styling and behavior across both pages.

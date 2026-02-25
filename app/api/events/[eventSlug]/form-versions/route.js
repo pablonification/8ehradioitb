@@ -6,24 +6,21 @@ import {
   requireSession,
 } from "@/lib/events/auth";
 import { validateFormSchema, validationError } from "@/lib/events/contracts";
+import { normalizeFormSchema } from "@/lib/forms/schema";
 
 function toFormVersionResponse(record) {
-  const schema =
-    record.formSchema && typeof record.formSchema === "object"
-      ? record.formSchema
-      : {};
-  const requestedProfileFields = Array.isArray(schema.requestedProfileFields)
-    ? schema.requestedProfileFields
-    : [];
-  const questions = Array.isArray(schema.questions) ? schema.questions : [];
+  const schema = normalizeFormSchema(record.formSchema);
 
   return {
     id: record.id,
     eventId: record.eventId,
     version: record.version,
     status: record.status,
-    requestedProfileFields,
-    questions,
+    requestedProfileFields: schema.requestedProfileFields,
+    sections: schema.sections,
+    questions: schema.questions,
+    settings: schema.settings,
+    confirmation: schema.confirmation,
     consentText: record.consentText,
     consentVersion: record.consentVersion,
     formSchemaSnapshot: record.status === "published" ? schema : null,
@@ -140,7 +137,10 @@ export async function POST(req, { params }) {
 
     const body = await req.json();
     const requestedProfileFields = body?.requestedProfileFields;
+    const sections = body?.sections;
     const questions = body?.questions;
+    const settings = body?.settings;
+    const confirmation = body?.confirmation;
     const consentText =
       typeof body?.consentText === "string" ? body.consentText.trim() : "";
 
@@ -154,7 +154,11 @@ export async function POST(req, { params }) {
 
     const schemaValidation = await validateFormSchema({
       requestedProfileFields,
+      sections,
       questions,
+      settings,
+      confirmation,
+      consentText,
     });
 
     if (!schemaValidation.valid) {
@@ -177,11 +181,7 @@ export async function POST(req, { params }) {
         eventId: event.id,
         version: 0,
         status: "draft",
-        formSchema: {
-          requestedProfileFields,
-          questions,
-          consentText,
-        },
+        formSchema: schemaValidation.normalized,
         consentText,
         consentVersion: "draft",
         createdById: session.user.id,
