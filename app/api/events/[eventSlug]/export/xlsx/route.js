@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { prisma } from "@/lib/prisma";
 import {
   EVENT_ACTIONS,
@@ -10,53 +8,7 @@ import {
 } from "@/lib/events/auth";
 import { normalizeFormSchema } from "@/lib/forms/schema";
 import { flattenSubmissionRows } from "@/lib/forms/submission";
-
-const R2_ENDPOINT = process.env.R2_ENDPOINT;
-const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
-const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
-const R2_BUCKET = process.env.R2_BUCKET;
-const R2_PUBLIC_DEV_URL = process.env.R2_PUBLIC_DEV_URL;
-
-const s3 =
-  R2_ENDPOINT && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY && R2_BUCKET
-    ? new S3Client({
-        region: "auto",
-        endpoint: R2_ENDPOINT,
-        credentials: {
-          accessKeyId: R2_ACCESS_KEY_ID,
-          secretAccessKey: R2_SECRET_ACCESS_KEY,
-        },
-      })
-    : null;
-
-async function buildFileUrl(key) {
-  if (!key || typeof key !== "string") return "";
-
-  if (/^https?:\/\//i.test(key)) {
-    return key;
-  }
-
-  if (s3) {
-    try {
-      return await getSignedUrl(
-        s3,
-        new GetObjectCommand({
-          Bucket: R2_BUCKET,
-          Key: key,
-        }),
-        { expiresIn: 3600 },
-      );
-    } catch (error) {
-      console.warn("Failed to sign file URL, falling back to public URL", error);
-    }
-  }
-
-  if (R2_PUBLIC_DEV_URL) {
-    return `${R2_PUBLIC_DEV_URL}/${key}`;
-  }
-
-  return key;
-}
+import { resolveR2DownloadUrl } from "@/lib/storage/r2";
 
 export async function POST(req, { params }) {
   try {
@@ -121,6 +73,7 @@ export async function POST(req, { params }) {
             select: {
               key: true,
               label: true,
+              fieldType: true,
             },
           })
         : Promise.resolve([]),
@@ -134,15 +87,12 @@ export async function POST(req, { params }) {
       }),
     ]);
 
-    const rows = [];
-    for (const row of flattenSubmissionRows({
+    const rows = await flattenSubmissionRows({
       submissions,
       requestedFields,
       questions: schema.questions,
-      buildFileUrl,
-    })) {
-      rows.push(row);
-    }
+      buildFileUrl: (key) => resolveR2DownloadUrl(key, { forceDownload: true }),
+    });
 
     const worksheet = XLSX.utils.json_to_sheet(rows);
     const workbook = XLSX.utils.book_new();

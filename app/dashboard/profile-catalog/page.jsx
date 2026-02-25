@@ -17,6 +17,9 @@ const FIELD_TYPES = [
   "file",
 ];
 
+const INPUT_CLASS =
+  "rounded-lg border border-slate-300 bg-white px-3 py-2 font-body text-slate-900 placeholder:text-slate-500 focus:border-[#f97316] focus:outline-none focus:ring-2 focus:ring-orange-100";
+
 function emptyField() {
   return {
     key: "",
@@ -128,7 +131,7 @@ export default function ProfileCatalogPage() {
   }
 
   if (status === "loading") {
-    return <div className="font-body text-gray-500">Loading...</div>;
+    return <div className="font-body text-slate-600">Loading...</div>;
   }
 
   if (!hasAccess) {
@@ -140,17 +143,20 @@ export default function ProfileCatalogPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-        <h1 className="font-heading font-bold text-2xl text-gray-900">
+    <div className="space-y-6 text-slate-900">
+      <section className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
+        <div className="h-1.5 bg-[#f97316]" />
+        <div className="p-6">
+        <h1 className="font-heading font-bold text-2xl text-slate-900">
           Master Profile Field Catalog
         </h1>
-        <p className="font-body text-sm text-gray-500 mt-1">
+        <p className="font-body text-sm text-slate-600 mt-1">
           Atur field biodata kru yang dipakai untuk auto-request di form internal.
         </p>
+        </div>
       </section>
 
-      <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+      <section className="bg-white border border-slate-300 rounded-2xl p-6 shadow-sm">
         <h2 className="font-heading font-semibold text-lg">Tambah Field Baru</h2>
         <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
           <input
@@ -160,7 +166,7 @@ export default function ProfileCatalogPage() {
               setNewField((prev) => ({ ...prev, key: event.target.value }))
             }
             placeholder="key (example: fullName)"
-            className="px-3 py-2 rounded-lg border border-gray-300 font-body"
+            className={INPUT_CLASS}
             required
           />
           <input
@@ -170,7 +176,7 @@ export default function ProfileCatalogPage() {
               setNewField((prev) => ({ ...prev, label: event.target.value }))
             }
             placeholder="Label"
-            className="px-3 py-2 rounded-lg border border-gray-300 font-body"
+            className={INPUT_CLASS}
             required
           />
           <select
@@ -178,7 +184,7 @@ export default function ProfileCatalogPage() {
             onChange={(event) =>
               setNewField((prev) => ({ ...prev, fieldType: event.target.value }))
             }
-            className="px-3 py-2 rounded-lg border border-gray-300 font-body"
+            className={INPUT_CLASS}
           >
             {FIELD_TYPES.map((fieldType) => (
               <option key={fieldType} value={fieldType}>
@@ -194,7 +200,7 @@ export default function ProfileCatalogPage() {
               setNewField((prev) => ({ ...prev, description: event.target.value }))
             }
             placeholder="Description"
-            className="md:col-span-2 px-3 py-2 rounded-lg border border-gray-300 font-body"
+            className={`md:col-span-2 ${INPUT_CLASS}`}
           />
           <input
             type="text"
@@ -203,10 +209,10 @@ export default function ProfileCatalogPage() {
               setNewField((prev) => ({ ...prev, optionsRaw: event.target.value }))
             }
             placeholder="Options comma separated (for select/checkbox)"
-            className="px-3 py-2 rounded-lg border border-gray-300 font-body"
+            className={INPUT_CLASS}
           />
 
-          <label className="inline-flex items-center gap-2 text-sm font-body text-gray-700">
+          <label className="inline-flex items-center gap-2 text-sm font-body text-slate-700">
             <input
               type="checkbox"
               checked={newField.isRequired}
@@ -220,7 +226,7 @@ export default function ProfileCatalogPage() {
           <button
             type="submit"
             disabled={saving}
-            className="px-4 py-2 rounded-lg bg-gray-900 text-white font-body font-semibold disabled:opacity-60"
+            className="px-4 py-2 rounded-lg bg-slate-900 text-white font-body font-semibold disabled:opacity-60"
           >
             {saving ? "Menyimpan..." : "Tambah Field"}
           </button>
@@ -228,24 +234,24 @@ export default function ProfileCatalogPage() {
         {error ? <p className="text-sm text-red-600 font-body mt-3">{error}</p> : null}
       </section>
 
-      <section className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
+      <section className="bg-white border border-slate-300 rounded-2xl shadow-sm overflow-x-auto">
         {loading ? (
-          <div className="p-6 font-body text-gray-500">Loading fields...</div>
+          <div className="p-6 font-body text-slate-600">Loading fields...</div>
         ) : (
           <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="text-left px-4 py-3 font-body font-semibold text-gray-700">Key</th>
-                <th className="text-left px-4 py-3 font-body font-semibold text-gray-700">Label</th>
-                <th className="text-left px-4 py-3 font-body font-semibold text-gray-700">Type</th>
-                <th className="text-left px-4 py-3 font-body font-semibold text-gray-700">Required</th>
-                <th className="text-left px-4 py-3 font-body font-semibold text-gray-700">Active</th>
+                <th className="text-left px-4 py-3 font-body font-semibold text-slate-700">Key</th>
+                <th className="text-left px-4 py-3 font-body font-semibold text-slate-700">Label</th>
+                <th className="text-left px-4 py-3 font-body font-semibold text-slate-700">Type</th>
+                <th className="text-left px-4 py-3 font-body font-semibold text-slate-700">Required</th>
+                <th className="text-left px-4 py-3 font-body font-semibold text-slate-700">Active</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-100">
               {items.map((item) => (
                 <tr key={item.id}>
-                  <td className="px-4 py-3 font-mono text-xs text-gray-700">{item.key}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-slate-700">{item.key}</td>
                   <td className="px-4 py-3">
                     <input
                       type="text"
@@ -259,10 +265,10 @@ export default function ProfileCatalogPage() {
                         );
                       }}
                       onBlur={(event) => updateField(item.id, { label: event.target.value })}
-                      className="w-full px-2 py-1 rounded border border-gray-300 font-body"
+                      className="w-full rounded border border-slate-300 bg-white px-2 py-1 font-body text-slate-900 placeholder:text-slate-500 focus:border-[#f97316] focus:outline-none"
                     />
                   </td>
-                  <td className="px-4 py-3 font-body text-gray-700">{item.fieldType}</td>
+                  <td className="px-4 py-3 font-body text-slate-700">{item.fieldType}</td>
                   <td className="px-4 py-3">
                     <input
                       type="checkbox"

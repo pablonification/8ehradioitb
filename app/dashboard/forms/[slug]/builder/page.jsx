@@ -327,18 +327,20 @@ export default function FormBuilderPage() {
   }
 
   if (loading) {
-    return <div className="font-body text-gray-500">Loading builder...</div>;
+    return <div className="font-body text-slate-600">Loading builder...</div>;
   }
 
   return (
-    <div className="space-y-6">
-      <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+    <div className="form-builder-surface mx-auto max-w-[1200px] space-y-6 text-slate-900">
+      <section className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
+        <div className="h-1.5 bg-[#f97316]" />
+        <div className="p-6">
         <div className="flex flex-wrap gap-3 items-center justify-between">
           <div>
-            <h1 className="text-2xl font-heading font-bold text-gray-900">
+            <h1 className="text-2xl font-heading font-bold text-slate-900">
               Builder: {eventSlug}
             </h1>
-            <p className="text-sm font-body text-gray-500 mt-1">
+            <p className="text-sm font-body text-slate-600 mt-1">
               Edit pertanyaan, section, response policy, dan halaman konfirmasi.
             </p>
           </div>
@@ -346,21 +348,21 @@ export default function FormBuilderPage() {
             <Link
               href={`/forms/${eventSlug}`}
               target="_blank"
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 text-sm font-body"
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-body font-semibold text-slate-700 transition hover:bg-slate-50"
             >
               <FiExternalLink /> Preview
             </Link>
             <button
               onClick={handleSaveDraft}
               disabled={saving}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-900 text-white text-sm font-body disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-sm font-body font-semibold text-white disabled:opacity-60"
             >
               <FiSave /> {saving ? "Saving..." : "Save Draft"}
             </button>
             <button
               onClick={handlePublish}
               disabled={publishing || !latestDraft}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500 text-white text-sm font-body disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#f97316] px-3 py-2 text-sm font-body font-semibold text-white disabled:opacity-60"
             >
               <FiUpload /> {publishing ? "Publishing..." : "Publish"}
             </button>
@@ -376,7 +378,7 @@ export default function FormBuilderPage() {
             onChange={(event) =>
               setEventMeta((prev) => ({ ...prev, title: event.target.value }))
             }
-            className="px-3 py-2 rounded-lg border border-gray-300 font-body"
+            className="px-3 py-2 rounded-lg border border-slate-300 font-body"
             placeholder="Judul form"
           />
           <input
@@ -385,20 +387,21 @@ export default function FormBuilderPage() {
             onChange={(event) =>
               setEventMeta((prev) => ({ ...prev, description: event.target.value }))
             }
-            className="px-3 py-2 rounded-lg border border-gray-300 font-body"
+            className="px-3 py-2 rounded-lg border border-slate-300 font-body"
             placeholder="Deskripsi form"
           />
         </div>
+        </div>
       </section>
 
-      <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-5">
-        <h2 className="font-heading font-bold text-lg text-gray-900">Form Settings</h2>
+      <section className="bg-white border border-slate-300 rounded-2xl p-6 shadow-sm space-y-5">
+        <h2 className="font-heading font-bold text-lg text-slate-900">Form Settings</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <label className="text-sm font-body text-gray-700">
+          <label className="text-sm font-body text-slate-800">
             Audience
             <select
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300"
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"
               value={schemaState.settings.audienceMode}
               onChange={(event) =>
                 setSchemaState((prev) => ({
@@ -415,10 +418,10 @@ export default function FormBuilderPage() {
             </select>
           </label>
 
-          <label className="text-sm font-body text-gray-700">
+          <label className="text-sm font-body text-slate-800">
             Response Policy
             <select
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300"
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"
               value={schemaState.settings.responsePolicy}
               onChange={(event) =>
                 setSchemaState((prev) => ({
@@ -436,10 +439,10 @@ export default function FormBuilderPage() {
             </select>
           </label>
 
-          <label className="text-sm font-body text-gray-700">
+          <label className="text-sm font-body text-slate-800">
             Collect Email (Public)
             <select
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300"
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"
               value={schemaState.settings.collectEmailMode}
               onChange={(event) =>
                 setSchemaState((prev) => ({
@@ -459,11 +462,11 @@ export default function FormBuilderPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <label className="text-sm font-body text-gray-700">
+          <label className="text-sm font-body text-slate-800">
             Deadline (opsional)
             <input
               type="datetime-local"
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300"
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"
               value={schemaState.settings.deadlineAt || ""}
               onChange={(event) =>
                 setSchemaState((prev) => ({
@@ -477,11 +480,11 @@ export default function FormBuilderPage() {
             />
           </label>
 
-          <label className="text-sm font-body text-gray-700">
+          <label className="text-sm font-body text-slate-800">
             Closed Title
             <input
               type="text"
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300"
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"
               value={schemaState.settings.closedMessageTitle}
               onChange={(event) =>
                 setSchemaState((prev) => ({
@@ -495,11 +498,11 @@ export default function FormBuilderPage() {
             />
           </label>
 
-          <label className="text-sm font-body text-gray-700">
+          <label className="text-sm font-body text-slate-800">
             Closed Description
             <input
               type="text"
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300"
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"
               value={schemaState.settings.closedMessageDescription}
               onChange={(event) =>
                 setSchemaState((prev) => ({
@@ -514,7 +517,7 @@ export default function FormBuilderPage() {
           </label>
         </div>
 
-        <label className="inline-flex items-center gap-2 text-sm font-body text-gray-700">
+        <label className="inline-flex items-center gap-2 text-sm font-body text-slate-800">
           <input
             type="checkbox"
             checked={schemaState.settings.isAcceptingResponses}
@@ -532,11 +535,11 @@ export default function FormBuilderPage() {
         </label>
       </section>
 
-      <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
-        <h2 className="font-heading font-bold text-lg text-gray-900">
+      <section className="bg-white border border-slate-300 rounded-2xl p-6 shadow-sm space-y-4">
+        <h2 className="font-heading font-bold text-lg text-slate-900">
           Requested Kru Data (Internal)
         </h2>
-        <p className="text-sm font-body text-gray-500">
+        <p className="text-sm font-body text-slate-600">
           Field berikut akan ditampilkan untuk consent sebelum submit.
         </p>
 
@@ -546,7 +549,7 @@ export default function FormBuilderPage() {
             return (
               <label
                 key={field.id}
-                className="inline-flex items-start gap-2 text-sm font-body text-gray-700"
+                className="inline-flex items-start gap-2 text-sm font-body text-slate-800"
               >
                 <input
                   type="checkbox"
@@ -569,17 +572,17 @@ export default function FormBuilderPage() {
                 />
                 <span>
                   {field.label}
-                  <span className="block text-xs text-gray-500">{field.key}</span>
+                  <span className="block text-xs text-slate-600">{field.key}</span>
                 </span>
               </label>
             );
           })}
         </div>
 
-        <label className="block text-sm font-body text-gray-700">
+        <label className="block text-sm font-body text-slate-800">
           Consent Text
           <textarea
-            className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 min-h-20"
+            className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 min-h-20"
             value={schemaState.consentText}
             onChange={(event) =>
               setSchemaState((prev) => ({ ...prev, consentText: event.target.value }))
@@ -588,15 +591,15 @@ export default function FormBuilderPage() {
         </label>
       </section>
 
-      <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
-        <h2 className="font-heading font-bold text-lg text-gray-900">Thank You Page</h2>
+      <section className="bg-white border border-slate-300 rounded-2xl p-6 shadow-sm space-y-4">
+        <h2 className="font-heading font-bold text-lg text-slate-900">Thank You Page</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <label className="text-sm font-body text-gray-700">
+          <label className="text-sm font-body text-slate-800">
             Title
             <input
               type="text"
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300"
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"
               value={schemaState.confirmation.title}
               onChange={(event) =>
                 setSchemaState((prev) => ({
@@ -609,11 +612,11 @@ export default function FormBuilderPage() {
               }
             />
           </label>
-          <label className="text-sm font-body text-gray-700 md:col-span-2">
+          <label className="text-sm font-body text-slate-800 md:col-span-2">
             Message
             <input
               type="text"
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300"
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"
               value={schemaState.confirmation.message}
               onChange={(event) =>
                 setSchemaState((prev) => ({
@@ -626,11 +629,11 @@ export default function FormBuilderPage() {
               }
             />
           </label>
-          <label className="text-sm font-body text-gray-700 md:col-span-3">
+          <label className="text-sm font-body text-slate-800 md:col-span-3">
             Redirect URL (opsional)
             <input
-              type="url"
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300"
+              type="text"
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"
               value={schemaState.confirmation.redirectUrl}
               onChange={(event) =>
                 setSchemaState((prev) => ({
@@ -641,6 +644,7 @@ export default function FormBuilderPage() {
                   },
                 }))
               }
+              placeholder="contoh: 8ehradioitb.com/sukses atau /thank-you"
             />
           </label>
         </div>
@@ -655,7 +659,7 @@ export default function FormBuilderPage() {
           return (
             <div
               key={section.id}
-              className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4"
+              className="bg-white border border-slate-300 rounded-2xl p-6 shadow-sm space-y-4"
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="flex-1 space-y-2">
@@ -671,7 +675,7 @@ export default function FormBuilderPage() {
                         ),
                       }));
                     }}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 font-heading font-semibold"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 font-heading font-semibold"
                     placeholder="Judul section"
                   />
                   <input
@@ -686,7 +690,7 @@ export default function FormBuilderPage() {
                         ),
                       }));
                     }}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 font-body"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 font-body"
                     placeholder="Deskripsi section"
                   />
                 </div>
@@ -703,7 +707,7 @@ export default function FormBuilderPage() {
                 {sectionQuestions.map((question) => (
                   <div
                     key={question.id}
-                    className="border border-gray-200 rounded-lg p-4 space-y-3"
+                    className="border border-slate-300 rounded-lg p-4 space-y-3"
                   >
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <input
@@ -715,7 +719,7 @@ export default function FormBuilderPage() {
                             label: event.target.value,
                           }))
                         }
-                        className="md:col-span-2 px-3 py-2 rounded-lg border border-gray-300 font-body"
+                        className="md:col-span-2 px-3 py-2 rounded-lg border border-slate-300 font-body"
                         placeholder="Pertanyaan"
                       />
                       <select
@@ -739,7 +743,7 @@ export default function FormBuilderPage() {
                                 : [],
                           }));
                         }}
-                        className="px-3 py-2 rounded-lg border border-gray-300 font-body"
+                        className="px-3 py-2 rounded-lg border border-slate-300 font-body"
                       >
                         {QUESTION_TYPE_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>
@@ -758,7 +762,7 @@ export default function FormBuilderPage() {
                           description: event.target.value,
                         }))
                       }
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 font-body"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 font-body"
                       placeholder="Deskripsi pertanyaan"
                     />
 
@@ -784,7 +788,7 @@ export default function FormBuilderPage() {
                                   ),
                                 }))
                               }
-                              className="md:col-span-2 px-3 py-2 rounded-lg border border-gray-300"
+                              className="md:col-span-2 px-3 py-2 rounded-lg border border-slate-300"
                               placeholder={`Opsi ${optionIndex + 1}`}
                             />
                             <select
@@ -804,7 +808,7 @@ export default function FormBuilderPage() {
                                 }));
                               }}
                               disabled={question.fieldType === "multi_choice"}
-                              className="px-3 py-2 rounded-lg border border-gray-300"
+                              className="px-3 py-2 rounded-lg border border-slate-300"
                             >
                               <option value="">Ikuti urutan normal</option>
                               {schemaState.sections.map((item) => (
@@ -830,7 +834,7 @@ export default function FormBuilderPage() {
                               ],
                             }))
                           }
-                          className="text-sm font-body text-blue-600"
+                          className="text-sm font-body font-semibold text-[#ea580c]"
                         >
                           + Tambah opsi
                         </button>
@@ -851,7 +855,7 @@ export default function FormBuilderPage() {
                               },
                             }))
                           }
-                          className="px-3 py-2 rounded-lg border border-gray-300"
+                          className="px-3 py-2 rounded-lg border border-slate-300"
                           placeholder="Min"
                         />
                         <input
@@ -866,7 +870,7 @@ export default function FormBuilderPage() {
                               },
                             }))
                           }
-                          className="px-3 py-2 rounded-lg border border-gray-300"
+                          className="px-3 py-2 rounded-lg border border-slate-300"
                           placeholder="Max"
                         />
                         <input
@@ -881,7 +885,7 @@ export default function FormBuilderPage() {
                               },
                             }))
                           }
-                          className="px-3 py-2 rounded-lg border border-gray-300"
+                          className="px-3 py-2 rounded-lg border border-slate-300"
                           placeholder="Min label"
                         />
                         <input
@@ -896,7 +900,7 @@ export default function FormBuilderPage() {
                               },
                             }))
                           }
-                          className="px-3 py-2 rounded-lg border border-gray-300"
+                          className="px-3 py-2 rounded-lg border border-slate-300"
                           placeholder="Max label"
                         />
                       </div>
@@ -905,7 +909,7 @@ export default function FormBuilderPage() {
                     {(question.fieldType === "mc_grid" ||
                       question.fieldType === "checkbox_grid") && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        <label className="text-sm font-body text-gray-700">
+                        <label className="text-sm font-body text-slate-800">
                           Rows (comma separated)
                           <input
                             type="text"
@@ -919,10 +923,10 @@ export default function FormBuilderPage() {
                                 },
                               }))
                             }
-                            className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300"
+                            className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"
                           />
                         </label>
-                        <label className="text-sm font-body text-gray-700">
+                        <label className="text-sm font-body text-slate-800">
                           Columns (comma separated)
                           <input
                             type="text"
@@ -936,7 +940,7 @@ export default function FormBuilderPage() {
                                 },
                               }))
                             }
-                            className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300"
+                            className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"
                           />
                         </label>
                       </div>
@@ -944,7 +948,7 @@ export default function FormBuilderPage() {
 
                     {question.fieldType === "file_upload" && (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                        <label className="text-sm font-body text-gray-700">
+                        <label className="text-sm font-body text-slate-800">
                           Max files
                           <input
                             type="number"
@@ -959,10 +963,10 @@ export default function FormBuilderPage() {
                                 },
                               }))
                             }
-                            className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300"
+                            className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"
                           />
                         </label>
-                        <label className="text-sm font-body text-gray-700">
+                        <label className="text-sm font-body text-slate-800">
                           Max size (MB)
                           <input
                             type="number"
@@ -977,10 +981,10 @@ export default function FormBuilderPage() {
                                 },
                               }))
                             }
-                            className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300"
+                            className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"
                           />
                         </label>
-                        <label className="text-sm font-body text-gray-700">
+                        <label className="text-sm font-body text-slate-800">
                           Allowed MIME (comma)
                           <input
                             type="text"
@@ -994,14 +998,14 @@ export default function FormBuilderPage() {
                                 },
                               }))
                             }
-                            className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300"
+                            className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300"
                           />
                         </label>
                       </div>
                     )}
 
                     <div className="flex items-center justify-between">
-                      <label className="inline-flex items-center gap-2 text-sm font-body text-gray-700">
+                      <label className="inline-flex items-center gap-2 text-sm font-body text-slate-800">
                         <input
                           type="checkbox"
                           checked={question.isRequired}
@@ -1024,7 +1028,7 @@ export default function FormBuilderPage() {
                               sectionId: event.target.value,
                             }))
                           }
-                          className="px-3 py-1 rounded-lg border border-gray-300 text-sm"
+                          className="px-3 py-1 rounded-lg border border-slate-300 text-sm"
                         >
                           {schemaState.sections.map((item) => (
                             <option key={item.id} value={item.id}>
@@ -1046,7 +1050,7 @@ export default function FormBuilderPage() {
 
               <button
                 onClick={() => addQuestion(section.id)}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 text-sm font-body"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-300 text-sm font-body"
               >
                 <FiPlus /> Tambah pertanyaan di section ini
               </button>
@@ -1056,16 +1060,16 @@ export default function FormBuilderPage() {
 
         <button
           onClick={addSection}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-gray-300 text-sm font-body"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-slate-300 text-sm font-body"
         >
           <FiPlus /> Tambah section
         </button>
       </section>
 
-      <section className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-        <p className="text-sm font-body text-gray-600">
+      <section className="bg-white border border-slate-300 rounded-2xl p-4 shadow-sm">
+        <p className="text-sm font-body text-slate-700">
           Latest published:
-          <span className="font-semibold text-gray-900 ml-1">
+          <span className="font-semibold text-slate-900 ml-1">
             {latestPublished ? `v${latestPublished.version}` : "Belum ada"}
           </span>
         </p>

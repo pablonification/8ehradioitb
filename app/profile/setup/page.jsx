@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
+import { extractFileKeysFromValue } from "@/lib/profile/database";
 
 function buildInitialBiodata(profile) {
   if (!profile?.biodata || typeof profile.biodata !== "object" || Array.isArray(profile.biodata)) {
@@ -27,6 +28,7 @@ export default function ProfileSetupPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [downloadingKey, setDownloadingKey] = useState("");
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -137,6 +139,38 @@ export default function ProfileSetupPage() {
     }
   }
 
+  async function handleDownloadFile(fileKey) {
+    if (!fileKey) return;
+    setDownloadingKey(fileKey);
+    setError("");
+
+    try {
+      const response = await fetch("/api/files/download-url", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ key: fileKey }),
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload?.error || "Gagal membuat download link");
+      }
+
+      const payload = await response.json();
+      if (!payload.downloadUrl) {
+        throw new Error("Download URL tidak tersedia");
+      }
+
+      window.open(payload.downloadUrl, "_blank", "noopener,noreferrer");
+    } catch (downloadError) {
+      setError(downloadError.message || "Gagal mengunduh file");
+    } finally {
+      setDownloadingKey("");
+    }
+  }
+
   if (status === "loading" || loading) {
     return (
       <main className="min-h-screen bg-[#f5f5f5] py-10 px-4">
@@ -184,6 +218,10 @@ export default function ProfileSetupPage() {
         <form onSubmit={handleSave} className="space-y-4">
           {fields.map((field) => {
             const value = biodata[field.key];
+            const fileKeys =
+              field.fieldType === "file"
+                ? Array.from(new Set(extractFileKeysFromValue(value)))
+                : [];
 
             if (field.fieldType === "textarea") {
               return (
@@ -256,8 +294,22 @@ export default function ProfileSetupPage() {
                       }
                     }}
                   />
-                  {value ? (
-                    <p className="text-xs font-mono text-gray-500 break-all">{String(value)}</p>
+                  {fileKeys.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {fileKeys.map((fileKey, index) => (
+                        <button
+                          key={`${fileKey}-${index}`}
+                          type="button"
+                          onClick={() => void handleDownloadFile(fileKey)}
+                          disabled={downloadingKey === fileKey}
+                          className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-60"
+                        >
+                          {downloadingKey === fileKey
+                            ? "Mempersiapkan..."
+                            : `Download file ${index + 1}`}
+                        </button>
+                      ))}
+                    </div>
                   ) : null}
                 </section>
               );

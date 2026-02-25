@@ -27,6 +27,17 @@ function generateRoleCombinations(baseRoles) {
 
 const ROLE_OPTIONS = generateRoleCombinations(BASE_ROLES);
 
+function buildAvatarUrl(user) {
+  if (user?.image && typeof user.image === "string") {
+    return user.image;
+  }
+
+  const name = encodeURIComponent(
+    typeof user?.name === "string" && user.name.trim() ? user.name : "User",
+  );
+  return `https://ui-avatars.com/api/?name=${name}&background=random`;
+}
+
 const getRoleClass = (roleString) => {
     if (!roleString) return 'bg-gray-100 text-gray-800';
     const primary = roleString.split('-')[0];
@@ -144,8 +155,8 @@ export default function UsersPage() {
                     <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
                       <Image
                         className="h-8 w-8 sm:h-10 sm:w-10 rounded-full"
-                        src={user.image || `https://ui-avatars.com/api/?name=${user.name}&background=random`}
-                        alt={user.name}
+                        src={buildAvatarUrl(user)}
+                        alt={user?.name || "User avatar"}
                         width={40}
                         height={40}
                       />

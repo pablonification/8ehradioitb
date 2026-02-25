@@ -1,9 +1,10 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { useSession, signIn } from "next-auth/react";
-import Link from "next/link";
+import { signIn, useSession } from "next-auth/react";
 
 function hasValue(value) {
   if (value === null || value === undefined) return false;
@@ -39,11 +40,60 @@ function sectionQuestionMap(sections, questions) {
   return map;
 }
 
-function renderQuestionAnswerPreview(value) {
-  if (value === null || value === undefined) return "";
-  if (Array.isArray(value)) return value.map(renderQuestionAnswerPreview).join(", ");
-  if (typeof value === "object") return JSON.stringify(value);
+function renderValuePreview(value) {
+  if (value === null || value === undefined || value === "") return "-";
+  if (Array.isArray(value)) return value.map(renderValuePreview).join(", ");
+  if (typeof value === "object") {
+    if (typeof value.name === "string" && value.name.trim()) return value.name;
+    if (typeof value.key === "string" && value.key.trim()) return value.key;
+    return JSON.stringify(value);
+  }
   return String(value);
+}
+
+function extractDownloadEntries(value) {
+  if (!value) return [];
+
+  const entries = [];
+
+  if (typeof value === "string") {
+    const key = value.trim();
+    if (key) {
+      entries.push({
+        key,
+        name: key.split("/").pop() || key,
+      });
+    }
+  } else if (Array.isArray(value)) {
+    for (const item of value) {
+      entries.push(...extractDownloadEntries(item));
+    }
+  } else if (typeof value === "object") {
+    const key =
+      typeof value.key === "string"
+        ? value.key.trim()
+        : typeof value.url === "string"
+          ? value.url.trim()
+          : "";
+    if (key) {
+      entries.push({
+        key,
+        name:
+          typeof value.name === "string" && value.name.trim()
+            ? value.name.trim()
+            : key.split("/").pop() || key,
+      });
+    }
+  }
+
+  const unique = new Map();
+  for (const entry of entries) {
+    if (!unique.has(entry.key)) {
+      unique.set(entry.key, entry);
+    }
+  }
+
+  return Array.from(unique.values());
 }
 
 export default function PublicFormPage() {
@@ -60,11 +110,36 @@ export default function PublicFormPage() {
   const [activeSectionId, setActiveSectionId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [successPayload, setSuccessPayload] = useState(null);
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [showAccountDetails, setShowAccountDetails] = useState(false);
+  const [confirmError, setConfirmError] = useState("");
+  const [downloadingKey, setDownloadingKey] = useState("");
+
+  function formatMissingProfileMessage(payload) {
+    const labels = Array.isArray(payload?.missingFieldLabels)
+      ? payload.missingFieldLabels.filter((label) => typeof label === "string" && label.trim())
+      : [];
+
+    if (labels.length === 0) {
+      return "Data master profile Anda belum lengkap. Lengkapi dulu sebelum mengisi form ini.";
+    }
+
+    return `Data master profile belum lengkap: ${labels.join(", ")}. Lengkapi dulu sebelum mengisi form ini.`;
+  }
 
   useEffect(() => {
     if (!eventSlug) return;
     void loadForm();
   }, [eventSlug, status]);
+
+  useEffect(() => {
+    if (!showConsentModal) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [showConsentModal]);
 
   const sectionMap = useMemo(() => {
     const sections = formData?.sections || [];
@@ -73,7 +148,10 @@ export default function PublicFormPage() {
   }, [formData]);
 
   const sectionOrder = useMemo(
-    () => (Array.isArray(formData?.sections) ? formData.sections.map((section) => section.id) : []),
+    () =>
+      Array.isArray(formData?.sections)
+        ? formData.sections.map((section) => section.id)
+        : [],
     [formData],
   );
 
@@ -86,6 +164,26 @@ export default function PublicFormPage() {
     if (!activeSectionId) return [];
     return sectionMap.get(activeSectionId) || [];
   }, [sectionMap, activeSectionId]);
+
+  const requestedProfileFields = useMemo(
+    () =>
+      Array.isArray(formData?.requestedProfileFields)
+        ? formData.requestedProfileFields
+        : [],
+    [formData],
+  );
+
+  const isInternalAudience = formData?.settings?.audienceMode === "INTERNAL_KRU";
+  const needsConsentGate = isInternalAudience && requestedProfileFields.length > 0;
+
+  const requestedFieldLabelSummary = useMemo(() => {
+    if (!requestedProfileFields.length) return "";
+    const labels = requestedProfileFields
+      .map((field) => field.label || field.key)
+      .filter(Boolean);
+    const visible = labels.slice(0, 8);
+    return `${visible.join(", ")}${labels.length > 8 ? ", dan lainnya" : ""}`;
+  }, [requestedProfileFields]);
 
   async function loadForm() {
     setLoading(true);
@@ -104,11 +202,14 @@ export default function PublicFormPage() {
           return;
         }
 
-        if (payload.error === "profile_required") {
+        if (payload.error === "profile_required" || payload.error === "profile_incomplete") {
           setFormData({
             blockedReason: "profile_required",
             setupUrl: payload.setupUrl || "/profile/setup",
-            message: "Anda harus melengkapi master profile terlebih dahulu.",
+            message:
+              payload.error === "profile_incomplete"
+                ? formatMissingProfileMessage(payload)
+                : "Anda harus melengkapi master profile terlebih dahulu.",
           });
           return;
         }
@@ -134,6 +235,10 @@ export default function PublicFormPage() {
 
       setRespondentEmail(systemEmail || session?.user?.email || "");
       setActiveSectionId(payload.sections?.[0]?.id || "");
+      setShowConsentModal(false);
+      setShowAccountDetails(false);
+      setConsentAccepted(false);
+      setConfirmError("");
     } catch (loadError) {
       setError(loadError.message || "Failed to load form");
     } finally {
@@ -205,6 +310,72 @@ export default function PublicFormPage() {
     }
   }
 
+  async function handleDownloadFile(fileKey, fileName = "") {
+    if (!fileKey) return;
+    setDownloadingKey(fileKey);
+    setError("");
+
+    try {
+      const response = await fetch("/api/files/download-url", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ key: fileKey, fileName }),
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload?.error || "Gagal membuat download link");
+      }
+
+      const payload = await response.json();
+      if (!payload.downloadUrl) {
+        throw new Error("Download URL tidak tersedia");
+      }
+
+      window.open(payload.downloadUrl, "_blank", "noopener,noreferrer");
+    } catch (downloadError) {
+      setError(downloadError.message || "Gagal mengunduh file");
+    } finally {
+      setDownloadingKey("");
+    }
+  }
+
+  function renderRequestedProfileFieldValue(field) {
+    const previewValue = formData?.consentPreviewValues?.[field.key];
+    if (field.fieldType !== "file") {
+      return (
+        <p className="font-body text-sm text-slate-800">
+          {renderValuePreview(previewValue)}
+        </p>
+      );
+    }
+
+    const fileEntries = extractDownloadEntries(previewValue);
+    if (fileEntries.length === 0) {
+      return <p className="font-body text-sm text-slate-800">-</p>;
+    }
+
+    return (
+      <div className="flex flex-wrap gap-2">
+        {fileEntries.map((entry, index) => (
+          <button
+            key={entry.key}
+            type="button"
+            onClick={() => void handleDownloadFile(entry.key, entry.name)}
+            disabled={downloadingKey === entry.key}
+            className="rounded-md border border-slate-300 bg-white px-3 py-1.5 font-body text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
+          >
+            {downloadingKey === entry.key
+              ? "Mempersiapkan..."
+              : `Download ${entry.name || `File ${index + 1}`}`}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
   function validateCurrentSection() {
     for (const question of activeQuestions) {
       if (!question.isRequired) continue;
@@ -246,7 +417,7 @@ export default function PublicFormPage() {
 
     const destination = resolveSectionDestination();
     if (destination === "__submit__") {
-      await submitResponse();
+      await openConfirmOrSubmit();
       return;
     }
 
@@ -257,11 +428,33 @@ export default function PublicFormPage() {
 
     const currentIndex = sectionOrder.indexOf(activeSectionId);
     if (currentIndex === -1 || currentIndex === sectionOrder.length - 1) {
-      await submitResponse();
+      await openConfirmOrSubmit();
       return;
     }
 
     setActiveSectionId(sectionOrder[currentIndex + 1]);
+  }
+
+  async function openConfirmOrSubmit() {
+    if (needsConsentGate) {
+      setConfirmError("");
+      setShowConsentModal(true);
+      return;
+    }
+
+    await submitResponse();
+  }
+
+  async function handleConfirmedSubmit() {
+    setConfirmError("");
+
+    if (needsConsentGate && !consentAccepted) {
+      setConfirmError("Anda harus menyetujui penggunaan data profil sebelum submit.");
+      return;
+    }
+
+    setShowConsentModal(false);
+    await submitResponse();
   }
 
   async function submitResponse() {
@@ -272,11 +465,7 @@ export default function PublicFormPage() {
       return;
     }
 
-    if (
-      formData.settings?.audienceMode === "INTERNAL_KRU" &&
-      (formData.requestedProfileFields || []).length > 0 &&
-      !consentAccepted
-    ) {
+    if (needsConsentGate && !consentAccepted) {
       setError("Anda harus menyetujui penggunaan data profil sebelum submit.");
       return;
     }
@@ -315,7 +504,7 @@ export default function PublicFormPage() {
             message:
               payload.error === "profile_required"
                 ? "Anda harus melengkapi master profile terlebih dahulu."
-                : "Data profile Anda belum lengkap untuk form ini.",
+                : formatMissingProfileMessage(payload),
           });
           return;
         }
@@ -337,10 +526,15 @@ export default function PublicFormPage() {
     }
   }
 
+  const cardClass =
+    "overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)]";
+  const inputClass =
+    "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-[#f97316] focus:outline-none focus:ring-2 focus:ring-orange-100";
+
   if (loading || status === "loading") {
     return (
-      <main className="min-h-screen bg-[#f4f1ea] px-4 py-10">
-        <div className="max-w-3xl mx-auto bg-white border border-gray-200 rounded-xl p-6 font-body text-gray-500">
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] px-4 py-10 sm:px-6">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white p-6 font-body text-slate-600 shadow-sm">
           Loading form...
         </div>
       </main>
@@ -349,15 +543,15 @@ export default function PublicFormPage() {
 
   if (successPayload) {
     return (
-      <main className="min-h-screen bg-[#f4f1ea] px-4 py-10">
-        <div className="max-w-3xl mx-auto bg-white border border-gray-200 rounded-xl p-8 space-y-3">
-          <h1 className="font-heading text-3xl font-bold text-gray-900">
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] px-4 py-10 sm:px-6">
+        <div className="mx-auto max-w-3xl space-y-4 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <h1 className="font-heading text-3xl font-bold text-slate-900">
             {successPayload?.confirmation?.title || "Respons terkirim"}
           </h1>
-          <p className="font-body text-gray-600">
+          <p className="font-body text-slate-700">
             {successPayload?.confirmation?.message || "Terima kasih sudah mengisi form."}
           </p>
-          <Link href="/" className="font-body text-sm text-red-600 underline">
+          <Link href="/" className="font-body text-sm font-semibold text-[#ea580c] hover:underline">
             Kembali ke beranda
           </Link>
         </div>
@@ -367,13 +561,13 @@ export default function PublicFormPage() {
 
   if (formData?.blockedReason === "login_required") {
     return (
-      <main className="min-h-screen bg-[#f4f1ea] px-4 py-10">
-        <div className="max-w-3xl mx-auto bg-white border border-gray-200 rounded-xl p-8 space-y-3">
-          <h1 className="font-heading text-2xl font-bold text-gray-900">Login Required</h1>
-          <p className="font-body text-gray-600">{formData.message}</p>
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] px-4 py-10 sm:px-6">
+        <div className="mx-auto max-w-3xl space-y-3 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <h1 className="font-heading text-2xl font-bold text-slate-900">Login Required</h1>
+          <p className="font-body text-slate-700">{formData.message}</p>
           <button
             onClick={() => signIn("google", { callbackUrl: `/forms/${eventSlug}` })}
-            className="px-4 py-2 rounded-lg bg-gray-900 text-white font-body"
+            className="inline-flex items-center rounded-lg bg-slate-900 px-4 py-2 font-body text-sm font-semibold text-white"
           >
             Login dengan Google
           </button>
@@ -384,13 +578,13 @@ export default function PublicFormPage() {
 
   if (formData?.blockedReason === "profile_required") {
     return (
-      <main className="min-h-screen bg-[#f4f1ea] px-4 py-10">
-        <div className="max-w-3xl mx-auto bg-white border border-gray-200 rounded-xl p-8 space-y-3">
-          <h1 className="font-heading text-2xl font-bold text-gray-900">Profile Required</h1>
-          <p className="font-body text-gray-600">{formData.message}</p>
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] px-4 py-10 sm:px-6">
+        <div className="mx-auto max-w-3xl space-y-3 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <h1 className="font-heading text-2xl font-bold text-slate-900">Profile Required</h1>
+          <p className="font-body text-slate-700">{formData.message}</p>
           <Link
             href={formData.setupUrl || "/profile/setup"}
-            className="inline-flex px-4 py-2 rounded-lg bg-gray-900 text-white font-body"
+            className="inline-flex rounded-lg bg-slate-900 px-4 py-2 font-body text-sm font-semibold text-white"
           >
             Lengkapi Master Profile
           </Link>
@@ -401,10 +595,10 @@ export default function PublicFormPage() {
 
   if (formData?.blockedReason === "not_kru") {
     return (
-      <main className="min-h-screen bg-[#f4f1ea] px-4 py-10">
-        <div className="max-w-3xl mx-auto bg-white border border-gray-200 rounded-xl p-8 space-y-3">
-          <h1 className="font-heading text-2xl font-bold text-gray-900">Akses Terbatas</h1>
-          <p className="font-body text-gray-600">{formData.message}</p>
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] px-4 py-10 sm:px-6">
+        <div className="mx-auto max-w-3xl space-y-3 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <h1 className="font-heading text-2xl font-bold text-slate-900">Akses Terbatas</h1>
+          <p className="font-body text-slate-700">{formData.message}</p>
         </div>
       </main>
     );
@@ -412,8 +606,8 @@ export default function PublicFormPage() {
 
   if (!formData) {
     return (
-      <main className="min-h-screen bg-[#f4f1ea] px-4 py-10">
-        <div className="max-w-3xl mx-auto bg-white border border-gray-200 rounded-xl p-8 font-body text-red-600">
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] px-4 py-10 sm:px-6">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-red-200 bg-white p-8 font-body text-red-600 shadow-sm">
           Form tidak ditemukan.
         </div>
       </main>
@@ -422,12 +616,12 @@ export default function PublicFormPage() {
 
   if (formData.isClosed) {
     return (
-      <main className="min-h-screen bg-[#f4f1ea] px-4 py-10">
-        <div className="max-w-3xl mx-auto bg-white border border-gray-200 rounded-xl p-8 space-y-3">
-          <h1 className="font-heading text-2xl font-bold text-gray-900">
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] px-4 py-10 sm:px-6">
+        <div className="mx-auto max-w-3xl space-y-3 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <h1 className="font-heading text-2xl font-bold text-slate-900">
             {formData.closedMessage?.title || "Form closed"}
           </h1>
-          <p className="font-body text-gray-600">
+          <p className="font-body text-slate-700">
             {formData.closedMessage?.description || "Form ini sudah ditutup."}
           </p>
         </div>
@@ -437,339 +631,507 @@ export default function PublicFormPage() {
 
   const currentSectionIndex = sectionOrder.indexOf(activeSectionId);
   const isLastSection = currentSectionIndex === sectionOrder.length - 1;
+  const accountName = session?.user?.name || respondentEmail || "Pengisi Form";
+  const accountEmail = session?.user?.email || respondentEmail || "-";
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fdf8ee_0%,#f2f0ea_60%,#ece8df_100%)] px-4 py-8">
-      <div className="max-w-3xl mx-auto space-y-4">
-        <section className="bg-white border border-[#f59d2a] border-t-8 rounded-xl p-6 shadow-sm">
-          <h1 className="font-heading text-3xl font-bold text-gray-900">
-            {formData.event?.title || "Form"}
-          </h1>
-          {formData.event?.description ? (
-            <p className="font-body text-gray-700 mt-3 whitespace-pre-wrap">
-              {formData.event.description}
-            </p>
-          ) : null}
-
-          {session?.user?.email ? (
-            <p className="font-body text-sm text-gray-500 mt-4">
-              Login sebagai <span className="font-semibold">{session.user.email}</span>
-            </p>
-          ) : null}
-
-          {(formData.settings?.collectEmailMode === "required" ||
-            formData.settings?.collectEmailMode === "optional") && (
-            <div className="mt-4">
-              <label className="font-body text-sm text-gray-700">
-                Email responden
-                {formData.settings.collectEmailMode === "required" ? (
-                  <span className="text-red-500"> *</span>
-                ) : null}
-                <input
-                  type="email"
-                  value={respondentEmail}
-                  onChange={(event) => setRespondentEmail(event.target.value)}
-                  className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300"
-                  placeholder="nama@email.com"
-                  required={formData.settings.collectEmailMode === "required"}
+    <>
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] px-4 py-8 sm:px-6">
+        <div className="mx-auto max-w-3xl space-y-4 pb-8">
+          <section className={cardClass}>
+            <div className="h-1.5 bg-[#f97316]" />
+            <div className="space-y-4 p-6 sm:p-8">
+              <div className="flex items-start justify-between gap-3">
+                <Image
+                  src="/8eh-real-long.png"
+                  alt="8EH Radio ITB"
+                  width={140}
+                  height={36}
+                  className="h-8 w-auto object-contain"
+                  priority
                 />
-              </label>
-            </div>
-          )}
-        </section>
+                <span className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 font-body text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+                  Form
+                </span>
+              </div>
 
-        {activeSection ? (
-          <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-            <div className="mb-5">
-              <p className="font-body text-xs text-gray-500 uppercase tracking-wide">
-                Bagian {currentSectionIndex + 1} / {sectionOrder.length}
-              </p>
-              <h2 className="font-heading text-2xl font-bold text-gray-900">
-                {activeSection.title}
-              </h2>
-              {activeSection.description ? (
-                <p className="font-body text-gray-600 mt-1">{activeSection.description}</p>
+              <div>
+                <h1 className="font-heading text-4xl font-bold leading-tight text-slate-900">
+                  {formData.event?.title || "Form"}
+                </h1>
+                {formData.event?.description ? (
+                  <p className="mt-2 whitespace-pre-wrap font-body text-sm text-slate-700">
+                    {formData.event.description}
+                  </p>
+                ) : null}
+              </div>
+
+              {session?.user?.email ? (
+                <p className="font-body text-sm text-slate-500">
+                  Login sebagai <span className="font-semibold text-slate-700">{session.user.email}</span>
+                </p>
               ) : null}
+
+              {(formData.settings?.collectEmailMode === "required" ||
+                formData.settings?.collectEmailMode === "optional") && (
+                <label className="block font-body text-sm font-semibold text-slate-700">
+                  Email responden
+                  {formData.settings.collectEmailMode === "required" ? (
+                    <span className="text-red-500"> *</span>
+                  ) : null}
+                  <input
+                    type="email"
+                    value={respondentEmail}
+                    onChange={(event) => setRespondentEmail(event.target.value)}
+                    className={`mt-2 ${inputClass}`}
+                    placeholder="nama@email.com"
+                    required={formData.settings.collectEmailMode === "required"}
+                  />
+                </label>
+              )}
             </div>
+          </section>
 
-            <div className="space-y-6">
-              {activeQuestions.map((question) => {
-                const value = answers[question.id];
+          {isInternalAudience && session?.user?.email ? (
+            <section className={cardClass}>
+              <div className="h-1.5 bg-[#f97316]" />
+              <div className="p-6">
+                <p className="font-body text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Akun Pengisi
+                </p>
 
-                return (
-                  <div key={question.id} className="space-y-2">
-                    <label className="font-body text-sm text-gray-800 font-semibold block">
-                      {question.label}
-                      {question.isRequired ? <span className="text-red-500"> *</span> : null}
-                    </label>
+                <div className="mt-3 flex items-start justify-between gap-4">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0a66c2] font-body text-sm font-bold text-white">
+                      {accountName?.trim()?.[0]?.toUpperCase() || "A"}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-body text-sm font-semibold text-slate-900">
+                        {accountName}
+                      </p>
+                      <p className="truncate font-body text-xs text-slate-500">{accountEmail}</p>
+                      {requestedFieldLabelSummary ? (
+                        <p className="mt-1 font-body text-xs leading-relaxed text-slate-500">
+                          {requestedFieldLabelSummary} akan direkam saat formulir ini dikirimkan.
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
 
-                    {question.description ? (
-                      <p className="font-body text-xs text-gray-500">{question.description}</p>
-                    ) : null}
+                  {needsConsentGate ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowAccountDetails((prev) => !prev)}
+                      className="shrink-0 rounded-md border border-slate-300 bg-white px-3 py-1.5 font-body text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+                    >
+                      {showAccountDetails ? "Sembunyikan" : "Tampilkan"}
+                    </button>
+                  ) : null}
+                </div>
 
-                    {question.fieldType === "short_text" && (
-                      <input
-                        type="text"
-                        value={typeof value === "string" ? value : ""}
-                        onChange={(event) => updateAnswer(question.id, event.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300"
-                      />
-                    )}
+                {showAccountDetails && needsConsentGate ? (
+                  <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    {requestedProfileFields.map((field) => (
+                      <div
+                        key={field.key}
+                        className="rounded-lg border border-slate-200 bg-white px-3 py-2"
+                      >
+                        <p className="font-body text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                          {field.label || field.key}
+                        </p>
+                        {renderRequestedProfileFieldValue(field)}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
 
-                    {question.fieldType === "paragraph" && (
-                      <textarea
-                        value={typeof value === "string" ? value : ""}
-                        onChange={(event) => updateAnswer(question.id, event.target.value)}
-                        className="w-full min-h-24 px-3 py-2 rounded-lg border border-gray-300"
-                      />
-                    )}
+          {activeSection ? (
+            <section className={cardClass}>
+              <div className="h-1.5 bg-[#f97316]" />
+              <div className="space-y-6 p-6 sm:p-8">
+                <div>
+                  <p className="font-body text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Bagian {currentSectionIndex + 1} / {sectionOrder.length}
+                  </p>
+                  <h2 className="font-heading text-4xl font-bold leading-tight text-slate-900">
+                    {activeSection.title}
+                  </h2>
+                  {activeSection.description ? (
+                    <p className="mt-2 font-body text-sm text-slate-700">
+                      {activeSection.description}
+                    </p>
+                  ) : null}
+                </div>
 
-                    {(question.fieldType === "single_choice" ||
-                      question.fieldType === "dropdown") && (
-                      <div className="space-y-2">
-                        {question.fieldType === "single_choice" ? (
-                          question.options.map((option) => (
-                            <label key={option.id} className="inline-flex items-center gap-2 mr-4 font-body text-sm">
-                              <input
-                                type="radio"
-                                name={question.id}
-                                checked={value === option.label}
-                                onChange={() => updateAnswer(question.id, option.label)}
-                              />
-                              {option.label}
-                            </label>
-                          ))
-                        ) : (
-                          <select
+                <div className="space-y-4">
+                  {activeQuestions.map((question) => {
+                    const value = answers[question.id];
+
+                    return (
+                      <div key={question.id} className="space-y-2 rounded-xl border border-slate-200 bg-white p-4">
+                        <label className="block font-body text-sm font-semibold text-slate-800">
+                          {question.label}
+                          {question.isRequired ? <span className="text-red-500"> *</span> : null}
+                        </label>
+
+                        {question.description ? (
+                          <p className="font-body text-xs text-slate-500">{question.description}</p>
+                        ) : null}
+
+                        {question.fieldType === "short_text" && (
+                          <input
+                            type="text"
                             value={typeof value === "string" ? value : ""}
                             onChange={(event) => updateAnswer(question.id, event.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-gray-300"
-                          >
-                            <option value="">Pilih opsi</option>
-                            {question.options.map((option) => (
-                              <option key={option.id} value={option.label}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
+                            className={inputClass}
+                            placeholder={question.description || "Tulis jawaban Anda"}
+                          />
                         )}
-                      </div>
-                    )}
 
-                    {question.fieldType === "multi_choice" && (
-                      <div className="space-y-1">
-                        {question.options.map((option) => {
-                          const checked = Array.isArray(value)
-                            ? value.includes(option.label)
-                            : false;
-                          return (
-                            <label key={option.id} className="inline-flex items-center gap-2 mr-4 font-body text-sm">
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={(event) => {
-                                  const next = Array.isArray(value) ? [...value] : [];
-                                  if (event.target.checked) {
-                                    if (!next.includes(option.label)) {
-                                      next.push(option.label);
-                                    }
-                                  } else {
-                                    const index = next.indexOf(option.label);
-                                    if (index >= 0) next.splice(index, 1);
-                                  }
-                                  updateAnswer(question.id, next);
-                                }}
-                              />
-                              {option.label}
-                            </label>
-                          );
-                        })}
-                      </div>
-                    )}
+                        {question.fieldType === "paragraph" && (
+                          <textarea
+                            value={typeof value === "string" ? value : ""}
+                            onChange={(event) => updateAnswer(question.id, event.target.value)}
+                            className={`${inputClass} min-h-28`}
+                            placeholder={question.description || "Tulis jawaban Anda"}
+                          />
+                        )}
 
-                    {question.fieldType === "linear_scale" && (
-                      <div className="flex flex-wrap items-center gap-2">
-                        {Array.from(
-                          { length: (question.scale?.max || 5) - (question.scale?.min || 1) + 1 },
-                          (_, index) => (question.scale?.min || 1) + index,
-                        ).map((score) => (
-                          <label key={score} className="inline-flex flex-col items-center text-xs font-body text-gray-600">
-                            <input
-                              type="radio"
-                              name={question.id}
-                              checked={Number(value) === score}
-                              onChange={() => updateAnswer(question.id, score)}
-                            />
-                            {score}
-                          </label>
-                        ))}
-                      </div>
-                    )}
+                        {(question.fieldType === "single_choice" ||
+                          question.fieldType === "dropdown") && (
+                          <div className="space-y-2">
+                            {question.fieldType === "single_choice" ? (
+                              <div className="space-y-2">
+                                {question.options.map((option) => (
+                                  <label
+                                    key={option.id}
+                                    className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 font-body text-sm text-slate-700"
+                                  >
+                                    <input
+                                      type="radio"
+                                      name={question.id}
+                                      checked={value === option.label}
+                                      onChange={() => updateAnswer(question.id, option.label)}
+                                      className="h-4 w-4 accent-[#f97316]"
+                                    />
+                                    {option.label}
+                                  </label>
+                                ))}
+                              </div>
+                            ) : (
+                              <select
+                                value={typeof value === "string" ? value : ""}
+                                onChange={(event) => updateAnswer(question.id, event.target.value)}
+                                className={inputClass}
+                              >
+                                <option value="">Pilih opsi</option>
+                                {question.options.map((option) => (
+                                  <option key={option.id} value={option.label}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+                          </div>
+                        )}
 
-                    {(question.fieldType === "date" || question.fieldType === "time") && (
-                      <input
-                        type={question.fieldType === "date" ? "date" : "time"}
-                        value={typeof value === "string" ? value : ""}
-                        onChange={(event) => updateAnswer(question.id, event.target.value)}
-                        className="px-3 py-2 rounded-lg border border-gray-300"
-                      />
-                    )}
-
-                    {(question.fieldType === "mc_grid" ||
-                      question.fieldType === "checkbox_grid") && (
-                      <div className="overflow-x-auto border border-gray-200 rounded-lg">
-                        <table className="min-w-full text-sm">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th className="text-left px-3 py-2 font-body">Row</th>
-                              {(question.grid?.columns || []).map((column) => (
-                                <th key={column} className="px-3 py-2 font-body text-center">
-                                  {column}
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {(question.grid?.rows || []).map((row) => {
-                              const rowValue =
-                                value && typeof value === "object" ? value[row] : undefined;
+                        {question.fieldType === "multi_choice" && (
+                          <div className="space-y-2">
+                            {question.options.map((option) => {
+                              const checked = Array.isArray(value)
+                                ? value.includes(option.label)
+                                : false;
                               return (
-                                <tr key={row} className="border-t border-gray-100">
-                                  <td className="px-3 py-2 font-body">{row}</td>
-                                  {(question.grid?.columns || []).map((column) => {
-                                    const checked =
-                                      question.fieldType === "mc_grid"
-                                        ? rowValue === column
-                                        : Array.isArray(rowValue)
-                                          ? rowValue.includes(column)
-                                          : false;
-
-                                    return (
-                                      <td key={column} className="px-3 py-2 text-center">
-                                        <input
-                                          type={question.fieldType === "mc_grid" ? "radio" : "checkbox"}
-                                          name={`${question.id}_${row}`}
-                                          checked={checked}
-                                          onChange={(event) => {
-                                            const next =
-                                              value && typeof value === "object" && !Array.isArray(value)
-                                                ? { ...value }
-                                                : {};
-
-                                            if (question.fieldType === "mc_grid") {
-                                              next[row] = column;
-                                            } else {
-                                              const current = Array.isArray(next[row]) ? [...next[row]] : [];
-                                              if (event.target.checked) {
-                                                if (!current.includes(column)) current.push(column);
-                                              } else {
-                                                const index = current.indexOf(column);
-                                                if (index >= 0) current.splice(index, 1);
-                                              }
-                                              next[row] = current;
-                                            }
-
-                                            updateAnswer(question.id, next);
-                                          }}
-                                        />
-                                      </td>
-                                    );
-                                  })}
-                                </tr>
+                                <label
+                                  key={option.id}
+                                  className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 font-body text-sm text-slate-700"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    className="h-4 w-4 accent-[#f97316]"
+                                    onChange={(event) => {
+                                      const next = Array.isArray(value) ? [...value] : [];
+                                      if (event.target.checked) {
+                                        if (!next.includes(option.label)) {
+                                          next.push(option.label);
+                                        }
+                                      } else {
+                                        const index = next.indexOf(option.label);
+                                        if (index >= 0) next.splice(index, 1);
+                                      }
+                                      updateAnswer(question.id, next);
+                                    }}
+                                  />
+                                  {option.label}
+                                </label>
                               );
                             })}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
+                          </div>
+                        )}
 
-                    {question.fieldType === "file_upload" && (
-                      <div className="space-y-2">
-                        <input
-                          type="file"
-                          multiple={(question.fileConfig?.maxFiles || 1) > 1}
-                          onChange={(event) =>
-                            handleFileChange(question, event.target.files)
-                          }
-                        />
-                        {Array.isArray(value) && value.length > 0 ? (
-                          <ul className="text-xs font-body text-gray-500 space-y-1">
-                            {value.map((item) => (
-                              <li key={item.key}>{item.name || item.key}</li>
+                        {question.fieldType === "linear_scale" && (
+                          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                            {Array.from(
+                              {
+                                length:
+                                  (question.scale?.max || 5) -
+                                  (question.scale?.min || 1) +
+                                  1,
+                              },
+                              (_, index) => (question.scale?.min || 1) + index,
+                            ).map((score) => (
+                              <label
+                                key={score}
+                                className="inline-flex flex-col items-center gap-1 font-body text-xs text-slate-600"
+                              >
+                                <input
+                                  type="radio"
+                                  name={question.id}
+                                  checked={Number(value) === score}
+                                  onChange={() => updateAnswer(question.id, score)}
+                                  className="h-4 w-4 accent-[#f97316]"
+                                />
+                                {score}
+                              </label>
                             ))}
-                          </ul>
-                        ) : null}
+                          </div>
+                        )}
+
+                        {(question.fieldType === "date" || question.fieldType === "time") && (
+                          <input
+                            type={question.fieldType === "date" ? "date" : "time"}
+                            value={typeof value === "string" ? value : ""}
+                            onChange={(event) => updateAnswer(question.id, event.target.value)}
+                            className={`${inputClass} max-w-xs`}
+                          />
+                        )}
+
+                        {(question.fieldType === "mc_grid" ||
+                          question.fieldType === "checkbox_grid") && (
+                          <div className="overflow-x-auto rounded-lg border border-slate-200">
+                            <table className="min-w-full text-sm">
+                              <thead className="bg-slate-50">
+                                <tr>
+                                  <th className="px-3 py-2 text-left font-body text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                    Row
+                                  </th>
+                                  {(question.grid?.columns || []).map((column) => (
+                                    <th
+                                      key={column}
+                                      className="px-3 py-2 text-center font-body text-xs font-semibold uppercase tracking-wide text-slate-500"
+                                    >
+                                      {column}
+                                    </th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {(question.grid?.rows || []).map((row) => {
+                                  const rowValue =
+                                    value && typeof value === "object"
+                                      ? value[row]
+                                      : undefined;
+                                  return (
+                                    <tr key={row} className="border-t border-slate-100">
+                                      <td className="px-3 py-2 font-body text-sm text-slate-700">
+                                        {row}
+                                      </td>
+                                      {(question.grid?.columns || []).map((column) => {
+                                        const checked =
+                                          question.fieldType === "mc_grid"
+                                            ? rowValue === column
+                                            : Array.isArray(rowValue)
+                                              ? rowValue.includes(column)
+                                              : false;
+
+                                        return (
+                                          <td key={column} className="px-3 py-2 text-center">
+                                            <input
+                                              type={
+                                                question.fieldType === "mc_grid"
+                                                  ? "radio"
+                                                  : "checkbox"
+                                              }
+                                              name={`${question.id}_${row}`}
+                                              checked={checked}
+                                              className="h-4 w-4 accent-[#f97316]"
+                                              onChange={(event) => {
+                                                const next =
+                                                  value &&
+                                                  typeof value === "object" &&
+                                                  !Array.isArray(value)
+                                                    ? { ...value }
+                                                    : {};
+
+                                                if (question.fieldType === "mc_grid") {
+                                                  next[row] = column;
+                                                } else {
+                                                  const current = Array.isArray(next[row])
+                                                    ? [...next[row]]
+                                                    : [];
+                                                  if (event.target.checked) {
+                                                    if (!current.includes(column)) {
+                                                      current.push(column);
+                                                    }
+                                                  } else {
+                                                    const index = current.indexOf(column);
+                                                    if (index >= 0) current.splice(index, 1);
+                                                  }
+                                                  next[row] = current;
+                                                }
+
+                                                updateAnswer(question.id, next);
+                                              }}
+                                            />
+                                          </td>
+                                        );
+                                      })}
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+
+                        {question.fieldType === "file_upload" && (
+                          <div className="space-y-2">
+                            <input
+                              type="file"
+                              multiple={(question.fileConfig?.maxFiles || 1) > 1}
+                              onChange={(event) =>
+                                handleFileChange(question, event.target.files)
+                              }
+                              className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-slate-700 hover:file:bg-slate-200"
+                            />
+                            {Array.isArray(value) && value.length > 0 ? (
+                              <ul className="space-y-1 text-xs font-body text-slate-600">
+                                {value.map((item) => (
+                                  <li key={item.key}>{item.name || item.key}</li>
+                                ))}
+                              </ul>
+                            ) : null}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          {error ? (
+            <section className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-body text-sm text-red-700">
+              {error}
+            </section>
+          ) : null}
+
+          <section className="flex items-center justify-between gap-3">
+            <button
+              onClick={() => {
+                const currentIndex = sectionOrder.indexOf(activeSectionId);
+                if (currentIndex > 0) {
+                  setActiveSectionId(sectionOrder[currentIndex - 1]);
+                }
+              }}
+              disabled={sectionOrder.indexOf(activeSectionId) <= 0}
+              className="rounded-lg border border-slate-300 bg-white px-4 py-2 font-body text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Kembali
+            </button>
+
+            <div className="flex items-center gap-3">
+              {isLastSection ? (
+                <p className="hidden font-body text-xs text-slate-500 sm:block">
+                  Setelah klik submit, Anda akan melihat konfirmasi akhir terlebih dahulu.
+                </p>
+              ) : null}
+              <button
+                onClick={handleNextOrSubmit}
+                disabled={submitting}
+                className="rounded-lg bg-[#f97316] px-5 py-2 font-body text-sm font-semibold text-white transition hover:bg-[#ea580c] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {submitting ? "Mengirim..." : isLastSection ? "Submit" : "Berikutnya"}
+              </button>
             </div>
           </section>
-        ) : null}
+        </div>
+      </main>
 
-        {formData.settings?.audienceMode === "INTERNAL_KRU" &&
-        Array.isArray(formData.requestedProfileFields) &&
-        formData.requestedProfileFields.length > 0 ? (
-          <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-2">
-            <h3 className="font-heading text-xl font-semibold text-gray-900">
-              Data Kru yang Akan Dikirim
-            </h3>
-            <p className="font-body text-sm text-gray-600">{formData.consentText}</p>
-            <ul className="space-y-1 text-sm font-body text-gray-700">
-              {formData.requestedProfileFields.map((field) => (
-                <li key={field.key}>
-                  <span className="font-semibold">{field.label}:</span>{" "}
-                  {renderQuestionAnswerPreview(
-                    formData.consentPreviewValues?.[field.key],
-                  ) || "(akan diambil dari master profile)"}
-                </li>
-              ))}
-            </ul>
-            <label className="inline-flex items-center gap-2 font-body text-sm text-gray-700">
-              <input
-                type="checkbox"
-                checked={consentAccepted}
-                onChange={(event) => setConsentAccepted(event.target.checked)}
-              />
-              Saya setuju data di atas dikirim bersama respons ini.
-            </label>
-          </section>
-        ) : null}
+      {showConsentModal ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
+          <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+            <div className="h-1.5 bg-[#f97316]" />
 
-        {error ? (
-          <section className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm font-body text-red-700">
-            {error}
-          </section>
-        ) : null}
+            <div className="space-y-5 p-6 sm:p-8">
+              <div>
+                <h3 className="font-heading text-4xl font-bold leading-tight text-slate-900">
+                  Konfirmasi Sebelum Submit
+                </h3>
+                <p className="mt-1 font-body text-sm text-slate-600">
+                  Data diri berikut akan dilihat pembuat form jika Anda lanjut submit.
+                </p>
+              </div>
 
-        <section className="flex items-center justify-between gap-3">
-          <button
-            onClick={() => {
-              const currentIndex = sectionOrder.indexOf(activeSectionId);
-              if (currentIndex > 0) {
-                setActiveSectionId(sectionOrder[currentIndex - 1]);
-              }
-            }}
-            disabled={sectionOrder.indexOf(activeSectionId) <= 0}
-            className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-body disabled:opacity-50"
-          >
-            Kembali
-          </button>
+              <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+                <p className="font-body text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Data Profil Terpusat
+                </p>
 
-          <button
-            onClick={handleNextOrSubmit}
-            disabled={submitting}
-            className="px-4 py-2 rounded-lg bg-[#f59d2a] text-white text-sm font-body font-semibold disabled:opacity-60"
-          >
-            {submitting
-              ? "Mengirim..."
-              : isLastSection
-                ? "Kirim"
-                : "Berikutnya"}
-          </button>
-        </section>
-      </div>
-    </main>
+                <div className="mt-3 max-h-[48vh] space-y-2 overflow-y-auto pr-1">
+                  {requestedProfileFields.map((field) => (
+                    <div key={field.key} className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                      <p className="font-body text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                        {field.label || field.key}
+                      </p>
+                      {renderRequestedProfileFieldValue(field)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3 border-t border-slate-200 bg-white px-6 py-4 sm:px-8">
+              <label className="inline-flex items-start gap-2 font-body text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={consentAccepted}
+                  onChange={(event) => setConsentAccepted(event.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-[#f97316]"
+                />
+                Saya setuju data di atas dikirim bersama respons ini.
+              </label>
+
+              {confirmError ? (
+                <p className="font-body text-sm text-red-600">{confirmError}</p>
+              ) : null}
+
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowConsentModal(false)}
+                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 font-body text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmedSubmit}
+                  disabled={submitting}
+                  className="rounded-lg bg-[#f97316] px-5 py-2 font-body text-sm font-semibold text-white transition hover:bg-[#ea580c] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {submitting ? "Mengirim..." : "Submit"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }

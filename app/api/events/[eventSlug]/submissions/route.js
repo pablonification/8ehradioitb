@@ -23,6 +23,7 @@ import {
   isSingleResponsePolicy,
   validateSubmissionAnswers,
 } from "@/lib/forms/submission";
+import { getMissingRequiredProfileKeys } from "@/lib/profile/database";
 
 async function loadPublishedEventForm(eventSlug) {
   const event = await prisma.event.findUnique({
@@ -127,10 +128,19 @@ export async function GET(req, { params }) {
       select: {
         id: true,
         submitterUserId: true,
+        submitterUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
         participantProfileId: true,
         submittedAt: true,
         updatedAt: true,
         answers: true,
+        consentedProfileSnapshot: true,
+        formSchemaSnapshot: true,
       },
     });
 
@@ -246,6 +256,36 @@ export async function POST(req, { params }) {
         !Array.isArray(participantProfile.biodata)
           ? participantProfile.biodata
           : {};
+
+      const activeRequiredFields = await prisma.profileFieldCatalog.findMany({
+        where: {
+          isActive: true,
+          isRequired: true,
+        },
+        select: {
+          key: true,
+          label: true,
+        },
+      });
+
+      const missingMasterRequiredFields = getMissingRequiredProfileKeys({
+        biodata,
+        requiredFieldKeys: activeRequiredFields.map((field) => field.key),
+      });
+
+      if (missingMasterRequiredFields.length > 0) {
+        return NextResponse.json(
+          {
+            error: "profile_incomplete",
+            missingFields: missingMasterRequiredFields,
+            missingFieldLabels: activeRequiredFields
+              .filter((field) => missingMasterRequiredFields.includes(field.key))
+              .map((field) => field.label || field.key),
+            setupUrl: "/profile/setup",
+          },
+          { status: 428 },
+        );
+      }
 
       const missingRequestedFields = schema.requestedProfileFields.filter(
         (fieldKey) => !biodata[fieldKey],

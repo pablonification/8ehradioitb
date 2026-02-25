@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
+import * as XLSX from "xlsx";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { hasAnyRole } from "@/lib/roleUtils";
 import {
   applyProfileFilters,
+  buildKruDatabaseRowsForExport,
   buildProfileFieldDefinitions,
 } from "@/lib/profile/database";
+import { resolveR2DownloadUrl } from "@/lib/storage/r2";
 
 export async function GET(req) {
   try {
@@ -25,11 +28,6 @@ export async function GET(req) {
     const completeness = (searchParams.get("completeness") || "all").trim();
     const fieldKey = (searchParams.get("fieldKey") || "").trim();
     const fieldValue = (searchParams.get("fieldValue") || "").trim();
-    const limitRaw = Number(searchParams.get("limit") || "500");
-    const limit =
-      Number.isFinite(limitRaw) && limitRaw > 0
-        ? Math.min(Math.max(Math.floor(limitRaw), 1), 5000)
-        : 500;
 
     const [catalogFields, profiles] = await Promise.all([
       prisma.profileFieldCatalog.findMany({
@@ -70,6 +68,7 @@ export async function GET(req) {
       includeUnknownProfileKeys: false,
     });
     const allowedFieldKeySet = new Set(fieldDefinitions.map((field) => field.key));
+
     const requiredKeys = catalogFields
       .filter((field) => field.isActive && field.isRequired)
       .map((field) => field.key);
@@ -87,21 +86,32 @@ export async function GET(req) {
       requiredKeys,
     });
 
-    const limitedItems = filtered.slice(0, limit);
+    const rows = await buildKruDatabaseRowsForExport({
+      profiles: filtered,
+      fieldDefinitions,
+      resolveFileUrl: (key) => resolveR2DownloadUrl(key, { forceDownload: true }),
+    });
 
-    return NextResponse.json({
-      total: profiles.length,
-      filteredTotal: filtered.length,
-      limit,
-      hasMore: filtered.length > limitedItems.length,
-      fields: fieldDefinitions,
-      requiredKeys,
-      items: limitedItems,
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Kru Database");
+    const xlsxBuffer = XLSX.write(workbook, {
+      type: "buffer",
+      bookType: "xlsx",
+    });
+
+    return new NextResponse(xlsxBuffer, {
+      status: 200,
+      headers: {
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition": `attachment; filename="kru-database-${new Date().toISOString().slice(0, 10)}.xlsx"`,
+      },
     });
   } catch (error) {
-    console.error("Failed to list kru database:", error);
+    console.error("Failed to export kru database to xlsx:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "internal_server_error" },
       { status: 500 },
     );
   }

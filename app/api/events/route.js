@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { hasAnyRole } from "@/lib/roleUtils";
 import { requireSession } from "@/lib/events/auth";
 import { validationError } from "@/lib/events/contracts";
+import { generateUniqueEventSlug } from "@/lib/forms/slug";
 
 function toEventResponse(event) {
   return {
@@ -70,18 +71,31 @@ export async function POST(req) {
       (await getServerSession(authOptions)) ?? (await requireSession(req));
 
     const body = await req.json();
-    const slug = typeof body?.slug === "string" ? body.slug.trim() : "";
+    const requestedSlug =
+      typeof body?.slug === "string" ? body.slug.trim() : "";
     const title = typeof body?.title === "string" ? body.title.trim() : "";
     const description =
       typeof body?.description === "string" ? body.description.trim() : null;
 
-    if (!slug || !title) {
+    if (!title) {
       return validationError(
         "Invalid payload",
-        ["slug and title are required and must be non-empty strings"],
+        ["title is required and must be a non-empty string"],
         400,
       );
     }
+
+    const slug = await generateUniqueEventSlug({
+      title,
+      requestedSlug,
+      isTaken: async (candidate) => {
+        const existing = await prisma.event.findUnique({
+          where: { slug: candidate },
+          select: { id: true },
+        });
+        return Boolean(existing);
+      },
+    });
 
     const event = await prisma.event.create({
       data: {
