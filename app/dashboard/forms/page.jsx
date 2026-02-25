@@ -13,58 +13,33 @@ import {
   FiCheck,
   FiX,
 } from "react-icons/fi";
+import {
+  normalizeShortLinkSlug,
+  SHORTLINK_HOST,
+  SHORTLINK_SLUG_ERROR_CODES,
+  validateShortLinkSlug,
+} from "@/lib/shortlinks/slug";
 
 const INPUT_CLASS =
   "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-body text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#f97316] focus:outline-none focus:ring-2 focus:ring-orange-100";
-const SHORTLINK_DOMAIN = "https://8eh.link";
-const SHORTLINK_DISPLAY_DOMAIN = "8eh.link";
-const RESERVED_SHORTLINK_SLUGS = new Set([
-  "api",
-  "dashboard",
-  "login",
-  "not-found",
-  "password",
-  "blog",
-  "about-us",
-  "agency",
-  "media-partner",
-  "podcast",
-  "programs",
-  "faq",
-  "proxy-audio",
-  "_next",
-  "favicon.ico",
-  "contributors",
-  "events",
-  "forms",
-  "profile",
-]);
+const SHORTLINK_DOMAIN = `https://${SHORTLINK_HOST}`;
+const SHORTLINK_DISPLAY_DOMAIN = SHORTLINK_HOST;
 
-function normalizeCustomSlug(value) {
-  if (typeof value !== "string") return "";
-
-  let normalized = value.trim().toLowerCase();
-  normalized = normalized.replace(/^https?:\/\/(www\.)?8eh\.link\//, "");
-  normalized = normalized.replace(/^8eh\.link\//, "");
-  normalized = normalized.replace(/^\/+/, "");
-  normalized = normalized.replace(/\s+/g, "-");
-  normalized = normalized.replace(/[^a-z0-9_-]/g, "");
-  normalized = normalized.replace(/-{2,}/g, "-");
-
-  return normalized;
-}
-
-function validateCustomSlug(slug) {
-  if (!slug) return "Slug wajib diisi.";
-  if (slug.length < 3) return "Slug minimal 3 karakter.";
-  if (slug.length > 64) return "Slug maksimal 64 karakter.";
-  if (!/^[a-z0-9][a-z0-9_-]*$/.test(slug)) {
-    return "Slug hanya boleh huruf kecil, angka, '-' dan '_'.";
+function getShortLinkValidationMessage(errorCode) {
+  switch (errorCode) {
+    case SHORTLINK_SLUG_ERROR_CODES.REQUIRED:
+      return "Slug wajib diisi.";
+    case SHORTLINK_SLUG_ERROR_CODES.TOO_SHORT:
+      return "Slug minimal 3 karakter.";
+    case SHORTLINK_SLUG_ERROR_CODES.TOO_LONG:
+      return "Slug maksimal 64 karakter.";
+    case SHORTLINK_SLUG_ERROR_CODES.INVALID_FORMAT:
+      return "Slug hanya boleh huruf kecil, angka, '-' dan '_'.";
+    case SHORTLINK_SLUG_ERROR_CODES.RESERVED:
+      return "Slug ini reserved, pakai slug lain.";
+    default:
+      return "Slug tidak valid.";
   }
-  if (RESERVED_SHORTLINK_SLUGS.has(slug)) {
-    return "Slug ini reserved, pakai slug lain.";
-  }
-  return "";
 }
 
 function getFormSlugFromDestination(destination) {
@@ -119,7 +94,7 @@ export default function FormsDashboardPage() {
     : null;
 
   const normalizedModalSlug = useMemo(
-    () => normalizeCustomSlug(shortLinkModal.slugInput || ""),
+    () => normalizeShortLinkSlug(shortLinkModal.slugInput || ""),
     [shortLinkModal.slugInput],
   );
   const shortUrlPreview = normalizedModalSlug
@@ -234,10 +209,10 @@ export default function FormsDashboardPage() {
     event.preventDefault();
     if (!selectedEvent) return;
 
-    const finalSlug = normalizeCustomSlug(shortLinkModal.slugInput);
-    const slugValidationError = validateCustomSlug(finalSlug);
-    if (slugValidationError) {
-      setShortLinkError(slugValidationError);
+    const finalSlug = normalizeShortLinkSlug(shortLinkModal.slugInput);
+    const slugValidation = validateShortLinkSlug(finalSlug);
+    if (!slugValidation.valid) {
+      setShortLinkError(getShortLinkValidationMessage(slugValidation.code));
       return;
     }
 

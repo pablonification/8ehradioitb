@@ -258,9 +258,25 @@ export default function FormBuilderPage() {
   async function handleSaveDraft() {
     setSaving(true);
     setError("");
+    let draftSaved = false;
 
     try {
-      const patchMeta = await fetch(`/api/events/${eventSlug}`, {
+      const draftResponse = await fetch(`/api/events/${eventSlug}/form-versions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(schemaState),
+      });
+
+      if (!draftResponse.ok) {
+        const payload = await draftResponse.json().catch(() => ({}));
+        throw new Error(payload.error || "Failed to save draft");
+      }
+
+      draftSaved = true;
+
+      const patchMetaResponse = await fetch(`/api/events/${eventSlug}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -271,25 +287,19 @@ export default function FormBuilderPage() {
         }),
       });
 
-      if (!patchMeta.ok) {
-        throw new Error("Failed to save form metadata");
-      }
-
-      const response = await fetch(`/api/events/${eventSlug}/form-versions`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(schemaState),
-      });
-
-      if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        throw new Error(payload.error || "Failed to save draft");
+      if (!patchMetaResponse.ok) {
+        throw new Error("Draft saved, but failed to save form metadata");
       }
 
       await loadAll();
     } catch (saveError) {
+      if (draftSaved) {
+        try {
+          await loadAll();
+        } catch {
+          // Ignore secondary refresh failures in error path.
+        }
+      }
       setError(saveError.message || "Failed to save draft");
     } finally {
       setSaving(false);

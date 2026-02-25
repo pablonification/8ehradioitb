@@ -3,54 +3,27 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { nanoid } from "nanoid";
+import {
+  normalizeShortLinkSlug,
+  SHORTLINK_SLUG_ERROR_CODES,
+  validateShortLinkSlug,
+} from "@/lib/shortlinks/slug";
 
-const RESERVED_SHORTLINK_SLUGS = new Set([
-  "api",
-  "dashboard",
-  "login",
-  "not-found",
-  "password",
-  "blog",
-  "about-us",
-  "agency",
-  "media-partner",
-  "podcast",
-  "programs",
-  "faq",
-  "proxy-audio",
-  "_next",
-  "favicon.ico",
-  "contributors",
-  "events",
-  "forms",
-  "profile",
-]);
-
-function normalizeCustomSlug(value) {
-  if (typeof value !== "string") return "";
-
-  let normalized = value.trim().toLowerCase();
-  normalized = normalized.replace(/^https?:\/\/(www\.)?8eh\.link\//, "");
-  normalized = normalized.replace(/^8eh\.link\//, "");
-  normalized = normalized.replace(/^\/+/, "");
-  normalized = normalized.replace(/\s+/g, "-");
-  normalized = normalized.replace(/[^a-z0-9_-]/g, "");
-  normalized = normalized.replace(/-{2,}/g, "-");
-
-  return normalized;
-}
-
-function validateCustomSlug(slug) {
-  if (!slug) return "Custom back-half is required";
-  if (slug.length < 3) return "Custom back-half must be at least 3 characters";
-  if (slug.length > 64) return "Custom back-half must be at most 64 characters";
-  if (!/^[a-z0-9][a-z0-9_-]*$/.test(slug)) {
-    return "Custom back-half can only contain lowercase letters, numbers, '-' and '_'";
+function toSlugValidationMessage(errorCode) {
+  switch (errorCode) {
+    case SHORTLINK_SLUG_ERROR_CODES.REQUIRED:
+      return "Custom back-half is required";
+    case SHORTLINK_SLUG_ERROR_CODES.TOO_SHORT:
+      return "Custom back-half must be at least 3 characters";
+    case SHORTLINK_SLUG_ERROR_CODES.TOO_LONG:
+      return "Custom back-half must be at most 64 characters";
+    case SHORTLINK_SLUG_ERROR_CODES.INVALID_FORMAT:
+      return "Custom back-half can only contain lowercase letters, numbers, '-' and '_'";
+    case SHORTLINK_SLUG_ERROR_CODES.RESERVED:
+      return "Custom back-half is reserved";
+    default:
+      return "Invalid custom back-half";
   }
-  if (RESERVED_SHORTLINK_SLUGS.has(slug)) {
-    return "Custom back-half is reserved";
-  }
-  return "";
 }
 
 // Generate a unique slug
@@ -138,11 +111,11 @@ export async function POST(req) {
 
     // If custom slug is provided, check if it's unique
     if (customSlug) {
-      finalSlug = normalizeCustomSlug(customSlug);
-      const slugValidationError = validateCustomSlug(finalSlug);
-      if (slugValidationError) {
+      finalSlug = normalizeShortLinkSlug(customSlug);
+      const slugValidation = validateShortLinkSlug(finalSlug);
+      if (!slugValidation.valid) {
         return NextResponse.json(
-          { error: slugValidationError },
+          { error: toSlugValidationMessage(slugValidation.code) },
           { status: 400 }
         );
       }
@@ -216,13 +189,13 @@ export async function PUT(req) {
     }
 
     // If new slug is provided and different from current, check uniqueness
-    const normalizedNewSlug = newSlug ? normalizeCustomSlug(newSlug) : "";
+    const normalizedNewSlug = newSlug ? normalizeShortLinkSlug(newSlug) : "";
 
     if (newSlug) {
-      const slugValidationError = validateCustomSlug(normalizedNewSlug);
-      if (slugValidationError) {
+      const slugValidation = validateShortLinkSlug(normalizedNewSlug);
+      if (!slugValidation.valid) {
         return NextResponse.json(
-          { error: slugValidationError },
+          { error: toSlugValidationMessage(slugValidation.code) },
           { status: 400 }
         );
       }
