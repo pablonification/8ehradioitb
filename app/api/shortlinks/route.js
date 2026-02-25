@@ -4,6 +4,55 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { nanoid } from "nanoid";
 
+const RESERVED_SHORTLINK_SLUGS = new Set([
+  "api",
+  "dashboard",
+  "login",
+  "not-found",
+  "password",
+  "blog",
+  "about-us",
+  "agency",
+  "media-partner",
+  "podcast",
+  "programs",
+  "faq",
+  "proxy-audio",
+  "_next",
+  "favicon.ico",
+  "contributors",
+  "events",
+  "forms",
+  "profile",
+]);
+
+function normalizeCustomSlug(value) {
+  if (typeof value !== "string") return "";
+
+  let normalized = value.trim().toLowerCase();
+  normalized = normalized.replace(/^https?:\/\/(www\.)?8eh\.link\//, "");
+  normalized = normalized.replace(/^8eh\.link\//, "");
+  normalized = normalized.replace(/^\/+/, "");
+  normalized = normalized.replace(/\s+/g, "-");
+  normalized = normalized.replace(/[^a-z0-9_-]/g, "");
+  normalized = normalized.replace(/-{2,}/g, "-");
+
+  return normalized;
+}
+
+function validateCustomSlug(slug) {
+  if (!slug) return "Custom back-half is required";
+  if (slug.length < 3) return "Custom back-half must be at least 3 characters";
+  if (slug.length > 64) return "Custom back-half must be at most 64 characters";
+  if (!/^[a-z0-9][a-z0-9_-]*$/.test(slug)) {
+    return "Custom back-half can only contain lowercase letters, numbers, '-' and '_'";
+  }
+  if (RESERVED_SHORTLINK_SLUGS.has(slug)) {
+    return "Custom back-half is reserved";
+  }
+  return "";
+}
+
 // Generate a unique slug
 async function generateUniqueSlug() {
   let slug;
@@ -85,12 +134,21 @@ export async function POST(req) {
       );
     }
 
-    let finalSlug = customSlug;
+    let finalSlug = "";
 
     // If custom slug is provided, check if it's unique
     if (customSlug) {
+      finalSlug = normalizeCustomSlug(customSlug);
+      const slugValidationError = validateCustomSlug(finalSlug);
+      if (slugValidationError) {
+        return NextResponse.json(
+          { error: slugValidationError },
+          { status: 400 }
+        );
+      }
+
       const existing = await prisma.shortLink.findUnique({
-        where: { slug: customSlug }
+        where: { slug: finalSlug }
       });
       
       if (existing) {
@@ -158,9 +216,21 @@ export async function PUT(req) {
     }
 
     // If new slug is provided and different from current, check uniqueness
-    if (newSlug && newSlug !== existingShortLink.slug) {
+    const normalizedNewSlug = newSlug ? normalizeCustomSlug(newSlug) : "";
+
+    if (newSlug) {
+      const slugValidationError = validateCustomSlug(normalizedNewSlug);
+      if (slugValidationError) {
+        return NextResponse.json(
+          { error: slugValidationError },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (normalizedNewSlug && normalizedNewSlug !== existingShortLink.slug) {
       const slugExists = await prisma.shortLink.findUnique({
-        where: { slug: newSlug }
+        where: { slug: normalizedNewSlug }
       });
       
       if (slugExists) {
@@ -188,7 +258,7 @@ export async function PUT(req) {
       data: {
         destination: destination || undefined,
         title: title !== undefined ? title : undefined,
-        slug: newSlug || undefined,
+        slug: normalizedNewSlug || undefined,
         password: password !== undefined ? password : undefined,
         isActive: isActive !== undefined ? isActive : undefined
       }
