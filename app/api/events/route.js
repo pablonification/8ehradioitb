@@ -48,11 +48,7 @@ export async function GET(req) {
       where: isDeveloper
         ? undefined
         : {
-            organizers: {
-              some: {
-                userId: session.user.id,
-              },
-            },
+            createdById: session.user.id,
           },
       orderBy: {
         createdAt: "desc",

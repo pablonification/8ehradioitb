@@ -34,7 +34,7 @@ function handleRouteError(error, context) {
 
 export async function GET(req, { params }) {
   try {
-    await requireSession(req);
+    const session = await requireSession(req);
 
     const event = await prisma.event.findUnique({
       where: {
@@ -44,6 +44,16 @@ export async function GET(req, { params }) {
 
     if (!event) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    const authResponse = await assertEventAction(
+      session.user.id,
+      event.id,
+      EVENT_ACTIONS.FORM_EDIT,
+    );
+
+    if (authResponse) {
+      return authResponse;
     }
 
     return NextResponse.json(toEventResponse(event));
