@@ -82,5 +82,29 @@ body {
   }
 }
 
+@layer components {
+  .form-builder-surface input:not([type="checkbox"]):not([type="radio"]),
+  .form-builder-surface select,
+  .form-builder-surface textarea {
+    background-color: #ffffff;
+    border-color: #cbd5e1;
+    color: #0f172a;
+  }
+
+  .form-builder-surface input:not([type="checkbox"]):not([type="radio"])::placeholder,
+  .form-builder-surface textarea::placeholder {
+    color: #64748b;
+    opacity: 1;
+  }
+
+  .form-builder-surface input:not([type="checkbox"]):not([type="radio"]):focus,
+  .form-builder-surface select:focus,
+  .form-builder-surface textarea:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.14);
+    outline: none;
+  }
+}
+
 @tailwind base;
 @tailwind components;

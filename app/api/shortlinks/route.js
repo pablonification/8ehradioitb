@@ -3,6 +3,28 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { nanoid } from "nanoid";
+import {
+  normalizeShortLinkSlug,
+  SHORTLINK_SLUG_ERROR_CODES,
+  validateShortLinkSlug,
+} from "@/lib/shortlinks/slug";
+
+function toSlugValidationMessage(errorCode) {
+  switch (errorCode) {
+    case SHORTLINK_SLUG_ERROR_CODES.REQUIRED:
+      return "Custom back-half is required";
+    case SHORTLINK_SLUG_ERROR_CODES.TOO_SHORT:
+      return "Custom back-half must be at least 3 characters";
+    case SHORTLINK_SLUG_ERROR_CODES.TOO_LONG:
+      return "Custom back-half must be at most 64 characters";
+    case SHORTLINK_SLUG_ERROR_CODES.INVALID_FORMAT:
+      return "Custom back-half can only contain lowercase letters, numbers, '-' and '_'";
+    case SHORTLINK_SLUG_ERROR_CODES.RESERVED:
+      return "Custom back-half is reserved";
+    default:
+      return "Invalid custom back-half";
+  }
+}
 
 // Generate a unique slug
 async function generateUniqueSlug() {
@@ -85,12 +107,21 @@ export async function POST(req) {
       );
     }
 
-    let finalSlug = customSlug;
+    let finalSlug = "";
 
     // If custom slug is provided, check if it's unique
     if (customSlug) {
+      finalSlug = normalizeShortLinkSlug(customSlug);
+      const slugValidation = validateShortLinkSlug(finalSlug);
+      if (!slugValidation.valid) {
+        return NextResponse.json(
+          { error: toSlugValidationMessage(slugValidation.code) },
+          { status: 400 }
+        );
+      }
+
       const existing = await prisma.shortLink.findUnique({
-        where: { slug: customSlug }
+        where: { slug: finalSlug }
       });
       
       if (existing) {
@@ -158,9 +189,21 @@ export async function PUT(req) {
     }
 
     // If new slug is provided and different from current, check uniqueness
-    if (newSlug && newSlug !== existingShortLink.slug) {
+    const normalizedNewSlug = newSlug ? normalizeShortLinkSlug(newSlug) : "";
+
+    if (newSlug) {
+      const slugValidation = validateShortLinkSlug(normalizedNewSlug);
+      if (!slugValidation.valid) {
+        return NextResponse.json(
+          { error: toSlugValidationMessage(slugValidation.code) },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (normalizedNewSlug && normalizedNewSlug !== existingShortLink.slug) {
       const slugExists = await prisma.shortLink.findUnique({
-        where: { slug: newSlug }
+        where: { slug: normalizedNewSlug }
       });
       
       if (slugExists) {
@@ -188,7 +231,7 @@ export async function PUT(req) {
       data: {
         destination: destination || undefined,
         title: title !== undefined ? title : undefined,
-        slug: newSlug || undefined,
+        slug: normalizedNewSlug || undefined,
         password: password !== undefined ? password : undefined,
         isActive: isActive !== undefined ? isActive : undefined
       }

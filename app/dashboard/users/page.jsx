@@ -6,7 +6,7 @@ import { hasRole, splitRoles } from '@/lib/roleUtils';
 import Image from 'next/image';
 
 // Base roles
-const BASE_ROLES = ["DEVELOPER", "TECHNIC", "REPORTER", "KRU", "MUSIC"];
+const BASE_ROLES = ["DEVELOPER", "DATA", "TECHNIC", "REPORTER", "KRU", "MUSIC"];
 
 // Helper to generate combinations of roles
 function generateRoleCombinations(baseRoles) {
@@ -27,12 +27,24 @@ function generateRoleCombinations(baseRoles) {
 
 const ROLE_OPTIONS = generateRoleCombinations(BASE_ROLES);
 
+function buildAvatarUrl(user) {
+  if (user?.image && typeof user.image === "string") {
+    return user.image;
+  }
+
+  const name = encodeURIComponent(
+    typeof user?.name === "string" && user.name.trim() ? user.name : "User",
+  );
+  return `https://ui-avatars.com/api/?name=${name}&background=random`;
+}
+
 const getRoleClass = (roleString) => {
     if (!roleString) return 'bg-gray-100 text-gray-800';
     const primary = roleString.split('-')[0];
     switch (primary) {
         case 'DEVELOPER': return 'bg-red-100 text-red-800';
         case 'TECHNIC': return 'bg-blue-100 text-blue-800';
+        case 'DATA': return 'bg-amber-100 text-amber-800';
         case 'REPORTER': return 'bg-green-100 text-green-800';
         case 'MUSIC': return 'bg-purple-100 text-purple-800';
         case 'KRU':
@@ -143,8 +155,8 @@ export default function UsersPage() {
                     <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
                       <Image
                         className="h-8 w-8 sm:h-10 sm:w-10 rounded-full"
-                        src={user.image || `https://ui-avatars.com/api/?name=${user.name}&background=random`}
-                        alt={user.name}
+                        src={buildAvatarUrl(user)}
+                        alt={user?.name || "User avatar"}
                         width={40}
                         height={40}
                       />
