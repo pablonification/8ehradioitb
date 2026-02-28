@@ -9,9 +9,9 @@ export default function DashboardLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex bg-gray-100 min-h-screen font-body">
+    <div className="flex bg-gray-100 h-screen overflow-hidden font-body">
       {/* Sidebar untuk Desktop */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:block overflow-y-auto">
         <DashboardSidebar />
       </div>
 
@@ -30,8 +30,8 @@ export default function DashboardLayout({ children }) {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="flex justify-between lg:justify-end items-center p-4 border-b border-gray-200 bg-white shadow-sm">
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <header className="sticky top-0 z-20 flex justify-between lg:justify-end items-center p-4 border-b border-gray-200 bg-white shadow-sm">
           <button
             className="lg:hidden p-2 text-gray-700"
             onClick={() => setIsSidebarOpen(true)}
@@ -40,7 +40,7 @@ export default function DashboardLayout({ children }) {
           </button>
           <UserDropdown />
         </header>
-        <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
+        <main className="flex-1 p-4 sm:p-6 md:p-8">
           {children}
         </main>
         <footer className="text-xs text-gray-500 font-body text-center py-4">

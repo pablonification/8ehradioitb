@@ -14,6 +14,7 @@ import {
   FiCheck,
   FiX,
   FiMoreVertical,
+  FiTrash2,
 } from "react-icons/fi";
 import {
   normalizeShortLinkSlug,
@@ -82,6 +83,39 @@ const FormDocIcon = () => (
   </svg>
 );
 
+function FormsListSkeleton() {
+  return (
+    <div className="mt-2 space-y-6">
+      {["Hari ini", "7 hari sebelumnya"].map((group) => (
+        <div key={group} className="animate-pulse">
+          <div className="mb-2 h-4 w-36 rounded bg-slate-200" />
+          <div className="space-y-2">
+            {[1, 2, 3].map((row) => (
+              <div
+                key={`${group}-${row}`}
+                className="flex items-center justify-between gap-4 rounded-lg border-b border-slate-100 px-2 py-3"
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-4">
+                  <div className="h-6 w-6 rounded bg-slate-200" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <div className="h-4 w-56 rounded bg-slate-200" />
+                    <div className="h-3 w-28 rounded bg-slate-100" />
+                  </div>
+                </div>
+                <div className="hidden w-52 flex-shrink-0 items-center justify-between md:flex">
+                  <div className="h-3 w-12 rounded bg-slate-200" />
+                  <div className="h-3 w-20 rounded bg-slate-200" />
+                </div>
+                <div className="h-8 w-8 rounded-full bg-slate-200" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function FormsDashboardPage() {
   const { status } = useSession();
   const router = useRouter();
@@ -101,6 +135,9 @@ export default function FormsDashboardPage() {
     event: null,
     slugInput: "",
   });
+  const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, event: null });
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeletingShortLink, setIsDeletingShortLink] = useState(false);
 
   const formShortLinkMap = useMemo(() => {
     const map = new Map();
@@ -347,6 +384,53 @@ export default function FormsDashboardPage() {
     }
   }
 
+  async function handleDeleteForm() {
+    if (!deleteConfirm.event) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/events/${deleteConfirm.event.slug}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload?.error || "Gagal menghapus form.");
+      }
+      setEvents((prev) => prev.filter((e) => e.id !== deleteConfirm.event.id));
+      // Remove associated shortlink from local state too.
+      const linked = formShortLinkMap.get(deleteConfirm.event.slug);
+      if (linked) {
+        setShortLinks((prev) => prev.filter((sl) => sl.id !== linked.id));
+      }
+      setDeleteConfirm({ isOpen: false, event: null });
+    } catch (err) {
+      setError(err.message || "Gagal menghapus form.");
+      setDeleteConfirm({ isOpen: false, event: null });
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  async function handleDeleteShortLink() {
+    if (!selectedShortLink) return;
+    setIsDeletingShortLink(true);
+    setShortLinkError("");
+    try {
+      const res = await fetch(`/api/shortlinks/${selectedShortLink.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload?.error || "Gagal menghapus short link.");
+      }
+      setShortLinks((prev) => prev.filter((sl) => sl.id !== selectedShortLink.id));
+      closeShortLinkModal();
+    } catch (err) {
+      setShortLinkError(err.message || "Gagal menghapus short link.");
+    } finally {
+      setIsDeletingShortLink(false);
+    }
+  }
+
   return (
     <div className="-mx-4 -mt-4 flex min-h-screen flex-col text-slate-800 sm:-mx-6 sm:-mt-6 md:-mx-8 md:-mt-8">
       <div className="border-b border-slate-200 bg-white px-4 py-8 sm:px-6 md:px-8">
@@ -403,10 +487,8 @@ export default function FormsDashboardPage() {
           </div>
 
           <div className="flex flex-col">
-            {isLoading ? (
-              <div className="py-8 text-center font-body text-slate-600">
-                Loading forms...
-              </div>
+            {isLoading || status === "loading" ? (
+              <FormsListSkeleton />
             ) : sortedEvents.length === 0 ? (
               <div className="py-8 text-center font-body text-slate-600">
                 Belum ada form. Klik tombol di atas untuk mulai.
@@ -473,7 +555,7 @@ export default function FormsDashboardPage() {
                                   <FiEdit2 size={16} /> Builder
                                 </Link>
                                 <Link
-                                  href={`/dashboard/forms/${item.slug}/responses`}
+                                  href={`/dashboard/forms/${item.slug}/builder?tab=responses`}
                                   onClick={() => setOpenMenuId(null)}
                                   className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
                                 >
@@ -497,6 +579,16 @@ export default function FormsDashboardPage() {
                                 >
                                   <FiExternalLink size={16} /> Buka (Tab Baru)
                                 </Link>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    setDeleteConfirm({ isOpen: true, event: item });
+                                  }}
+                                  className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                                >
+                                  <FiTrash2 size={16} /> Hapus
+                                </button>
                               </div>
                             ) : null}
                           </div>
@@ -585,29 +677,91 @@ export default function FormsDashboardPage() {
                 </p>
               ) : null}
 
-              <div className="flex flex-wrap items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={handleCopyShortLink}
-                  disabled={!normalizedModalSlug}
-                  className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-body text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
-                >
-                  {isCopyingShortLink ? <FiCheck /> : <FiCopy />}
-                  {isCopyingShortLink ? "Copied" : "Copy"}
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSavingShortLink}
-                  className="inline-flex items-center gap-2 rounded-lg bg-[#f97316] px-4 py-2 text-sm font-body font-semibold text-white transition hover:bg-[#ea580c] disabled:opacity-60"
-                >
-                  {isSavingShortLink
-                    ? "Saving..."
-                    : selectedShortLink
-                      ? "Update"
-                      : "Save"}
-                </button>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                {selectedShortLink ? (
+                  <button
+                    type="button"
+                    onClick={handleDeleteShortLink}
+                    disabled={isDeletingShortLink}
+                    className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-sm font-body text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+                  >
+                    <FiTrash2 size={14} />
+                    {isDeletingShortLink ? "Menghapus..." : "Hapus Short Link"}
+                  </button>
+                ) : (
+                  <span />
+                )}
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCopyShortLink}
+                    disabled={!normalizedModalSlug}
+                    className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-body text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                  >
+                    {isCopyingShortLink ? <FiCheck /> : <FiCopy />}
+                    {isCopyingShortLink ? "Copied" : "Copy"}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingShortLink}
+                    className="inline-flex items-center gap-2 rounded-lg bg-[#f97316] px-4 py-2 text-sm font-body font-semibold text-white transition hover:bg-[#ea580c] disabled:opacity-60"
+                  >
+                    {isSavingShortLink
+                      ? "Saving..."
+                      : selectedShortLink
+                        ? "Update"
+                        : "Save"}
+                  </button>
+                </div>
               </div>
             </form>
+          </div>
+        </div>
+      ) : null}
+      {deleteConfirm.isOpen && deleteConfirm.event ? (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setDeleteConfirm({ isOpen: false, event: null });
+            }
+          }}
+        >
+          <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+            <h3 className="font-heading text-lg font-bold text-slate-900">
+              Hapus formulir?
+            </h3>
+            <p className="mt-2 text-sm font-body text-slate-600">
+              <span className="font-semibold">{deleteConfirm.event.title}</span>{" "}
+              beserta semua respons dan versi akan dihapus permanen. Aksi ini tidak bisa dibatalkan.
+            </p>
+            {formShortLinkMap.has(deleteConfirm.event.slug) ? (
+              <p className="mt-2 text-sm font-body text-amber-700">
+                Short link{" "}
+                <span className="font-semibold">
+                  {formShortLinkMap.get(deleteConfirm.event.slug).slug}
+                </span>{" "}
+                yang terhubung juga akan ikut terhapus.
+              </p>
+            ) : null}
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm({ isOpen: false, event: null })}
+                disabled={isDeleting}
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-body text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteForm}
+                disabled={isDeleting}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-body font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
+              >
+                {isDeleting ? "Menghapus..." : "Hapus"}
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
