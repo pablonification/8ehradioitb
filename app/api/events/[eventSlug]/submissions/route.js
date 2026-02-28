@@ -102,10 +102,11 @@ function normalizeRespondentEmail(value) {
 export async function GET(req, { params }) {
   try {
     const session = await requireSession(req);
+    const { eventSlug } = await params;
 
     const event = await prisma.event.findUnique({
       where: {
-        slug: params.eventSlug,
+        slug: eventSlug,
       },
       select: {
         id: true,
@@ -173,8 +174,9 @@ export async function GET(req, { params }) {
 export async function POST(req, { params }) {
   try {
     const session = await getServerSession(authOptions);
+    const { eventSlug } = await params;
     const { event, formVersion, schema, response } = await loadPublishedEventForm(
-      params.eventSlug,
+      eventSlug,
     );
 
     if (response) {
@@ -325,7 +327,10 @@ export async function POST(req, { params }) {
     );
 
     let existingSubmission = null;
-    if (isSingleResponsePolicy(schema.settings.responsePolicy)) {
+    if (
+      isSingleResponsePolicy(schema.settings.responsePolicy) ||
+      schema.settings.responsePolicy === RESPONSE_POLICIES.MULTIPLE_WITH_EDIT
+    ) {
       existingSubmission = await findExistingSubmissionByIdentity(event.id, identity);
     }
 

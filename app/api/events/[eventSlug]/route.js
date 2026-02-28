@@ -139,3 +139,43 @@ export async function PATCH(req, { params }) {
     return handleRouteError(error, "Error updating event:");
   }
 }
+
+export async function DELETE(req, { params }) {
+  try {
+    const session = await requireSession(req);
+
+    const event = await prisma.event.findUnique({
+      where: {
+        slug: params.eventSlug,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!event) {
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    const authResponse = await assertEventAction(
+      session.user.id,
+      event.id,
+      EVENT_ACTIONS.FORM_EDIT,
+    );
+
+    if (authResponse) {
+      return authResponse;
+    }
+
+    // MongoDB has no cascade deletes — manually delete related records in order.
+    await prisma.eventExportLog.deleteMany({ where: { eventId: event.id } });
+    await prisma.eventSubmission.deleteMany({ where: { eventId: event.id } });
+    await prisma.eventFormVersion.deleteMany({ where: { eventId: event.id } });
+    await prisma.eventOrganizer.deleteMany({ where: { eventId: event.id } });
+    await prisma.event.delete({ where: { id: event.id } });
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return handleRouteError(error, "Error deleting event:");
+  }
+}

@@ -43,7 +43,15 @@ export async function POST(req) {
 
     const safeName = sanitizeFileName(fileName);
     const safeFieldKey = fieldKey.replace(/[^a-zA-Z0-9_-]/g, "_");
-    const key = `kru-profile/${session.user.id}/${safeFieldKey}/${Date.now()}_${safeName}`;
+    
+    // Allow admins to upload for other users
+    let targetUserId = session.user.id;
+    const isAdmin = ["DEVELOPER", "DATA"].includes(session.user.role);
+    if (isAdmin && typeof body?.targetUserId === "string" && body.targetUserId.trim()) {
+      targetUserId = body.targetUserId.trim();
+    }
+
+    const key = `kru-profile/${targetUserId}/${safeFieldKey}/${Date.now()}_${safeName}`;
 
     const command = new PutObjectCommand({
       Bucket: R2_BUCKET,
