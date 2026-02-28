@@ -432,7 +432,7 @@ export default function FormsDashboardPage() {
   }
 
   return (
-    <div className="-mx-4 -mt-4 flex min-h-screen flex-col text-slate-800 sm:-mx-6 sm:-mt-6 md:-mx-8 md:-mt-8">
+    <div className="-mx-4 -mt-4 flex min-h-safe-screen flex-col text-slate-800 sm:-mx-6 sm:-mt-6 md:-mx-8 md:-mt-8">
       <div className="border-b border-slate-200 bg-white px-4 py-8 sm:px-6 md:px-8">
         <div className="mx-auto max-w-5xl">
           <button

@@ -11,8 +11,9 @@ import { normalizeFormSchema } from "@/lib/forms/schema";
 export async function GET(req, { params }) {
   try {
     const session = await getServerSession(authOptions);
-    const { searchParams } = new URL(req.url);
-    const respondentEmail = searchParams.get("email");
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const event = await prisma.event.findUnique({
       where: { slug: params.eventSlug },
@@ -46,10 +47,10 @@ export async function GET(req, { params }) {
     }
 
     const identity = {
-      userId: session?.user?.id ?? null,
+      userId: session.user.id,
       email:
-        typeof respondentEmail === "string" && respondentEmail.trim()
-          ? respondentEmail.trim().toLowerCase()
+        typeof session.user.email === "string" && session.user.email.trim()
+          ? session.user.email.trim().toLowerCase()
           : null,
     };
 

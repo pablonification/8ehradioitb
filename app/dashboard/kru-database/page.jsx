@@ -111,12 +111,16 @@ export default function KruDatabasePage() {
   const [editingName, setEditingName] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState("");
+  const [claimRequests, setClaimRequests] = useState([]);
+  const [claimRequestsLoading, setClaimRequestsLoading] = useState(true);
+  const [claimActionId, setClaimActionId] = useState("");
+  const [claimError, setClaimError] = useState("");
 
   const [deletingId, setDeletingId] = useState("");
 
   useEffect(() => {
     if (status === "authenticated" && hasAccess) {
-      void loadProfiles();
+      void Promise.all([loadProfiles(), loadClaimRequests()]);
     }
   }, [status, hasAccess]);
 
@@ -164,6 +168,50 @@ export default function KruDatabasePage() {
       setError(loadError.message || "Failed to fetch kru database");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadClaimRequests() {
+    setClaimRequestsLoading(true);
+    setClaimError("");
+    try {
+      const response = await fetch("/api/profile/claim-requests?status=PENDING&limit=100");
+      if (!response.ok) {
+        throw new Error("Failed to fetch claim requests");
+      }
+      const payload = await response.json().catch(() => ({}));
+      setClaimRequests(Array.isArray(payload.items) ? payload.items : []);
+    } catch (errorLoadClaim) {
+      setClaimError(errorLoadClaim.message || "Failed to fetch claim requests");
+    } finally {
+      setClaimRequestsLoading(false);
+    }
+  }
+
+  async function handleClaimDecision(id, action) {
+    setClaimActionId(id);
+    setClaimError("");
+    try {
+      const response = await fetch("/api/profile/claim-requests", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          action,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.error || "Gagal memproses claim request");
+      }
+      setClaimRequests((prev) => prev.filter((item) => item.id !== id));
+      if (action === "approve") {
+        await loadProfiles();
+      }
+    } catch (claimActionError) {
+      setClaimError(claimActionError.message || "Gagal memproses claim request");
+    } finally {
+      setClaimActionId("");
     }
   }
 
@@ -328,6 +376,86 @@ export default function KruDatabasePage() {
   return (
     <>
       <div className="space-y-6 text-slate-900">
+      <section className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
+        <div className="h-1.5 bg-[#f97316]" />
+        <div className="space-y-4 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-heading text-xl font-bold text-slate-900">
+                Claim Request (Pending)
+              </h2>
+              <p className="mt-1 font-body text-sm text-slate-600">
+                Approval untuk penghubungan akun login ke master profile existing.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void loadClaimRequests()}
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              Refresh
+            </button>
+          </div>
+
+          {claimError ? (
+            <p className="font-body text-sm text-red-600">{claimError}</p>
+          ) : null}
+
+          {claimRequestsLoading ? (
+            <div className="space-y-2 animate-pulse">
+              {[1, 2].map((item) => (
+                <div key={item} className="h-16 rounded-lg bg-slate-100" />
+              ))}
+            </div>
+          ) : claimRequests.length === 0 ? (
+            <p className="font-body text-sm text-slate-600">
+              Tidak ada request claim yang menunggu review.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {claimRequests.map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
+                >
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div className="space-y-1">
+                      <p className="font-body text-sm font-semibold text-slate-900">
+                        {item.targetProfile?.displayName || "-"} ({item.nimInput || "-"})
+                      </p>
+                      <p className="font-body text-xs text-slate-600">
+                        Requester: {item.requesterUser?.name || "-"} ({item.requesterEmail || "-"})
+                      </p>
+                      <p className="font-body text-xs text-slate-500">
+                        Owner saat ini: {item.targetProfile?.ownerUser?.email || "-"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void handleClaimDecision(item.id, "approve")}
+                        disabled={claimActionId === item.id}
+                        className="rounded-lg bg-[#f97316] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#ea6c0a] disabled:opacity-60"
+                      >
+                        {claimActionId === item.id ? "Memproses..." : "Approve"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleClaimDecision(item.id, "reject")}
+                        disabled={claimActionId === item.id}
+                        className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:opacity-60"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
       <section className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
         <div className="h-1.5 bg-[#f97316]" />
         <div className="space-y-4 p-6">

@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
-import { hasAnyRole } from "@/lib/roleUtils";
 import { requireSession } from "@/lib/events/auth";
 import { validationError } from "@/lib/events/contracts";
 import { generateUniqueEventSlug } from "@/lib/forms/slug";
@@ -42,14 +41,10 @@ function handleRouteError(error, context) {
 export async function GET(req) {
   try {
     const session = await requireSession(req);
-
-    const isDeveloper = hasAnyRole(session.user.role, ["DEVELOPER"]);
     const events = await prisma.event.findMany({
-      where: isDeveloper
-        ? undefined
-        : {
-            createdById: session.user.id,
-          },
+      where: {
+        createdById: session.user.id,
+      },
       orderBy: {
         createdAt: "desc",
       },

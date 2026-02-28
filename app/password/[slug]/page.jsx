@@ -27,7 +27,7 @@ export default function PasswordProtectedPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body">
+    <div className="min-h-safe-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body">
       {/* Navbar */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200/60 px-6 py-3">
         <div className="mx-auto max-w-5xl">

@@ -25,7 +25,7 @@ function renderValue(value) {
 
 function Shell({ children }) {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body">
+    <div className="min-h-safe-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body">
       <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200/60 px-6 py-3">
         <div className="mx-auto max-w-3xl">
           <Image
@@ -80,12 +80,23 @@ export default function ProfileSetupPage() {
   const { data: session, status } = useSession();
 
   const [fields, setFields] = useState([]);
+  const [profileRecord, setProfileRecord] = useState(null);
   const [biodata, setBiodata] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [downloadingKey, setDownloadingKey] = useState("");
+  const [setupMode, setSetupMode] = useState("claim");
+  const [claimNim, setClaimNim] = useState("");
+  const [claimHint, setClaimHint] = useState("");
+  const [claimLast4, setClaimLast4] = useState("");
+  const [claimLoading, setClaimLoading] = useState(false);
+  const [claimError, setClaimError] = useState("");
+  const [claimInfo, setClaimInfo] = useState("");
+  const [attemptsRemaining, setAttemptsRemaining] = useState(null);
+  const [cooldownUntil, setCooldownUntil] = useState("");
+  const [pendingReviewId, setPendingReviewId] = useState("");
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -117,7 +128,11 @@ export default function ProfileSetupPage() {
       const payload = await response.json();
       const fieldItems = Array.isArray(payload.fields) ? payload.fields : [];
       setFields(fieldItems);
+      setProfileRecord(payload.profile || null);
       setBiodata(buildInitialBiodata(payload.profile));
+      if (payload?.profile?.id) {
+        setSetupMode("new");
+      }
     } catch (loadError) {
       setError(loadError.message || "Failed to load profile");
     } finally {
@@ -195,6 +210,119 @@ export default function ProfileSetupPage() {
       setSaving(false);
     }
   }
+
+  async function handleLookupClaim(event) {
+    event.preventDefault();
+    setClaimLoading(true);
+    setClaimError("");
+    setClaimInfo("");
+    setCooldownUntil("");
+    setAttemptsRemaining(null);
+
+    try {
+      const response = await fetch("/api/profile/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "lookup",
+          nim: claimNim,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.error || "NIM tidak ditemukan.");
+      }
+
+      setClaimHint(payload.hint || "");
+      if (payload.alreadyLinked) {
+        setClaimInfo("Profil ini sudah terhubung ke akun Anda.");
+      } else {
+        setClaimInfo("Profil ditemukan. Lanjutkan verifikasi 4 digit nomor darurat.");
+      }
+    } catch (lookupError) {
+      setClaimHint("");
+      setClaimError(lookupError.message || "Gagal memeriksa NIM.");
+    } finally {
+      setClaimLoading(false);
+    }
+  }
+
+  async function handleClaimProfile(event) {
+    event.preventDefault();
+    setClaimLoading(true);
+    setClaimError("");
+    setClaimInfo("");
+
+    try {
+      const response = await fetch("/api/profile/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "claim",
+          nim: claimNim,
+          emergencyLast4: claimLast4,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        if (payload?.attemptsRemaining !== undefined) {
+          setAttemptsRemaining(Number(payload.attemptsRemaining));
+        }
+        if (payload?.cooldownUntil) {
+          setCooldownUntil(payload.cooldownUntil);
+        }
+        throw new Error(
+          payload?.message ||
+            payload?.error ||
+            "Verifikasi gagal. Periksa kembali data Anda.",
+        );
+      }
+
+      setClaimInfo(payload?.message || "Profil berhasil dihubungkan.");
+      setClaimLast4("");
+      setClaimHint("");
+      setAttemptsRemaining(null);
+      setCooldownUntil("");
+      await loadProfile();
+    } catch (claimSubmitError) {
+      setClaimError(claimSubmitError.message || "Gagal menghubungkan profil.");
+    } finally {
+      setClaimLoading(false);
+    }
+  }
+
+  async function handleRequestReview() {
+    setClaimLoading(true);
+    setClaimError("");
+    setClaimInfo("");
+
+    try {
+      const response = await fetch("/api/profile/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "request_review",
+          nim: claimNim,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(
+          payload?.error || "Gagal mengirim request review.",
+        );
+      }
+      setPendingReviewId(payload?.requestId || "");
+      setClaimInfo(payload?.message || "Request review berhasil dikirim.");
+    } catch (requestError) {
+      setClaimError(requestError.message || "Gagal mengirim request review.");
+    } finally {
+      setClaimLoading(false);
+    }
+  }
+
+  const hasExistingProfile = Boolean(profileRecord?.id);
 
   async function handleDownloadFile(fileKey) {
     if (!fileKey) return;
@@ -282,7 +410,158 @@ export default function ProfileSetupPage() {
           </div>
         </div>
 
-        <form onSubmit={handleSave} className="space-y-3">
+        {!hasExistingProfile ? (
+          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <div className="px-6 py-5 space-y-4">
+              <h2 className="font-heading text-xl font-bold text-slate-900">
+                Pilih Metode Pendataan
+              </h2>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => setSetupMode("claim")}
+                  className={`rounded-lg border px-4 py-3 text-left font-body text-sm transition ${
+                    setupMode === "claim"
+                      ? "border-[#f97316] bg-orange-50 text-slate-900"
+                      : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  <p className="font-semibold">Klaim Profil Existing</p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Verifikasi cepat dengan NIM dan 4 digit no darurat.
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSetupMode("new")}
+                  className={`rounded-lg border px-4 py-3 text-left font-body text-sm transition ${
+                    setupMode === "new"
+                      ? "border-[#f97316] bg-orange-50 text-slate-900"
+                      : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  <p className="font-semibold">Isi Profil Baru</p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Gunakan opsi ini jika data Anda belum ada di master profile.
+                  </p>
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {!hasExistingProfile && setupMode === "claim" ? (
+          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <div className="px-6 py-5 space-y-4">
+              <h2 className="font-heading text-xl font-bold text-slate-900">
+                Klaim dan Hubungkan Profil
+              </h2>
+              <p className="font-body text-sm text-slate-600">
+                Masukkan NIM Anda terlebih dahulu. Jika ditemukan, kami tampilkan
+                hint nomor darurat untuk verifikasi.
+              </p>
+
+              <form onSubmit={handleLookupClaim} className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                <input
+                  type="text"
+                  value={claimNim}
+                  onChange={(event) => setClaimNim(event.target.value)}
+                  placeholder="NIM"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#f97316] focus:outline-none focus:ring-2 focus:ring-[#f97316]/20"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={claimLoading}
+                  className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+                >
+                  {claimLoading ? "Memeriksa..." : "Cek NIM"}
+                </button>
+              </form>
+
+              {claimHint ? (
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="font-body text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Hint Nomor Darurat
+                  </p>
+                  <p className="mt-1 font-body text-sm font-semibold text-slate-900">
+                    {claimHint}
+                  </p>
+                  <p className="mt-1 font-body text-xs text-slate-500">
+                    Masukkan 4 digit terakhir nomor darurat yang sesuai.
+                  </p>
+                </div>
+              ) : null}
+
+              {claimHint ? (
+                <form onSubmit={handleClaimProfile} className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                  <input
+                    type="text"
+                    value={claimLast4}
+                    onChange={(event) =>
+                      setClaimLast4(event.target.value.replace(/\D/g, "").slice(0, 4))
+                    }
+                    placeholder="4 digit terakhir no darurat"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#f97316] focus:outline-none focus:ring-2 focus:ring-[#f97316]/20"
+                    inputMode="numeric"
+                    maxLength={4}
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={claimLoading}
+                    className="rounded-lg bg-[#f97316] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#ea6c0a] disabled:opacity-60"
+                  >
+                    {claimLoading ? "Memverifikasi..." : "Hubungkan Profil"}
+                  </button>
+                </form>
+              ) : null}
+
+              {attemptsRemaining !== null ? (
+                <p className="font-body text-xs text-amber-700">
+                  Sisa percobaan verifikasi: {attemptsRemaining}
+                </p>
+              ) : null}
+
+              {cooldownUntil ? (
+                <p className="font-body text-xs text-amber-700">
+                  Akun dikunci sementara hingga{" "}
+                  {new Date(cooldownUntil).toLocaleString("id-ID")}.
+                </p>
+              ) : null}
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => void handleRequestReview()}
+                  disabled={claimLoading || !claimNim.trim()}
+                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
+                >
+                  Request Review ke DATA/DEVELOPER
+                </button>
+                {pendingReviewId ? (
+                  <span className="font-body text-xs text-slate-500">
+                    Request ID: {pendingReviewId}
+                  </span>
+                ) : null}
+              </div>
+
+              {claimError ? (
+                <p className="font-body text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  {claimError}
+                </p>
+              ) : null}
+              {claimInfo ? (
+                <p className="font-body text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                  {claimInfo}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {(hasExistingProfile || setupMode === "new") ? (
+          <form onSubmit={handleSave} className="space-y-3">
           {fields.map((field) => {
             const value = biodata[field.key];
             const fileKeys =
@@ -474,7 +753,8 @@ export default function ProfileSetupPage() {
           >
             {saving ? "Menyimpan..." : "Simpan Pendataan"}
           </button>
-        </form>
+          </form>
+        ) : null}
       </div>
     </Shell>
   );

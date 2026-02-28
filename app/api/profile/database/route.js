@@ -7,6 +7,10 @@ import {
   applyProfileFilters,
   buildProfileFieldDefinitions,
 } from "@/lib/profile/database";
+import {
+  getPhoneFieldKeySet,
+  normalizeBiodataPhones,
+} from "@/lib/profile/phone";
 
 export async function GET(req) {
   try {
@@ -157,11 +161,34 @@ export async function PATCH(req) {
       return NextResponse.json({ error: "Missing ID" }, { status: 400 });
     }
 
+    if (
+      biodata !== undefined &&
+      (!biodata || typeof biodata !== "object" || Array.isArray(biodata))
+    ) {
+      return NextResponse.json(
+        { error: "biodata must be an object" },
+        { status: 400 },
+      );
+    }
+
+    const catalogFields = await prisma.profileFieldCatalog.findMany({
+      select: {
+        key: true,
+        fieldType: true,
+      },
+    });
+    const phoneFieldKeySet = getPhoneFieldKeySet(catalogFields);
+
     const updated = await prisma.participantProfile.update({
       where: { id },
       data: {
         ...(displayName !== undefined && { displayName }),
-        ...(biodata !== undefined && { biodata }),
+        ...(biodata !== undefined && {
+          biodata: normalizeBiodataPhones(biodata, {
+            phoneFieldKeySet,
+            includePhoneLikeKeys: true,
+          }),
+        }),
       },
     });
 

@@ -101,7 +101,7 @@ function PublicFormSkeleton() {
     "overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)]";
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] font-body">
+    <div className="min-h-safe-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] font-body pb-safe-bottom">
       <main className="px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-3xl space-y-4 pb-8">
           <section className={`${cardClass} animate-pulse`}>
@@ -596,7 +596,7 @@ export default function PublicFormPage() {
 
   if (successPayload) {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body">
+      <div className="min-h-safe-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body pb-safe-bottom">
         {/* Body */}
         <main className="flex-1 px-4 py-12 sm:px-6">
           <div className="mx-auto max-w-lg w-full">
@@ -627,7 +627,7 @@ export default function PublicFormPage() {
 
   if (formData?.blockedReason === "login_required") {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body">
+      <div className="min-h-safe-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body pb-safe-bottom">
 
         {/* Body */}
         <main className="flex-1 px-4 py-12 sm:px-6">
@@ -658,7 +658,7 @@ export default function PublicFormPage() {
 
   if (formData?.blockedReason === "profile_required") {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body">
+      <div className="min-h-safe-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body pb-safe-bottom">
 
         {/* Body */}
         <main className="flex-1 px-4 py-12 sm:px-6">
@@ -689,7 +689,7 @@ export default function PublicFormPage() {
 
   if (formData?.blockedReason === "not_kru") {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body">
+      <div className="min-h-safe-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body pb-safe-bottom">
 
         {/* Body */}
         <main className="flex-1 px-4 py-12 sm:px-6">
@@ -714,7 +714,7 @@ export default function PublicFormPage() {
 
   if (!formData) {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body">
+      <div className="min-h-safe-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body pb-safe-bottom">
 
         <main className="flex-1 px-4 py-12 sm:px-6">
           <div className="mx-auto max-w-lg w-full">
@@ -739,7 +739,7 @@ export default function PublicFormPage() {
 
   if (formData.isClosed) {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body">
+      <div className="min-h-safe-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body pb-safe-bottom">
         <main className="flex-1 px-4 py-12 sm:px-6">
           <div className="mx-auto max-w-lg w-full">
             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -770,7 +770,7 @@ export default function PublicFormPage() {
 
   return (
     <>
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] px-4 py-8 sm:px-6">
+      <main className="min-h-safe-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] px-4 py-8 sm:px-6 pb-safe-bottom">
         <div className="mx-auto max-w-3xl space-y-4 pb-8">
           <section className={cardClass}>
             <div className="h-1.5 bg-[#f97316]" />

@@ -30,8 +30,31 @@ model ParticipantProfile {
   updatedAt   DateTime @updatedAt
 
   submissions EventSubmission[]
+  claimRequests ProfileClaimRequest[]
 
   @@unique([userId])
+}
+
+model ProfileClaimRequest {
+  id                  String              @id @default(auto()) @map("_id") @db.ObjectId
+  requesterUserId     String              @db.ObjectId
+  requesterUser       User                @relation("ProfileClaimRequester", fields: [requesterUserId], references: [id])
+  requesterEmail      String
+  targetProfileId     String?             @db.ObjectId
+  targetProfile       ParticipantProfile? @relation(fields: [targetProfileId], references: [id])
+  nimInput            String
+  emergencyLast4Input String?
+  status              String              @default("PENDING")
+  reason              String?
+  cooldownUntil       DateTime?
+  reviewedById        String?             @db.ObjectId
+  reviewedBy          User?               @relation("ProfileClaimReviewer", fields: [reviewedById], references: [id])
+  reviewedAt          DateTime?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@index([requesterUserId, createdAt])
+  @@index([status, createdAt])
 }
 
 model ProfileFieldCatalog {
@@ -152,6 +175,8 @@ model User {
   shortLinks         ShortLink[]
   podcasts           Podcast[]
   participantProfile ParticipantProfile?
+  profileClaimRequests ProfileClaimRequest[] @relation("ProfileClaimRequester")
+  reviewedProfileClaimRequests ProfileClaimRequest[] @relation("ProfileClaimReviewer")
   events             Event[]
   eventOrganizers    EventOrganizer[]
   eventFormVersions  EventFormVersion[]

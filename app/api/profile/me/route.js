@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import {
+  getPhoneFieldKeySet,
+  normalizeBiodataPhones,
+} from "@/lib/profile/phone";
 
 function hasMeaningfulValue(value) {
   if (value === null || value === undefined) return false;
@@ -65,7 +69,7 @@ export async function PATCH(req) {
       );
     }
 
-    const [currentProfile, requiredFields] = await Promise.all([
+    const [currentProfile, catalogFields] = await Promise.all([
       prisma.participantProfile.findUnique({
         where: { userId: session.user.id },
         select: {
@@ -75,11 +79,11 @@ export async function PATCH(req) {
       prisma.profileFieldCatalog.findMany({
         where: {
           isActive: true,
-          isRequired: true,
         },
         select: {
           key: true,
-          label: true,
+          fieldType: true,
+          isRequired: true,
         },
       }),
     ]);
@@ -91,12 +95,18 @@ export async function PATCH(req) {
         ? currentProfile.biodata
         : {};
 
-    const mergedBiodata = {
+    const mergedBiodataRaw = {
       ...currentBiodata,
       ...biodataInput,
     };
+    const phoneFieldKeySet = getPhoneFieldKeySet(catalogFields);
+    const mergedBiodata = normalizeBiodataPhones(mergedBiodataRaw, {
+      phoneFieldKeySet,
+      includePhoneLikeKeys: true,
+    });
 
-    const missingRequired = requiredFields
+    const missingRequired = catalogFields
+      .filter((field) => field.isRequired)
       .filter((field) => !hasMeaningfulValue(mergedBiodata[field.key]))
       .map((field) => field.key);
 

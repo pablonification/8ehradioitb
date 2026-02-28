@@ -306,6 +306,70 @@ function normalizeBuilderSchema(schema) {
   };
 }
 
+function normalizeDeadlineForSave(value) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const date = new Date(trimmed);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString();
+}
+
+function sanitizeSchemaForSave(schema, activeProfileFieldKeySet) {
+  const normalized = normalizeBuilderSchema(schema);
+  const sections =
+    Array.isArray(normalized.sections) && normalized.sections.length > 0
+      ? normalized.sections
+      : [makeSection(0)];
+  const validSectionIds = new Set(sections.map((section) => section.id));
+  const fallbackSectionId = sections[0].id;
+
+  const questions =
+    Array.isArray(normalized.questions) && normalized.questions.length > 0
+      ? normalized.questions.map((question) => {
+          const shaped = ensureQuestionShape(question);
+          const nextSectionId = validSectionIds.has(shaped.sectionId)
+            ? shaped.sectionId
+            : fallbackSectionId;
+
+          const nextOptions = Array.isArray(shaped.options)
+            ? shaped.options.map((option) => ({
+                ...option,
+                destinationSectionId:
+                  typeof option.destinationSectionId === "string" &&
+                  option.destinationSectionId !== "__submit__" &&
+                  !validSectionIds.has(option.destinationSectionId)
+                    ? null
+                    : option.destinationSectionId,
+              }))
+            : [];
+
+          return {
+            ...shaped,
+            sectionId: nextSectionId,
+            options: nextOptions,
+          };
+        })
+      : [makeQuestion(fallbackSectionId, 0)];
+
+  const requestedProfileFields = Array.isArray(normalized.requestedProfileFields)
+    ? normalized.requestedProfileFields.filter((key) =>
+        activeProfileFieldKeySet.has(key),
+      )
+    : [];
+
+  return {
+    ...normalized,
+    sections,
+    questions,
+    requestedProfileFields,
+    settings: {
+      ...normalized.settings,
+      deadlineAt: normalizeDeadlineForSave(normalized.settings?.deadlineAt),
+    },
+  };
+}
+
 function toDatetimeLocalValue(value) {
   if (!value || typeof value !== "string") return "";
   const date = new Date(value);
@@ -904,6 +968,17 @@ export default function FormBuilderPage() {
     }
 
     try {
+      const activeProfileFieldKeySet = new Set(
+        (Array.isArray(catalog) ? catalog : [])
+          .map((field) => field?.key)
+          .filter((key) => typeof key === "string"),
+      );
+
+      const payloadSchema = sanitizeSchemaForSave(
+        schemaState,
+        activeProfileFieldKeySet,
+      );
+
       const draftResponse = await fetch(
         `/api/events/${eventSlug}/form-versions`,
         {
@@ -912,7 +987,7 @@ export default function FormBuilderPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            ...schemaState,
+            ...payloadSchema,
             consentText,
           }),
         },
@@ -920,6 +995,12 @@ export default function FormBuilderPage() {
 
       if (!draftResponse.ok) {
         const payload = await draftResponse.json().catch(() => ({}));
+        const details = Array.isArray(payload?.details)
+          ? payload.details.filter((item) => typeof item === "string")
+          : [];
+        if (details.length > 0) {
+          throw new Error(`${payload.error || "Invalid form schema"}: ${details[0]}`);
+        }
         throw new Error(payload.error || "Failed to save draft");
       }
 
@@ -3006,7 +3087,7 @@ export default function FormBuilderPage() {
   }
 
   return (
-    <div className="-mx-4 -my-4 sm:-mx-6 sm:-my-6 md:-mx-8 md:-my-8 min-h-screen bg-gray-100">
+    <div className="-mx-4 -my-4 sm:-mx-6 sm:-my-6 md:-mx-8 md:-my-8 min-h-safe-screen bg-gray-100">
       <header className="sticky top-16 z-30 border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-[1200px] flex-col">
           <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-6">
