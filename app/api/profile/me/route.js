@@ -6,6 +6,9 @@ import {
   getPhoneFieldKeySet,
   normalizeBiodataPhones,
 } from "@/lib/profile/phone";
+import { deleteR2ObjectKeys } from "@/lib/storage/r2";
+import { extractFileKeysFromValue as extractProfileFileKeys } from "@/lib/profile/database";
+import { reportCriticalError } from "@/lib/observability/critical";
 
 function hasMeaningfulValue(value) {
   if (value === null || value === undefined) return false;
@@ -137,6 +140,39 @@ export async function PATCH(req) {
         biodata: mergedBiodata,
       },
     });
+
+    const fileFieldKeys = catalogFields
+      .filter((field) => field.fieldType === "file")
+      .map((field) => field.key);
+
+    if (fileFieldKeys.length > 0) {
+      const staleFileKeys = [];
+      for (const key of fileFieldKeys) {
+        const previousKeys = new Set(extractProfileFileKeys(currentBiodata[key]));
+        const nextKeys = new Set(extractProfileFileKeys(mergedBiodata[key]));
+        for (const previousKey of previousKeys) {
+          if (!nextKeys.has(previousKey)) {
+            staleFileKeys.push(previousKey);
+          }
+        }
+      }
+
+      if (staleFileKeys.length > 0) {
+        void (async () => {
+          const cleanup = await deleteR2ObjectKeys(staleFileKeys);
+          if (cleanup.failed.length > 0) {
+            await reportCriticalError({
+              source: "api/profile/me:cleanup",
+              message: "Failed to delete stale profile files",
+              context: {
+                userId: session.user.id,
+                failed: cleanup.failed,
+              },
+            });
+          }
+        })();
+      }
+    }
 
     return NextResponse.json({
       ok: true,

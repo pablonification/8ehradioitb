@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
 import Image from "next/image";
 import { extractFileKeysFromValue } from "@/lib/profile/database";
@@ -21,6 +21,31 @@ function renderValue(value) {
   if (value === null || value === undefined) return "";
   if (Array.isArray(value)) return value.join(", ");
   return String(value);
+}
+
+function humanizeMissingFields(missingKeys, fields) {
+  const safeKeys = Array.isArray(missingKeys) ? missingKeys : [];
+  const byKey = new Map(
+    (Array.isArray(fields) ? fields : []).map((field) => [field.key, field.label || field.key]),
+  );
+
+  return safeKeys.map((key) => byKey.get(key) || key);
+}
+
+function fileNameFromStorageKey(key) {
+  if (typeof key !== "string" || !key.trim()) return "File tersimpan";
+  const cleaned = key.split("?")[0];
+  const chunks = cleaned.split("/");
+  return chunks[chunks.length - 1] || "File tersimpan";
+}
+
+function sanitizeInternalReturnTo(value) {
+  if (typeof value !== "string") return "";
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (!trimmed.startsWith("/")) return "";
+  if (trimmed.startsWith("//")) return "";
+  return trimmed;
 }
 
 function Shell({ children }) {
@@ -77,6 +102,7 @@ function ProfileSetupSkeleton() {
 
 export default function ProfileSetupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
 
   const [fields, setFields] = useState([]);
@@ -86,17 +112,22 @@ export default function ProfileSetupPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [uploadingFieldKey, setUploadingFieldKey] = useState("");
   const [downloadingKey, setDownloadingKey] = useState("");
   const [setupMode, setSetupMode] = useState("claim");
   const [claimNim, setClaimNim] = useState("");
   const [claimHint, setClaimHint] = useState("");
-  const [claimLast4, setClaimLast4] = useState("");
+  const [claimLast6, setClaimLast6] = useState("");
   const [claimLoading, setClaimLoading] = useState(false);
   const [claimError, setClaimError] = useState("");
   const [claimInfo, setClaimInfo] = useState("");
   const [attemptsRemaining, setAttemptsRemaining] = useState(null);
   const [cooldownUntil, setCooldownUntil] = useState("");
   const [pendingReviewId, setPendingReviewId] = useState("");
+  const returnTo = useMemo(
+    () => sanitizeInternalReturnTo(searchParams.get("returnTo")),
+    [searchParams],
+  );
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -191,8 +222,9 @@ export default function ProfileSetupPage() {
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
         if (payload?.missingFields) {
+          const labels = humanizeMissingFields(payload.missingFields, fields);
           throw new Error(
-            `Field wajib belum lengkap: ${payload.missingFields.join(", ")}`,
+            `Field wajib belum lengkap: ${labels.join(", ")}`,
           );
         }
         throw new Error(payload?.error || "Failed to save profile");
@@ -201,7 +233,7 @@ export default function ProfileSetupPage() {
       setSuccess("Data profil tersimpan.");
       if (missingRequired.length === 0) {
         setTimeout(() => {
-          router.push("/dashboard/forms");
+          router.push(returnTo || "/dashboard/forms");
         }, 600);
       }
     } catch (saveError) {
@@ -238,7 +270,7 @@ export default function ProfileSetupPage() {
       if (payload.alreadyLinked) {
         setClaimInfo("Profil ini sudah terhubung ke akun Anda.");
       } else {
-        setClaimInfo("Profil ditemukan. Lanjutkan verifikasi 4 digit nomor darurat.");
+        setClaimInfo("Profil ditemukan. Lanjutkan verifikasi 6 digit nomor darurat.");
       }
     } catch (lookupError) {
       setClaimHint("");
@@ -261,7 +293,7 @@ export default function ProfileSetupPage() {
         body: JSON.stringify({
           action: "claim",
           nim: claimNim,
-          emergencyLast4: claimLast4,
+          emergencyLast6: claimLast6,
         }),
       });
 
@@ -281,7 +313,7 @@ export default function ProfileSetupPage() {
       }
 
       setClaimInfo(payload?.message || "Profil berhasil dihubungkan.");
-      setClaimLast4("");
+      setClaimLast6("");
       setClaimHint("");
       setAttemptsRemaining(null);
       setCooldownUntil("");
@@ -378,7 +410,11 @@ export default function ProfileSetupPage() {
             </p>
             <button
               onClick={() =>
-                signIn("google", { callbackUrl: "/profile/setup" })
+                signIn("google", {
+                  callbackUrl: returnTo
+                    ? `/profile/setup?returnTo=${encodeURIComponent(returnTo)}`
+                    : "/profile/setup",
+                })
               }
               className="px-5 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea6c0a] text-white font-body font-semibold transition-colors"
             >
@@ -428,7 +464,7 @@ export default function ProfileSetupPage() {
                 >
                   <p className="font-semibold">Klaim Profil Existing</p>
                   <p className="mt-1 text-xs text-slate-500">
-                    Verifikasi cepat dengan NIM dan 4 digit no darurat.
+                    Verifikasi cepat dengan NIM dan 6 digit no darurat.
                   </p>
                 </button>
                 <button
@@ -488,7 +524,7 @@ export default function ProfileSetupPage() {
                     {claimHint}
                   </p>
                   <p className="mt-1 font-body text-xs text-slate-500">
-                    Masukkan 4 digit terakhir nomor darurat yang sesuai.
+                    Masukkan 6 digit terakhir nomor darurat yang sesuai.
                   </p>
                 </div>
               ) : null}
@@ -497,14 +533,16 @@ export default function ProfileSetupPage() {
                 <form onSubmit={handleClaimProfile} className="grid gap-3 sm:grid-cols-[1fr_auto]">
                   <input
                     type="text"
-                    value={claimLast4}
+                    type="password"
+                    value={claimLast6}
                     onChange={(event) =>
-                      setClaimLast4(event.target.value.replace(/\D/g, "").slice(0, 4))
+                      setClaimLast6(event.target.value.replace(/\D/g, "").slice(0, 6))
                     }
-                    placeholder="4 digit terakhir no darurat"
+                    placeholder="6 digit terakhir no darurat"
                     className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#f97316] focus:outline-none focus:ring-2 focus:ring-[#f97316]/20"
                     inputMode="numeric"
-                    maxLength={4}
+                    autoComplete="off"
+                    maxLength={6}
                     required
                   />
                   <button
@@ -638,6 +676,12 @@ export default function ProfileSetupPage() {
             }
 
             if (field.fieldType === "file") {
+              const inputId = `profile-file-${field.id}`;
+              const selectedFileName =
+                fileKeys.length > 0
+                  ? fileNameFromStorageKey(fileKeys[0])
+                  : "Belum ada file yang dipilih";
+              const isUploading = uploadingFieldKey === field.key;
               return (
                 <div
                   key={field.id}
@@ -653,12 +697,14 @@ export default function ProfileSetupPage() {
                       ) : null}
                     </label>
                     <input
+                      id={inputId}
                       type="file"
-                      className="font-body text-sm text-slate-600"
+                      className="sr-only"
                       onChange={async (event) => {
                         const file = event.target.files?.[0];
                         if (!file) return;
                         setError("");
+                        setUploadingFieldKey(field.key);
                         try {
                           const key = await uploadFile(field.key, file);
                           setBiodata((prev) => ({ ...prev, [field.key]: key }));
@@ -666,9 +712,40 @@ export default function ProfileSetupPage() {
                           setError(
                             uploadError.message || "Failed to upload file",
                           );
+                        } finally {
+                          setUploadingFieldKey("");
+                          event.target.value = "";
                         }
                       }}
                     />
+                    <div className="rounded-lg border border-slate-300 bg-slate-50 p-3">
+                      <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+                        <label
+                          htmlFor={inputId}
+                          className={`inline-flex cursor-pointer items-center rounded-md px-3 py-1.5 text-xs font-semibold text-white transition ${
+                            isUploading
+                              ? "bg-slate-400"
+                              : "bg-[#f97316] hover:bg-[#ea6c0a]"
+                          }`}
+                        >
+                          {isUploading ? "Mengunggah..." : fileKeys.length > 0 ? "Ganti File" : "Pilih File"}
+                        </label>
+                        {fileKeys.length > 0 ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setBiodata((prev) => ({ ...prev, [field.key]: "" }))
+                            }
+                            className="inline-flex items-center rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                          >
+                            Hapus File
+                          </button>
+                        ) : null}
+                        <p className="min-w-0 flex-1 font-body text-xs text-slate-600 sm:text-sm">
+                          <span className="block truncate">{selectedFileName}</span>
+                        </p>
+                      </div>
+                    </div>
                     {fileKeys.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {fileKeys.map((fileKey, index) => (
@@ -728,12 +805,6 @@ export default function ProfileSetupPage() {
               </div>
             );
           })}
-
-          {missingRequired.length > 0 ? (
-            <p className="font-body text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-              Field wajib belum lengkap: {missingRequired.join(", ")}
-            </p>
-          ) : null}
 
           {error ? (
             <p className="font-body text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">

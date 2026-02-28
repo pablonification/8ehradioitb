@@ -9,6 +9,7 @@ import {
   normalizeLast4Input,
   normalizeNim,
 } from "@/lib/profile/claim";
+import { reportCriticalError } from "@/lib/observability/critical";
 
 const MAX_ATTEMPTS = 3;
 const COOLDOWN_MINUTES = 15;
@@ -279,10 +280,12 @@ export async function POST(req) {
       );
     }
 
-    const emergencyLast4 = normalizeLast4Input(body?.emergencyLast4);
-    if (emergencyLast4.length !== 4) {
+    const emergencyLast4 = normalizeLast4Input(
+      body?.emergencyLast6 ?? body?.emergencyLast4,
+    );
+    if (emergencyLast4.length !== 6) {
       return NextResponse.json(
-        { error: "emergency_last4_required" },
+        { error: "emergency_last6_required" },
         { status: 400 },
       );
     }
@@ -299,7 +302,7 @@ export async function POST(req) {
         nimInput: nim,
         emergencyLast4Input: emergencyLast4,
         targetProfileId: targetProfile.id,
-        reason: "emergency_last4_mismatch",
+        reason: "emergency_last6_mismatch",
       });
       if (failed.locked) {
         return NextResponse.json(
@@ -352,7 +355,7 @@ export async function POST(req) {
           nimInput: nim,
           emergencyLast4Input: emergencyLast4,
           status: "AUTO_APPROVED",
-          reason: "nim_and_emergency_last4_verified",
+          reason: "nim_and_emergency_last6_verified",
           reviewedById: requesterUserId,
           reviewedAt: new Date(),
         },
@@ -365,7 +368,14 @@ export async function POST(req) {
       message: "Profil berhasil dihubungkan ke akun Anda.",
     });
   } catch (error) {
-    console.error("Profile claim flow failed:", error);
+    await reportCriticalError({
+      source: "api/profile/claim",
+      message: "Profile claim flow failed",
+      error,
+      context: {
+        userId: session?.user?.id || "",
+      },
+    });
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 },
