@@ -159,13 +159,23 @@ model StreamConfig {
 }
 
 model TuneTrackerEntry {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  order      Int      // 1-10, chart position
-  title      String
-  artist     String
-  coverImage String?  // R2 URL
-  audioUrl   String?  // R2 URL
-  updatedAt  DateTime @updatedAt
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  order            Int // 1-10, chart position
+  title            String
+  artist           String
+  coverImage       String? // R2 key or external URL (iTunes artwork)
+  audioUrl         String? // R2 key for manually uploaded audio
+  itunesPreviewUrl String? // iTunes 30s preview URL
+  itunesTrackId    String? // iTunes track ID for reference
+  sourceType       String? // "ITUNES" | "AUDIO_URL"
+  updatedAt        DateTime @updatedAt
+}
+
+model TuneTrackerMeta {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  curatedBy   String?
+  editionDate DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model ProgramVideo {
