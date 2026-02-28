@@ -8,6 +8,7 @@ import {
 } from "@/lib/events/auth";
 import { normalizeFormSchema } from "@/lib/forms/schema";
 import { flattenSubmissionRows } from "@/lib/forms/submission";
+import { reportCriticalError } from "@/lib/observability/critical";
 import { resolveR2DownloadUrl } from "@/lib/storage/r2";
 
 export async function POST(req, { params }) {
@@ -127,7 +128,12 @@ export async function POST(req, { params }) {
       );
     }
 
-    console.error("Failed to export submissions to XLSX:", error);
+    await reportCriticalError({
+      source: "api/events/export/xlsx",
+      message: "Failed to export submissions to XLSX",
+      error,
+      context: { eventSlug: params?.eventSlug || "" },
+    });
     return NextResponse.json(
       { error: "internal_server_error" },
       { status: 500 },

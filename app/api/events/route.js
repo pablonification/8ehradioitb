@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/events/auth";
 import { validationError } from "@/lib/events/contracts";
 import { generateUniqueEventSlug } from "@/lib/forms/slug";
+import { reportCriticalError } from "@/lib/observability/critical";
 
 function toEventResponse(event) {
   return {
@@ -34,7 +35,11 @@ function handleRouteError(error, context) {
     );
   }
 
-  console.error(context, error);
+  void reportCriticalError({
+    source: "api/events",
+    message: context,
+    error,
+  });
   return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
 }
 
@@ -43,7 +48,21 @@ export async function GET(req) {
     const session = await requireSession(req);
     const events = await prisma.event.findMany({
       where: {
-        createdById: session.user.id,
+        OR: [
+          {
+            createdById: session.user.id,
+          },
+          {
+            organizers: {
+              some: {
+                userId: session.user.id,
+                role: {
+                  in: ["owner", "editor"],
+                },
+              },
+            },
+          },
+        ],
       },
       orderBy: {
         createdAt: "desc",

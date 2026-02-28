@@ -7,6 +7,7 @@ import {
 } from "@/lib/events/auth";
 import { validateFormSchema, validationError } from "@/lib/events/contracts";
 import { normalizeFormSchema } from "@/lib/forms/schema";
+import { reportCriticalError } from "@/lib/observability/critical";
 
 function toFormVersionResponse(record) {
   const schema = normalizeFormSchema(record.formSchema);
@@ -45,7 +46,11 @@ function handleRouteError(error, context) {
     );
   }
 
-  console.error(context, error);
+  void reportCriticalError({
+    source: "api/events/form-versions",
+    message: context,
+    error,
+  });
   return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
 }
 
@@ -141,6 +146,10 @@ export async function POST(req, { params }) {
     const questions = body?.questions;
     const settings = body?.settings;
     const confirmation = body?.confirmation;
+    const baseDraftId =
+      typeof body?.baseDraftId === "string" && body.baseDraftId.trim()
+        ? body.baseDraftId.trim()
+        : null;
     const consentText =
       typeof body?.consentText === "string" ? body.consentText.trim() : "";
 
@@ -166,6 +175,34 @@ export async function POST(req, { params }) {
         "Invalid form schema",
         schemaValidation.errors,
         400,
+      );
+    }
+
+    const currentDraft = await prisma.eventFormVersion.findFirst({
+      where: {
+        eventId: event.id,
+        status: "draft",
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+      select: {
+        id: true,
+        updatedAt: true,
+      },
+    });
+
+    if (
+      (baseDraftId && (!currentDraft || currentDraft.id !== baseDraftId)) ||
+      (!baseDraftId && currentDraft)
+    ) {
+      return NextResponse.json(
+        {
+          error: "stale_draft_version",
+          currentDraftId: currentDraft?.id || null,
+          currentDraftUpdatedAt: currentDraft?.updatedAt || null,
+        },
+        { status: 409 },
       );
     }
 

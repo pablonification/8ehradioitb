@@ -7,6 +7,7 @@ import {
 } from "@/lib/events/auth";
 import { validateFormSchema, validationError } from "@/lib/events/contracts";
 import { normalizeFormSchema } from "@/lib/forms/schema";
+import { reportCriticalError } from "@/lib/observability/critical";
 
 function toFormVersionResponse(record) {
   const schema = normalizeFormSchema(record.formSchema);
@@ -38,7 +39,11 @@ function handleRouteError(error, context) {
     );
   }
 
-  console.error(context, error);
+  void reportCriticalError({
+    source: "api/events/form-versions/publish",
+    message: context,
+    error,
+  });
   return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
 }
 

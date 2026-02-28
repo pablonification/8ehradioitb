@@ -96,6 +96,44 @@ function extractDownloadEntries(value) {
   return Array.from(unique.values());
 }
 
+function appendReturnToSetupUrl(setupUrl, returnToPath) {
+  const fallbackPath = "/profile/setup";
+  const safeSetupUrl =
+    typeof setupUrl === "string" && setupUrl.trim()
+      ? setupUrl.trim()
+      : fallbackPath;
+  const safeReturnTo =
+    typeof returnToPath === "string" &&
+    returnToPath.startsWith("/") &&
+    !returnToPath.startsWith("//")
+      ? returnToPath
+      : "";
+
+  if (!safeReturnTo) {
+    return safeSetupUrl;
+  }
+
+  try {
+    const url = new URL(safeSetupUrl, "http://localhost");
+    url.searchParams.set("returnTo", safeReturnTo);
+    return `${url.pathname}${url.search}`;
+  } catch {
+    const encoded = encodeURIComponent(safeReturnTo);
+    const separator = safeSetupUrl.includes("?") ? "&" : "?";
+    return `${safeSetupUrl}${separator}returnTo=${encoded}`;
+  }
+}
+
+function formatDateTime(value) {
+  if (!value) return "-";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "-";
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(parsed);
+}
+
 function PublicFormSkeleton() {
   const cardClass =
     "overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)]";
@@ -169,10 +207,12 @@ export default function PublicFormPage() {
   const [activeSectionId, setActiveSectionId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [successPayload, setSuccessPayload] = useState(null);
+  const [successNotice, setSuccessNotice] = useState("");
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [showAccountDetails, setShowAccountDetails] = useState(false);
   const [confirmError, setConfirmError] = useState("");
   const [downloadingKey, setDownloadingKey] = useState("");
+  const returnToPath = `/forms/${eventSlug}`;
 
   function formatMissingProfileMessage(payload) {
     const labels = Array.isArray(payload?.missingFieldLabels)
@@ -234,6 +274,14 @@ export default function PublicFormPage() {
 
   const isInternalAudience = formData?.settings?.audienceMode === "INTERNAL_KRU";
   const needsConsentGate = isInternalAudience && requestedProfileFields.length > 0;
+  const responseStatus = formData?.responseStatus || null;
+  const hasSubmittedResponse = Boolean(
+    responseStatus?.hasSubmitted ?? formData?.existingSubmission,
+  );
+  const canEditSubmittedResponse = Boolean(
+    responseStatus?.canEdit ?? formData?.existingSubmission,
+  );
+  const isReadOnlyAfterSubmit = hasSubmittedResponse && !canEditSubmittedResponse;
 
   const requestedFieldLabelSummary = useMemo(() => {
     if (!requestedProfileFields.length) return "";
@@ -264,7 +312,10 @@ export default function PublicFormPage() {
         if (payload.error === "profile_required" || payload.error === "profile_incomplete") {
           setFormData({
             blockedReason: "profile_required",
-            setupUrl: payload.setupUrl || "/profile/setup",
+            setupUrl: appendReturnToSetupUrl(
+              payload.setupUrl || "/profile/setup",
+              returnToPath,
+            ),
             message:
               payload.error === "profile_incomplete"
                 ? formatMissingProfileMessage(payload)
@@ -285,7 +336,15 @@ export default function PublicFormPage() {
       }
 
       setFormData(payload);
-      setAnswers(normalizeAnswersFromSubmission(payload.existingSubmission));
+      const canEditExistingSubmission =
+        payload?.responseStatus?.canEdit !== undefined
+          ? Boolean(payload.responseStatus.canEdit && payload.existingSubmission)
+          : Boolean(payload.existingSubmission);
+      setAnswers(
+        canEditExistingSubmission
+          ? normalizeAnswersFromSubmission(payload.existingSubmission)
+          : {},
+      );
 
       const systemEmail =
         typeof payload?.existingSubmission?.answers?._system?.respondentEmail === "string"
@@ -559,7 +618,10 @@ export default function PublicFormPage() {
         if (payload?.error === "profile_required" || payload?.error === "profile_incomplete") {
           setFormData({
             blockedReason: "profile_required",
-            setupUrl: payload.setupUrl || "/profile/setup",
+            setupUrl: appendReturnToSetupUrl(
+              payload.setupUrl || "/profile/setup",
+              returnToPath,
+            ),
             message:
               payload.error === "profile_required"
                 ? "Anda harus melengkapi master profile terlebih dahulu."
@@ -568,10 +630,17 @@ export default function PublicFormPage() {
           return;
         }
 
+        if (payload?.error === "response_already_exists") {
+          setError("Respons Anda sudah pernah dikirim. Form ini tidak mengizinkan edit ulang.");
+          await loadForm();
+          return;
+        }
+
         throw new Error(payload?.error || "Failed to submit form");
       }
 
       setSuccessPayload(payload);
+      setSuccessNotice("");
       const redirectUrl = payload?.confirmation?.redirectUrl;
       if (redirectUrl) {
         setTimeout(() => {
@@ -589,6 +658,38 @@ export default function PublicFormPage() {
     "overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)]";
   const inputClass =
     "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-[#f97316] focus:outline-none focus:ring-2 focus:ring-orange-100";
+
+  async function handleOpenEditResponse() {
+    if (!successPayload?.editUrl) return;
+
+    setSuccessNotice("");
+
+    try {
+      const response = await fetch(`/api/events/${eventSlug}/form`, {
+        cache: "no-store",
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (response.ok) {
+        const responsePolicy = payload?.settings?.responsePolicy;
+        const responseStatus = payload?.responseStatus || null;
+        const editLockedByPolicy = responsePolicy === "SINGLE_NO_EDIT";
+        const editLockedByStatus =
+          Boolean(responseStatus?.hasSubmitted) && !Boolean(responseStatus?.canEdit);
+
+        if (editLockedByPolicy || editLockedByStatus) {
+          setSuccessNotice(
+            'Kebijakan respons sekarang "sekali, tanpa edit". Respons tidak bisa diedit lagi.',
+          );
+          return;
+        }
+      }
+    } catch {
+      // Fallback: tetap coba buka link edit jika cek policy gagal.
+    }
+
+    window.open(successPayload.editUrl, "_blank", "noopener,noreferrer");
+  }
 
   if (loading || status === "loading") {
     return <PublicFormSkeleton />;
@@ -610,6 +711,18 @@ export default function PublicFormPage() {
                 <p className="font-body text-slate-700">
                   {successPayload?.confirmation?.message || "Terima kasih sudah mengisi form."}
                 </p>
+                {successPayload?.editUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => void handleOpenEditResponse()}
+                    className="block font-body text-sm font-semibold text-[#ea580c] hover:underline"
+                  >
+                    Edit respons
+                  </button>
+                ) : null}
+                {successNotice ? (
+                  <p className="font-body text-sm text-red-600">{successNotice}</p>
+                ) : null}
                 <Link href="/" className="font-body text-sm font-semibold text-[#ea580c] hover:underline">
                   Kembali ke beranda
                 </Link>
@@ -763,6 +876,39 @@ export default function PublicFormPage() {
     );
   }
 
+  if (isReadOnlyAfterSubmit) {
+    return (
+      <div className="min-h-safe-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body pb-safe-bottom">
+        <main className="flex-1 px-4 py-12 sm:px-6">
+          <div className="mx-auto max-w-lg w-full">
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+              <div className="h-1.5 bg-[#f97316]" />
+              <div className="space-y-4 p-8">
+                <h1 className="font-heading text-2xl font-bold text-slate-900">
+                  Respons sudah terkirim
+                </h1>
+                <p className="font-body text-slate-700">
+                  Form ini menerapkan kebijakan sekali tanpa edit. Respons Anda pada{" "}
+                  <span className="font-semibold text-slate-800">
+                    {formatDateTime(formData?.existingSubmission?.submittedAt)}
+                  </span>{" "}
+                  sudah tercatat dan tidak dapat diubah.
+                </p>
+                <Link href="/" className="font-body text-sm font-semibold text-[#ea580c] hover:underline">
+                  Kembali ke beranda
+                </Link>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <footer className="text-xs text-slate-500 font-body text-center py-4">
+          © {new Date().getFullYear()} Technic 8EH Radio ITB. All rights reserved.
+        </footer>
+      </div>
+    );
+  }
+
   const currentSectionIndex = sectionOrder.indexOf(activeSectionId);
   const isLastSection = currentSectionIndex === sectionOrder.length - 1;
   const accountName = session?.user?.name || respondentEmail || "Pengisi Form";
@@ -879,6 +1025,18 @@ export default function PublicFormPage() {
                   </div>
                 ) : null}
               </div>
+            </section>
+          ) : null}
+
+          {canEditSubmittedResponse && formData?.existingSubmission ? (
+            <section className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <p className="font-body text-sm text-amber-900">
+                Anda sedang mengedit respons yang sudah dikirim pada{" "}
+                <span className="font-semibold">
+                  {formatDateTime(formData.existingSubmission.submittedAt)}
+                </span>
+                . Jika disubmit lagi, respons sebelumnya akan diperbarui.
+              </p>
             </section>
           ) : null}
 

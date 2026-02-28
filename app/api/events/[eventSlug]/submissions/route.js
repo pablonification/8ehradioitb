@@ -24,6 +24,29 @@ import {
   validateSubmissionAnswers,
 } from "@/lib/forms/submission";
 import { getMissingRequiredProfileKeys } from "@/lib/profile/database";
+import { reportCriticalError } from "@/lib/observability/critical";
+import { deleteR2ObjectKeys } from "@/lib/storage/r2";
+
+function extractR2FileKeys(value) {
+  if (!value) return [];
+  if (typeof value === "string") {
+    const key = value.trim();
+    return key ? [key] : [];
+  }
+  if (Array.isArray(value)) {
+    return value.flatMap((entry) => extractR2FileKeys(entry)).filter(Boolean);
+  }
+  if (typeof value === "object") {
+    const key =
+      typeof value.key === "string"
+        ? value.key.trim()
+        : typeof value.url === "string"
+          ? value.url.trim()
+          : "";
+    return key ? [key] : [];
+  }
+  return [];
+}
 
 async function loadPublishedEventForm(eventSlug) {
   const event = await prisma.event.findUnique({
@@ -103,6 +126,8 @@ export async function GET(req, { params }) {
   try {
     const session = await requireSession(req);
     const { eventSlug } = await params;
+    const { searchParams } = new URL(req.url);
+    const countOnly = searchParams.get("countOnly") === "1";
 
     const event = await prisma.event.findUnique({
       where: {
@@ -125,6 +150,17 @@ export async function GET(req, { params }) {
 
     if (authResponse) {
       return authResponse;
+    }
+
+    if (countOnly) {
+      const total = await prisma.eventSubmission.count({
+        where: { eventId: event.id },
+      });
+
+      return NextResponse.json({
+        total,
+        items: [],
+      });
     }
 
     const submissions = await prisma.eventSubmission.findMany({
@@ -163,7 +199,12 @@ export async function GET(req, { params }) {
       );
     }
 
-    console.error("Failed to list submissions:", error);
+    await reportCriticalError({
+      source: "api/events/submissions:get",
+      message: "Failed to list submissions",
+      error,
+      context: { eventSlug: params?.eventSlug || "" },
+    });
     return NextResponse.json(
       { error: "internal_server_error" },
       { status: 500 },
@@ -325,18 +366,19 @@ export async function POST(req, { params }) {
       session?.user,
       systemPayload.system.respondentEmail,
     );
+    const responsePolicy = schema.settings.responsePolicy;
 
     let existingSubmission = null;
     if (
-      isSingleResponsePolicy(schema.settings.responsePolicy) ||
-      schema.settings.responsePolicy === RESPONSE_POLICIES.MULTIPLE_WITH_EDIT
+      isSingleResponsePolicy(responsePolicy) ||
+      responsePolicy === RESPONSE_POLICIES.MULTIPLE_WITH_EDIT
     ) {
       existingSubmission = await findExistingSubmissionByIdentity(event.id, identity);
     }
 
     if (
       existingSubmission &&
-      schema.settings.responsePolicy === RESPONSE_POLICIES.SINGLE_NO_EDIT
+      responsePolicy === RESPONSE_POLICIES.SINGLE_NO_EDIT
     ) {
       return NextResponse.json(
         {
@@ -360,7 +402,32 @@ export async function POST(req, { params }) {
     );
 
     let submission;
-    if (existingSubmission && canEditWithPolicy(schema.settings.responsePolicy)) {
+    const staleFileKeys = [];
+    if (existingSubmission && canEditWithPolicy(responsePolicy)) {
+      const fileUploadQuestionKeys = Array.isArray(schema.questions)
+        ? schema.questions
+            .filter((question) => question?.fieldType === "file_upload")
+            .map((question) => question.id || question.key)
+            .filter((key) => typeof key === "string" && key.trim())
+        : [];
+
+      if (
+        existingSubmission.answers &&
+        typeof existingSubmission.answers === "object" &&
+        !Array.isArray(existingSubmission.answers) &&
+        fileUploadQuestionKeys.length > 0
+      ) {
+        for (const key of fileUploadQuestionKeys) {
+          const prevKeys = new Set(extractR2FileKeys(existingSubmission.answers[key]));
+          const nextKeys = new Set(extractR2FileKeys(answers[key]));
+          for (const prevKey of prevKeys) {
+            if (!nextKeys.has(prevKey)) {
+              staleFileKeys.push(prevKey);
+            }
+          }
+        }
+      }
+
       submission = await prisma.eventSubmission.update({
         where: { id: existingSubmission.id },
         data: {
@@ -392,16 +459,40 @@ export async function POST(req, { params }) {
       });
     }
 
+    if (staleFileKeys.length > 0) {
+      void (async () => {
+        const cleanup = await deleteR2ObjectKeys(staleFileKeys);
+        if (cleanup.failed.length > 0) {
+          await reportCriticalError({
+            source: "api/events/submissions:cleanup",
+            message: "Failed to delete stale submission files",
+            context: {
+              eventSlug,
+              failed: cleanup.failed,
+            },
+          });
+        }
+      })();
+    }
+
     return NextResponse.json(
       {
         ok: true,
         submissionId: submission.id,
         confirmation: getFormConfirmation(schema),
+        editUrl: canEditWithPolicy(responsePolicy)
+          ? `/forms/${eventSlug}`
+          : "",
       },
       { status: 201 },
     );
   } catch (error) {
-    console.error("Failed to submit form response:", error);
+    await reportCriticalError({
+      source: "api/events/submissions:post",
+      message: "Failed to submit form response",
+      error,
+      context: { eventSlug: params?.eventSlug || "" },
+    });
     return NextResponse.json(
       { error: "internal_server_error" },
       { status: 500 },

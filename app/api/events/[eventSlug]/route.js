@@ -6,6 +6,7 @@ import {
   requireSession,
 } from "@/lib/events/auth";
 import { validationError } from "@/lib/events/contracts";
+import { reportCriticalError } from "@/lib/observability/critical";
 
 function toEventResponse(event) {
   return {
@@ -28,7 +29,11 @@ function handleRouteError(error, context) {
     );
   }
 
-  console.error(context, error);
+  void reportCriticalError({
+    source: "api/events/[eventSlug]",
+    message: context,
+    error,
+  });
   return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
 }
 
@@ -90,6 +95,37 @@ export async function PATCH(req, { params }) {
     }
 
     const body = await req.json();
+    const expectedUpdatedAt =
+      typeof body?.expectedUpdatedAt === "string" && body.expectedUpdatedAt.trim()
+        ? new Date(body.expectedUpdatedAt)
+        : null;
+
+    if (expectedUpdatedAt && Number.isNaN(expectedUpdatedAt.getTime())) {
+      return validationError(
+        "Invalid payload",
+        ["expectedUpdatedAt must be a valid ISO datetime string"],
+        400,
+      );
+    }
+
+    if (expectedUpdatedAt) {
+      const currentEvent = await prisma.event.findUnique({
+        where: { id: event.id },
+        select: { updatedAt: true },
+      });
+      if (!currentEvent) {
+        return NextResponse.json({ error: "Event not found" }, { status: 404 });
+      }
+      if (currentEvent.updatedAt.getTime() !== expectedUpdatedAt.getTime()) {
+        return NextResponse.json(
+          {
+            error: "stale_event_metadata",
+            currentUpdatedAt: currentEvent.updatedAt,
+          },
+          { status: 409 },
+        );
+      }
+    }
     const updates = {};
 
     if (Object.prototype.hasOwnProperty.call(body, "title")) {
@@ -160,7 +196,7 @@ export async function DELETE(req, { params }) {
     const authResponse = await assertEventAction(
       session.user.id,
       event.id,
-      EVENT_ACTIONS.FORM_EDIT,
+      EVENT_ACTIONS.EVENT_DELETE,
     );
 
     if (authResponse) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -20,6 +20,8 @@ import {
   FiSave,
   FiTrash2,
   FiUpload,
+  FiUsers,
+  FiX,
 } from "react-icons/fi";
 
 const QUESTION_TYPE_OPTIONS = [
@@ -465,6 +467,27 @@ function extractFileEntries(value) {
   return [];
 }
 
+function mapCollaboratorErrorMessage(code) {
+  switch (code) {
+    case "email_required":
+      return "Email collaborator wajib diisi.";
+    case "email_not_whitelisted":
+      return "Email belum ada di whitelist, tambahkan dulu di menu whitelist.";
+    case "owner_is_implicit":
+      return "Email owner tidak perlu ditambahkan sebagai collaborator.";
+    case "collaborator_not_found":
+      return "Collaborator tidak ditemukan.";
+    case "cannot_change_owner_role":
+      return "Role owner tidak bisa diubah.";
+    case "cannot_remove_owner":
+      return "Owner tidak bisa dihapus dari collaborator.";
+    case "Forbidden":
+      return "Anda tidak punya izin untuk aksi collaborator ini.";
+    default:
+      return code || "Aksi collaborator gagal.";
+  }
+}
+
 function getQuestionMetaMap(schemaSnapshot) {
   const map = new Map();
   const questions = Array.isArray(schemaSnapshot?.questions)
@@ -630,11 +653,8 @@ export default function FormBuilderPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const eventSlug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
-  const initialTab = searchParams.get("tab");
-
-  const [activeTab, setActiveTab] = useState(
-    VALID_TABS.has(initialTab) ? initialTab : "questions",
-  );
+  const tabFromUrl = searchParams.get("tab");
+  const activeTab = VALID_TABS.has(tabFromUrl) ? tabFromUrl : "questions";
   const [activeElementId, setActiveElementId] = useState(null);
 
   const [eventMeta, setEventMeta] = useState({
@@ -648,11 +668,16 @@ export default function FormBuilderPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState("idle");
+  const [lastSavedAt, setLastSavedAt] = useState(null);
+  const [autoSaveError, setAutoSaveError] = useState("");
   const [publishing, setPublishing] = useState(false);
 
   const [responsesState, setResponsesState] = useState({ total: 0, items: [] });
   const [responsesLoading, setResponsesLoading] = useState(false);
   const [responsesError, setResponsesError] = useState("");
+  const [exportingToDrive, setExportingToDrive] = useState(false);
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
   const [responsesLoaded, setResponsesLoaded] = useState(false);
   const [responsesTab, setResponsesTab] = useState("summary");
   const [responsesQuery, setResponsesQuery] = useState("");
@@ -665,6 +690,21 @@ export default function FormBuilderPage() {
     presentation: false,
     access: false,
   });
+  const [collaborators, setCollaborators] = useState([]);
+  const [canManageCollaborators, setCanManageCollaborators] = useState(false);
+  const [collaboratorsLoading, setCollaboratorsLoading] = useState(false);
+  const [collaboratorEmail, setCollaboratorEmail] = useState("");
+  const [collaboratorError, setCollaboratorError] = useState("");
+  const [collaboratorInfo, setCollaboratorInfo] = useState("");
+  const [collaboratorSaving, setCollaboratorSaving] = useState(false);
+  const [collaboratorBusyId, setCollaboratorBusyId] = useState("");
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const autosaveTimerRef = useRef(null);
+  const autosavePausedRef = useRef(false);
+  const lastSavedFingerprintRef = useRef("");
+  const hasInitializedAutosaveRef = useRef(false);
+  const baseDraftIdRef = useRef(null);
+  const eventUpdatedAtRef = useRef("");
 
   const latestDraft = useMemo(
     () => versions.find((item) => item.status === "draft") || null,
@@ -675,6 +715,39 @@ export default function FormBuilderPage() {
     const published = versions.filter((item) => item.status === "published");
     return published[published.length - 1] || null;
   }, [versions]);
+
+  const collaboratorsOrdered = useMemo(() => {
+    return [...collaborators].sort((a, b) => {
+      const rank = (item) => {
+        if (item?.role === "owner") return 0;
+        if (item?.role === "editor") return 1;
+        return 2;
+      };
+      const byRole = rank(a) - rank(b);
+      if (byRole !== 0) return byRole;
+      const emailA = (a?.user?.email || "").toLowerCase();
+      const emailB = (b?.user?.email || "").toLowerCase();
+      return emailA.localeCompare(emailB);
+    });
+  }, [collaborators]);
+
+  const autosaveStatusText = useMemo(() => {
+    if (autoSaveStatus === "saving") return "Menyimpan otomatis...";
+    if (autoSaveStatus === "pending") return "Perubahan terdeteksi...";
+    if (autoSaveStatus === "error") return "Autosave gagal";
+    if (lastSavedAt) {
+      return `Tersimpan ${new Date(lastSavedAt).toLocaleTimeString("id-ID")}`;
+    }
+    return "Autosave aktif";
+  }, [autoSaveStatus, lastSavedAt]);
+
+  const autosaveStatusClass = useMemo(() => {
+    if (autoSaveStatus === "error") return "text-red-600";
+    if (autoSaveStatus === "saving" || autoSaveStatus === "pending") {
+      return "text-amber-600";
+    }
+    return "text-slate-500";
+  }, [autoSaveStatus]);
 
   const questionsBySection = useMemo(() => {
     const map = new Map();
@@ -704,14 +777,34 @@ export default function FormBuilderPage() {
   }, [activeTab, eventSlug, responsesLoaded]);
 
   useEffect(() => {
-    const tab = searchParams.get("tab");
-    if (VALID_TABS.has(tab) && tab !== activeTab) {
-      setActiveTab(tab);
-    }
-  }, [searchParams, activeTab]);
+    return () => {
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!shareModalOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    void loadCollaborators();
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setShareModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [shareModalOpen]);
 
   function changeTab(nextTab) {
-    setActiveTab(nextTab);
+    if (nextTab === activeTab) return;
     if (!eventSlug) return;
 
     const nextParams = new URLSearchParams(searchParams.toString());
@@ -751,6 +844,8 @@ export default function FormBuilderPage() {
         title: eventData.title || "",
         description: eventData.description || "",
       });
+      eventUpdatedAtRef.current =
+        typeof eventData?.updatedAt === "string" ? eventData.updatedAt : "";
 
       setVersions(Array.isArray(versionsData) ? versionsData : []);
       setCatalog(Array.isArray(catalogData.items) ? catalogData.items : []);
@@ -780,11 +875,364 @@ export default function FormBuilderPage() {
         setSchemaState(normalizeBuilderSchema({}));
       }
 
+      baseDraftIdRef.current =
+        sourceVersion?.status === "draft" && typeof sourceVersion?.id === "string"
+          ? sourceVersion.id
+          : null;
+
       setResponsesLoaded(false);
+      await loadResponseCount();
+      await loadCollaborators();
+      const initialFingerprint = buildSaveFingerprint({
+        eventMetaInput: {
+          title: eventData.title || "",
+          description: eventData.description || "",
+        },
+        schemaInput: sourceVersion
+          ? normalizeBuilderSchema({
+              requestedProfileFields: sourceVersion.requestedProfileFields,
+              sections: sourceVersion.sections,
+              questions: sourceVersion.questions,
+              settings: sourceVersion.settings,
+              confirmation: sourceVersion.confirmation,
+              consentText: sourceVersion.consentText,
+            })
+          : normalizeBuilderSchema({}),
+        catalogInput: Array.isArray(catalogData.items) ? catalogData.items : [],
+      });
+      lastSavedFingerprintRef.current = initialFingerprint;
+      hasInitializedAutosaveRef.current = true;
+      autosavePausedRef.current = false;
+      setAutoSaveStatus("saved");
+      setLastSavedAt(Date.now());
+      setAutoSaveError("");
     } catch (loadError) {
       setError(loadError.message || "Failed to load builder data");
     } finally {
       setLoading(false);
+    }
+  }
+
+  function buildSavePayload({
+    eventMetaInput = eventMeta,
+    schemaInput = schemaState,
+    catalogInput = catalog,
+  } = {}) {
+    const consentText =
+      typeof schemaInput.consentText === "string"
+        ? schemaInput.consentText.trim()
+        : "";
+
+    const activeProfileFieldKeySet = new Set(
+      (Array.isArray(catalogInput) ? catalogInput : [])
+        .map((field) => field?.key)
+        .filter((key) => typeof key === "string"),
+    );
+
+    const payloadSchema = sanitizeSchemaForSave(
+      schemaInput,
+      activeProfileFieldKeySet,
+    );
+
+    return {
+      consentText,
+      payloadSchema,
+      title: (eventMetaInput.title || "Formulir Tanpa Judul").trim(),
+      description:
+        typeof eventMetaInput.description === "string" &&
+        eventMetaInput.description.trim()
+          ? eventMetaInput.description.trim()
+          : null,
+    };
+  }
+
+  function buildSaveFingerprint({
+    eventMetaInput = eventMeta,
+    schemaInput = schemaState,
+    catalogInput = catalog,
+  } = {}) {
+    const payload = buildSavePayload({
+      eventMetaInput,
+      schemaInput,
+      catalogInput,
+    });
+    return JSON.stringify(payload);
+  }
+
+  async function saveDraftInternal({ manual = false } = {}) {
+    setSaving(true);
+    setAutoSaveError("");
+    if (manual) {
+      setError("");
+    }
+
+    const payload = buildSavePayload();
+    let draftSaved = false;
+
+    if (!payload.consentText) {
+      setSaving(false);
+      if (manual) {
+        setError("Teks persetujuan wajib diisi.");
+      } else {
+        setAutoSaveStatus("error");
+        setAutoSaveError("Teks persetujuan wajib diisi sebelum autosave.");
+      }
+      return false;
+    }
+
+    try {
+      const draftResponse = await fetch(`/api/events/${eventSlug}/form-versions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...payload.payloadSchema,
+          consentText: payload.consentText,
+          baseDraftId: baseDraftIdRef.current,
+        }),
+      });
+
+      if (!draftResponse.ok) {
+        const draftPayload = await draftResponse.json().catch(() => ({}));
+        if (draftResponse.status === 409 && draftPayload?.error === "stale_draft_version") {
+          const staleError = new Error(
+            "Perubahan dari tab/perangkat lain terdeteksi. Muat ulang halaman untuk sinkronisasi data terbaru.",
+          );
+          staleError.code = "stale_conflict";
+          throw staleError;
+        }
+        const details = Array.isArray(draftPayload?.details)
+          ? draftPayload.details.filter((item) => typeof item === "string")
+          : [];
+        if (details.length > 0) {
+          throw new Error(
+            `${draftPayload.error || "Invalid form schema"}: ${details[0]}`,
+          );
+        }
+        throw new Error(draftPayload.error || "Failed to save draft");
+      }
+      draftSaved = true;
+      const savedDraft = await draftResponse.json().catch(() => null);
+
+      const patchMetaResponse = await fetch(`/api/events/${eventSlug}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: payload.title,
+          description: payload.description,
+          expectedUpdatedAt: eventUpdatedAtRef.current || undefined,
+        }),
+      });
+
+      if (!patchMetaResponse.ok) {
+        const patchPayload = await patchMetaResponse.json().catch(() => ({}));
+        if (
+          patchMetaResponse.status === 409 &&
+          patchPayload?.error === "stale_event_metadata"
+        ) {
+          const staleError = new Error(
+            "Metadata form berubah di tab/perangkat lain. Muat ulang halaman untuk melanjutkan.",
+          );
+          staleError.code = "stale_conflict";
+          throw staleError;
+        }
+        throw new Error("Draft saved, but failed to save form metadata");
+      }
+      const updatedEvent = await patchMetaResponse.json().catch(() => null);
+
+      if (savedDraft?.id) {
+        setVersions((prev) => {
+          const rest = prev.filter((item) => item.status !== "draft");
+          return [...rest, savedDraft];
+        });
+        baseDraftIdRef.current = savedDraft.id;
+      }
+
+      if (updatedEvent?.updatedAt) {
+        eventUpdatedAtRef.current = updatedEvent.updatedAt;
+      }
+
+      lastSavedFingerprintRef.current = buildSaveFingerprint();
+      autosavePausedRef.current = false;
+      setAutoSaveStatus("saved");
+      setLastSavedAt(Date.now());
+      if (manual) {
+        setError("");
+      }
+      return true;
+    } catch (saveError) {
+      if (draftSaved) {
+        try {
+          await loadAll();
+        } catch {}
+      }
+      if (manual) {
+        setError(saveError.message || "Failed to save draft");
+      } else {
+        setAutoSaveStatus("error");
+        if (saveError?.code === "stale_conflict") {
+          autosavePausedRef.current = true;
+        }
+        setAutoSaveError(
+          saveError.message || "Autosave gagal, coba lagi beberapa saat.",
+        );
+      }
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function loadCollaborators() {
+    setCollaboratorsLoading(true);
+    setCollaboratorError("");
+    try {
+      const response = await fetch(`/api/events/${eventSlug}/collaborators`);
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(
+          mapCollaboratorErrorMessage(payload?.error || "Failed to fetch collaborators"),
+        );
+      }
+      setCollaborators(Array.isArray(payload.items) ? payload.items : []);
+      setCanManageCollaborators(Boolean(payload.canManage));
+    } catch (loadError) {
+      setCollaborators([]);
+      setCanManageCollaborators(false);
+      setCollaboratorError(
+        loadError.message || "Failed to fetch collaborators",
+      );
+    } finally {
+      setCollaboratorsLoading(false);
+    }
+  }
+
+  async function loadResponseCount() {
+    try {
+      const response = await fetch(
+        `/api/events/${eventSlug}/submissions?countOnly=1`,
+      );
+      if (!response.ok) {
+        return;
+      }
+
+      const payload = await response.json().catch(() => ({}));
+      setResponsesState((prev) => ({
+        ...prev,
+        total: Number(payload?.total || 0),
+      }));
+    } catch {
+      // Keep existing total if lightweight count fetch fails.
+    }
+  }
+
+  async function handleAddCollaborator(event) {
+    event.preventDefault();
+    const email = collaboratorEmail.trim().toLowerCase();
+    if (!email) return;
+
+    setCollaboratorSaving(true);
+    setCollaboratorError("");
+    setCollaboratorInfo("");
+
+    try {
+      const response = await fetch(`/api/events/${eventSlug}/collaborators`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          role: "editor",
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(
+          mapCollaboratorErrorMessage(payload?.error || "Failed to add collaborator"),
+        );
+      }
+
+      const item = payload?.item;
+      if (item && item.id) {
+        setCollaborators((prev) => {
+          const next = [...prev];
+          const index = next.findIndex((entry) => entry.id === item.id);
+          if (index >= 0) {
+            next[index] = item;
+            return next;
+          }
+          next.push(item);
+          return next;
+        });
+      } else {
+        await loadCollaborators();
+      }
+
+      setCollaboratorEmail("");
+      setCollaboratorInfo("Collaborator berhasil ditambahkan.");
+    } catch (saveError) {
+      setCollaboratorError(
+        saveError.message || "Failed to add collaborator",
+      );
+    } finally {
+      setCollaboratorSaving(false);
+    }
+  }
+
+  async function handleRemoveCollaborator(id) {
+    if (!id) return;
+
+    setCollaboratorBusyId(id);
+    setCollaboratorError("");
+    setCollaboratorInfo("");
+
+    try {
+      const response = await fetch(`/api/events/${eventSlug}/collaborators`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(
+          mapCollaboratorErrorMessage(
+            payload?.error || "Failed to remove collaborator",
+          ),
+        );
+      }
+
+      setCollaborators((prev) => prev.filter((entry) => entry.id !== id));
+    } catch (removeError) {
+      setCollaboratorError(
+        removeError.message || "Failed to remove collaborator",
+      );
+    } finally {
+      setCollaboratorBusyId("");
+    }
+  }
+
+  async function handleCopyFormLink() {
+    if (!eventSlug) return;
+    const path = `/forms/${eventSlug}`;
+    const absoluteUrl =
+      typeof window !== "undefined"
+        ? `${window.location.origin}${path}`
+        : path;
+
+    try {
+      await navigator.clipboard.writeText(absoluteUrl);
+      setCollaboratorError("");
+      setCollaboratorInfo("Link form berhasil disalin.");
+    } catch {
+      setCollaboratorError("Gagal menyalin link form.");
     }
   }
 
@@ -952,91 +1400,51 @@ export default function FormBuilderPage() {
   }
 
   async function handleSaveDraft() {
-    setSaving(true);
-    setError("");
-    let draftSaved = false;
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+    }
+    void saveDraftInternal({ manual: true });
+  }
 
-    const consentText =
-      typeof schemaState.consentText === "string"
-        ? schemaState.consentText.trim()
-        : "";
+  async function handleRetryAutosave() {
+    if (saving || publishing) return;
+    autosavePausedRef.current = false;
+    setAutoSaveStatus("saving");
+    setAutoSaveError("");
+    await saveDraftInternal({ manual: false });
+  }
 
-    if (!consentText) {
-      setSaving(false);
-      setError("Teks persetujuan wajib diisi.");
+  async function handleReloadBuilderState() {
+    autosavePausedRef.current = false;
+    setAutoSaveError("");
+    await loadAll();
+  }
+
+  useEffect(() => {
+    if (!eventSlug || loading) return;
+    if (!hasInitializedAutosaveRef.current) return;
+    if (publishing) return;
+    if (autosavePausedRef.current) return;
+
+    const nextFingerprint = buildSaveFingerprint();
+    if (nextFingerprint === lastSavedFingerprintRef.current) {
       return;
     }
 
-    try {
-      const activeProfileFieldKeySet = new Set(
-        (Array.isArray(catalog) ? catalog : [])
-          .map((field) => field?.key)
-          .filter((key) => typeof key === "string"),
-      );
-
-      const payloadSchema = sanitizeSchemaForSave(
-        schemaState,
-        activeProfileFieldKeySet,
-      );
-
-      const draftResponse = await fetch(
-        `/api/events/${eventSlug}/form-versions`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...payloadSchema,
-            consentText,
-          }),
-        },
-      );
-
-      if (!draftResponse.ok) {
-        const payload = await draftResponse.json().catch(() => ({}));
-        const details = Array.isArray(payload?.details)
-          ? payload.details.filter((item) => typeof item === "string")
-          : [];
-        if (details.length > 0) {
-          throw new Error(`${payload.error || "Invalid form schema"}: ${details[0]}`);
-        }
-        throw new Error(payload.error || "Failed to save draft");
-      }
-
-      draftSaved = true;
-
-      const patchMetaResponse = await fetch(`/api/events/${eventSlug}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: (eventMeta.title || "Formulir Tanpa Judul").trim(),
-          description:
-            typeof eventMeta.description === "string" &&
-            eventMeta.description.trim()
-              ? eventMeta.description.trim()
-              : null,
-        }),
-      });
-
-      if (!patchMetaResponse.ok) {
-        throw new Error("Draft saved, but failed to save form metadata");
-      }
-
-      await loadAll();
-    } catch (saveError) {
-      if (draftSaved) {
-        try {
-          await loadAll();
-        } catch {}
-      }
-      setError(saveError.message || "Failed to save draft");
-    } finally {
-      setSaving(false);
+    if (autoSaveStatus !== "error") {
+      setAutoSaveError("");
     }
-  }
+    setAutoSaveStatus("pending");
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+    }
+
+    autosaveTimerRef.current = setTimeout(() => {
+      if (saving || publishing) return;
+      setAutoSaveStatus("saving");
+      void saveDraftInternal({ manual: false });
+    }, 1200);
+  }, [eventSlug, loading, publishing, saving, eventMeta, schemaState, catalog]);
 
   async function handlePublish() {
     if (!latestDraft) {
@@ -1095,6 +1503,34 @@ export default function FormBuilderPage() {
       window.URL.revokeObjectURL(url);
     } catch (exportError) {
       setResponsesError(exportError.message || "Failed to export XLSX");
+    }
+  }
+
+  async function handleExportToDrive() {
+    setExportingToDrive(true);
+    setResponsesError("");
+    try {
+      const response = await fetch(`/api/events/${eventSlug}/export/drive`, {
+        method: "POST",
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        if (payload?.error === "drive_not_authorized") {
+          throw new Error(
+            "Akses Google Drive belum diizinkan. Silakan keluar lalu masuk kembali untuk memberikan izin.",
+          );
+        }
+        throw new Error(payload?.error || "Gagal mengekspor ke Google Sheets");
+      }
+      const { url } = await response.json();
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (exportError) {
+      setResponsesError(
+        exportError.message || "Gagal mengekspor ke Google Sheets",
+      );
+    } finally {
+      setExportingToDrive(false);
+      setExportDropdownOpen(false);
     }
   }
 
@@ -2338,13 +2774,38 @@ export default function FormBuilderPage() {
                   />{" "}
                   Refresh
                 </button>
-                <button
-                  type="button"
-                  onClick={() => void handleExportResponses()}
-                  className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700"
-                >
-                  <FiDownload /> Ekspor
-                </button>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setExportDropdownOpen((prev) => !prev)}
+                    className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700"
+                  >
+                    <FiDownload /> Ekspor <FiChevronDown />
+                  </button>
+                  {exportDropdownOpen && (
+                    <div className="absolute right-0 z-10 mt-1 w-56 rounded-md border border-slate-200 bg-white shadow-lg">
+                      <button
+                        type="button"
+                        onClick={() => void handleExportToDrive()}
+                        disabled={exportingToDrive}
+                        className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                      >
+                        <FiExternalLink />
+                        {exportingToDrive ? "Mengekspor..." : "Ekspor ke Google Sheets"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void handleExportResponses();
+                          setExportDropdownOpen(false);
+                        }}
+                        className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
+                      >
+                        <FiDownload /> Download XLSX
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -3117,6 +3578,7 @@ export default function FormBuilderPage() {
                     ? `Published v${latestPublished.version}`
                     : "Belum dipublikasikan"}
                 </p>
+                <p className={`text-xs ${autosaveStatusClass}`}>{autosaveStatusText}</p>
               </div>
             </div>
 
@@ -3136,6 +3598,20 @@ export default function FormBuilderPage() {
                 className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
               >
                 <FiSave /> {saving ? "Menyimpan..." : "Simpan"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShareModalOpen(true)}
+                disabled={!canManageCollaborators}
+                title={
+                  canManageCollaborators
+                    ? "Bagikan akses collaborator"
+                    : "Anda tidak punya izin mengelola collaborator"
+                }
+                className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+              >
+                <FiUsers /> Bagikan
               </button>
 
               <button
@@ -3199,10 +3675,189 @@ export default function FormBuilderPage() {
           </div>
         ) : null}
 
+        {autoSaveStatus === "error" && autoSaveError ? (
+          <div className="mx-auto mb-4 flex max-w-[900px] flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <span>{autoSaveError}</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => void handleRetryAutosave()}
+                disabled={saving || publishing}
+                className="rounded-md border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-100 disabled:opacity-60"
+              >
+                Coba Autosave Lagi
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleReloadBuilderState()}
+                disabled={saving || publishing}
+                className="rounded-md border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-100 disabled:opacity-60"
+              >
+                Muat Ulang Data
+              </button>
+            </div>
+          </div>
+        ) : null}
+
         {activeTab === "questions" ? renderQuestionsTab() : null}
         {activeTab === "responses" ? renderResponsesTab() : null}
         {activeTab === "settings" ? renderSettingsTab() : null}
       </main>
+
+      {shareModalOpen ? (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-900/45 p-4">
+          <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Bagikan Akses Form
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Kelola collaborator editor untuk form ini.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShareModalOpen(false)}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+                aria-label="Tutup"
+              >
+                <FiX />
+              </button>
+            </div>
+
+            <div className="space-y-4 px-5 py-4">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Link Form
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <code className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-xs text-slate-700">
+                    /forms/{eventSlug}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => void handleCopyFormLink()}
+                    className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                  >
+                    <FiCopy />
+                    Copy link
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-slate-800">Collaborators</p>
+                <button
+                  type="button"
+                  onClick={() => void loadCollaborators()}
+                  className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                >
+                  <FiRefreshCw /> Refresh
+                </button>
+              </div>
+
+              {canManageCollaborators ? (
+                <form
+                  onSubmit={handleAddCollaborator}
+                  className="grid gap-2 sm:grid-cols-[1fr_auto]"
+                >
+                  <input
+                    type="email"
+                    value={collaboratorEmail}
+                    onChange={(event) => setCollaboratorEmail(event.target.value)}
+                    placeholder="email collaborator"
+                    className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#f97316] focus:ring-2 focus:ring-orange-100"
+                  />
+                  <button
+                    type="submit"
+                    disabled={collaboratorSaving}
+                    className="rounded-md bg-[#f97316] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#ea6c0a] disabled:opacity-60"
+                  >
+                    {collaboratorSaving ? "Menambahkan..." : "Tambahkan"}
+                  </button>
+                </form>
+              ) : (
+                <p className="text-xs text-slate-500">
+                  Anda tidak punya izin mengelola collaborator untuk form ini.
+                </p>
+              )}
+
+              {collaboratorError ? (
+                <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                  {collaboratorError}
+                </p>
+              ) : null}
+              {collaboratorInfo ? (
+                <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700">
+                  {collaboratorInfo}
+                </p>
+              ) : null}
+
+              <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
+                {collaboratorsLoading ? (
+                  <div className="space-y-2">
+                    {[1, 2, 3].map((item) => (
+                      <div
+                        key={item}
+                        className="h-10 animate-pulse rounded-md bg-slate-100"
+                      />
+                    ))}
+                  </div>
+                ) : collaborators.length === 0 ? (
+                  <p className="rounded-md border border-dashed border-slate-300 bg-slate-50 px-3 py-4 text-xs text-slate-500">
+                    Belum ada collaborator.
+                  </p>
+                ) : (
+                  collaboratorsOrdered.map((item) => {
+                    const isOwner = item.role === "owner";
+                    const isBusy = collaboratorBusyId === item.id;
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex flex-col gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-slate-800">
+                            {item.user?.name || item.user?.email || "-"}
+                          </p>
+                          <p className="truncate text-xs text-slate-500">
+                            {item.user?.email || "-"}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {isOwner ? (
+                            <span className="rounded-md border border-slate-300 bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+                              Owner
+                            </span>
+                          ) : (
+                            <>
+                              <span className="rounded-md border border-slate-300 bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+                                Editor
+                              </span>
+                              {canManageCollaborators ? (
+                                <button
+                                  type="button"
+                                  onClick={() => void handleRemoveCollaborator(item.id)}
+                                  disabled={isBusy}
+                                  className="rounded-md border border-red-200 bg-white px-2 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-60"
+                                >
+                                  Hapus
+                                </button>
+                              ) : null}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
