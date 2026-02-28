@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import Image from "next/image";
 
-export default function TuneTracker({ tunes = [] }) {
+export default function TuneTracker({ tunes = [], meta = null }) {
   const [nowPlaying, setNowPlaying] = useState(null);
   const audioRef = useRef(null);
 
@@ -25,21 +25,76 @@ export default function TuneTracker({ tunes = [] }) {
   });
 
   const handlePlay = (idx) => {
-    if (nowPlaying === idx) {
-      audioRef.current.pause();
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (nowPlaying === idx && !audio.paused) {
+      audio.pause();
       setNowPlaying(null);
-    } else {
-      setNowPlaying(idx);
-      if (filledTunes[idx].audioUrl) {
-        audioRef.current.src = `/api/proxy-audio?key=${encodeURIComponent(filledTunes[idx].audioUrl)}`;
-        audioRef.current.play();
-      }
+      return;
     }
+
+    const tune = filledTunes[idx];
+    const src =
+      tune.itunesPreviewUrl ||
+      (tune.audioUrl
+        ? `/api/proxy-audio?key=${encodeURIComponent(tune.audioUrl)}`
+        : null);
+    if (!src) return;
+
+    const normalizedSrc = (() => {
+      try {
+        return new URL(src, window.location.origin).href;
+      } catch {
+        return src;
+      }
+    })();
+
+    const playWhenReady = () =>
+      audio
+        .play()
+        .then(() => setNowPlaying(idx))
+        .catch(() => {
+          setNowPlaying(null);
+          throw new Error("PLAYBACK_FAILED");
+        });
+
+    const currentSrc = audio.currentSrc || audio.src;
+    const sourceChanged = currentSrc !== normalizedSrc;
+    if (sourceChanged) {
+      audio.pause();
+      setNowPlaying(null);
+      audio.src = src;
+    }
+
+    playWhenReady().catch(() => {
+      if (!sourceChanged) return;
+
+      const retryOnCanPlay = () => {
+        playWhenReady().catch(() => {});
+      };
+
+      if (audio.readyState >= 2) {
+        retryOnCanPlay();
+        return;
+      }
+
+      audio.addEventListener("canplay", retryOnCanPlay, { once: true });
+      audio.addEventListener("error", () => setNowPlaying(null), {
+        once: true,
+      });
+      audio.load();
+    });
   };
 
   return (
     <section className="relative py-24 bg-white text-gray-900 overflow-hidden">
-      <audio ref={audioRef} onEnded={() => setNowPlaying(null)} />
+      <audio
+        ref={audioRef}
+        onEnded={() => setNowPlaying(null)}
+        playsInline
+        preload="metadata"
+      />
       <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px]">
         <Image
           src="/tune-tracker.png"
@@ -58,6 +113,21 @@ export default function TuneTracker({ tunes = [] }) {
           <p className="font-body text-gray-600 text-lg">
             Discover the Hottest Tracks: Our Top 10 Music Charts
           </p>
+          {meta && (
+            <p className="font-body text-sm text-gray-400 mt-1">
+              {meta.curatedBy && <>Curated by {meta.curatedBy}</>}
+              {meta.curatedBy && meta.editionDate && <> &mdash; </>}
+              {meta.editionDate && (
+                <>
+                  Edition:{" "}
+                  {new Date(meta.editionDate).toLocaleDateString("en-US", {
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </>
+              )}
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
@@ -75,7 +145,9 @@ export default function TuneTracker({ tunes = [] }) {
                   <img
                     src={
                       tune.coverImage
-                        ? `/api/proxy-audio?key=${encodeURIComponent(tune.coverImage)}`
+                        ? tune.coverImage.startsWith("http")
+                          ? tune.coverImage
+                          : `/api/proxy-audio?key=${encodeURIComponent(tune.coverImage)}`
                         : "/8eh-real.svg"
                     }
                     alt={tune.title || `Song ${idx + 1}`}
@@ -99,7 +171,7 @@ export default function TuneTracker({ tunes = [] }) {
                   onClick={() => handlePlay(idx)}
                   className="w-12 h-12 rounded-full bg-white hover:bg-gray-200 flex items-center justify-center transition-colors flex-shrink-0 border border-gray-200/90 shadow-md cursor-pointer disabled:opacity-40"
                   aria-label={`Play ${tune.title}`}
-                  disabled={!tune.audioUrl}
+                  disabled={!tune.audioUrl && !tune.itunesPreviewUrl}
                 >
                   <svg
                     viewBox="0 0 24 24"
