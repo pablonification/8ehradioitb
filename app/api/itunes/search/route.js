@@ -34,8 +34,17 @@ export async function POST(req) {
     }
 
     const data = await response.json();
+    const results = Array.isArray(data?.results) ? data.results : null;
 
-    const items = data.results.map((track) => ({
+    if (!results) {
+      console.error("Invalid iTunes response shape", { data });
+      return NextResponse.json(
+        { error: "Invalid iTunes response" },
+        { status: 502 },
+      );
+    }
+
+    const items = results.map((track) => ({
       trackId: String(track.trackId),
       title: track.trackName,
       artist: track.artistName,
