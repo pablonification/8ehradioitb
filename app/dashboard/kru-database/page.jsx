@@ -10,6 +10,35 @@ import {
 } from "@/lib/profile/database";
 
 const ROLE_OPTIONS = ["DEVELOPER", "DATA", "TECHNIC", "REPORTER", "KRU", "MUSIC"];
+// ── Icons ──────────────────────────────────────────────────────────────────────
+function IconEdit({ className = "w-4 h-4" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  );
+}
+
+function IconTrash({ className = "w-4 h-4" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+      <line x1="10" y1="11" x2="10" y2="17" />
+      <line x1="14" y1="11" x2="14" y2="17" />
+    </svg>
+  );
+}
+
+function IconX({ className = "w-4 h-4" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
 const COMPLETENESS_OPTIONS = [
   { value: "all", label: "Semua" },
   { value: "complete", label: "Lengkap (field wajib)" },
@@ -17,12 +46,49 @@ const COMPLETENESS_OPTIONS = [
 ];
 
 function inputClassName() {
-  return "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-body text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#f97316] focus:outline-none focus:ring-2 focus:ring-orange-100";
+  return "w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 font-body text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#f97316] focus:outline-none focus:ring-2 focus:ring-orange-100 transition-colors";
 }
 
 function renderCell(value) {
   const text = stringifyProfileValue(value);
   return text || "-";
+}
+
+function KruDatabasePageSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <section className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
+        <div className="h-1.5 bg-[#f97316]" />
+        <div className="space-y-4 p-6">
+          <div className="h-8 w-56 rounded bg-slate-200" />
+          <div className="grid gap-3 md:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+              <div key={item} className="h-11 rounded-lg bg-slate-100" />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
+        <div className="p-6 space-y-3">
+          <div className="h-4 w-36 rounded bg-slate-200" />
+          {[1, 2, 3, 4].map((item) => (
+            <div key={item} className="h-12 rounded-lg bg-slate-100" />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function KruDatabaseTableSkeleton() {
+  return (
+    <div className="p-6 space-y-3 animate-pulse">
+      {[1, 2, 3, 4, 5].map((item) => (
+        <div key={item} className="h-11 rounded-lg bg-slate-100" />
+      ))}
+    </div>
+  );
 }
 
 export default function KruDatabasePage() {
@@ -40,6 +106,13 @@ export default function KruDatabasePage() {
   const [error, setError] = useState("");
   const [meta, setMeta] = useState({ total: 0, filteredTotal: 0, limit: 500, hasMore: false });
   const [downloadingKey, setDownloadingKey] = useState("");
+  const [editingProfile, setEditingProfile] = useState(null);
+  const [editingBiodata, setEditingBiodata] = useState({});
+  const [editingName, setEditingName] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editError, setEditError] = useState("");
+
+  const [deletingId, setDeletingId] = useState("");
 
   useEffect(() => {
     if (status === "authenticated" && hasAccess) {
@@ -137,9 +210,111 @@ export default function KruDatabasePage() {
       setDownloadingKey("");
     }
   }
+  async function handleDeleteProfile(id, name) {
+    if (!confirm(`Apakah Anda yakin ingin menghapus data profil untuk "${name}"?`)) return;
+    setDeletingId(id);
+    setError("");
+    try {
+      const response = await fetch(`/api/profile/database?id=${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || "Gagal menghapus profil");
+      }
+      setItems((prev) => prev.filter((item) => item.id !== id));
+      setMeta((prev) => ({ ...prev, total: prev.total - 1, filteredTotal: prev.filteredTotal - 1 }));
+    } catch (err) {
+      setError(err.message || "Gagal menghapus profil");
+    } finally {
+      setDeletingId("");
+    }
+  }
+
+  function startEditProfile(profile) {
+    setEditingProfile(profile);
+    const biodata = normalizeBiodata(profile.biodata);
+    setEditingBiodata({ ...biodata });
+    setEditingName(biodata.fullName || profile.displayName || profile.user?.name || "");
+    setEditError("");
+  }
+
+  function cancelEdit() {
+    setEditingProfile(null);
+    setEditingBiodata({});
+    setEditingName("");
+    setEditError("");
+  }
+
+  async function uploadFile(fieldKey, file, targetUserId) {
+    const response = await fetch("/api/profile/upload-url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fileName: file.name,
+        fileType: file.type,
+        fieldKey,
+        targetUserId,
+      }),
+    });
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.error || "Failed to prepare upload");
+    }
+
+    const { uploadUrl, key } = await response.json();
+
+    const uploadResponse = await fetch(uploadUrl, {
+      method: "PUT",
+      body: file,
+      headers: {
+        "Content-Type": file.type,
+      },
+    });
+
+    if (!uploadResponse.ok) {
+      throw new Error("Failed to upload file");
+    }
+
+    return key;
+  }
+
+  async function handleSaveEdit(e) {
+    e.preventDefault();
+    setSavingEdit(true);
+    setEditError("");
+
+    try {
+      const response = await fetch("/api/profile/database", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingProfile.id,
+          displayName: editingName,
+          biodata: editingBiodata,
+        }),
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || "Gagal memperbarui profil");
+      }
+
+      const payload = await response.json();
+      setItems((prev) =>
+        prev.map((item) => (item.id === payload.updated.id ? payload.updated : item)),
+      );
+      cancelEdit();
+    } catch (err) {
+      setEditError(err.message || "Gagal memperbarui profil");
+    } finally {
+      setSavingEdit(false);
+    }
+  }
 
   if (status === "loading") {
-    return <div className="font-body text-slate-600">Loading...</div>;
+    return <KruDatabasePageSkeleton />;
   }
 
   if (!hasAccess) {
@@ -151,7 +326,8 @@ export default function KruDatabasePage() {
   }
 
   return (
-    <div className="space-y-6 text-slate-900">
+    <>
+      <div className="space-y-6 text-slate-900">
       <section className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
         <div className="h-1.5 bg-[#f97316]" />
         <div className="space-y-4 p-6">
@@ -163,49 +339,90 @@ export default function KruDatabasePage() {
           </div>
 
           <form
-            className="grid grid-cols-1 gap-3 md:grid-cols-5"
+            className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-end"
             onSubmit={(event) => {
               event.preventDefault();
               void loadProfiles();
             }}
           >
-            <input
-              type="text"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Cari nama / email / NIM / nilai field"
-              className={`${inputClassName()} md:col-span-2`}
-            />
+            <div className="flex-1 min-w-[200px]">
+              <label className="mb-1 block font-body text-[11px] font-semibold uppercase tracking-wide text-slate-500">Pencarian</label>
+              <input
+                type="text"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Cari nama / email / NIM..."
+                className={inputClassName()}
+              />
+            </div>
 
-            <select
-              value={roleFilter}
-              onChange={(event) => setRoleFilter(event.target.value)}
-              className={inputClassName()}
-            >
-              <option value="">Semua role</option>
-              {ROLE_OPTIONS.map((role) => (
-                <option key={role} value={role}>
-                  {role}
-                </option>
-              ))}
-            </select>
+            <div className="w-full md:w-auto min-w-[140px]">
+              <label className="mb-1 block font-body text-[11px] font-semibold uppercase tracking-wide text-slate-500">Role</label>
+              <select
+                value={roleFilter}
+                onChange={(event) => setRoleFilter(event.target.value)}
+                className={inputClassName()}
+              >
+                <option value="">Semua Role</option>
+                {ROLE_OPTIONS.map((role) => (
+                  <option key={role} value={role}>
+                    {role}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <select
-              value={completeness}
-              onChange={(event) => setCompleteness(event.target.value)}
-              className={inputClassName()}
-            >
-              {COMPLETENESS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <div className="w-full md:w-auto min-w-[160px]">
+              <label className="mb-1 block font-body text-[11px] font-semibold uppercase tracking-wide text-slate-500">Kelengkapan</label>
+              <select
+                value={completeness}
+                onChange={(event) => setCompleteness(event.target.value)}
+                className={inputClassName()}
+              >
+                {COMPLETENESS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <div className="flex gap-2">
+            <div className="w-full md:w-auto min-w-[160px]">
+              <label className="mb-1 block font-body text-[11px] font-semibold uppercase tracking-wide text-slate-500">Filter Field</label>
+              <select
+                value={fieldKey}
+                onChange={(event) => setFieldKey(event.target.value)}
+                className={inputClassName()}
+              >
+                <option value="">(Pilih Field)</option>
+                {fields.map((field) => (
+                  <option key={field.key} value={field.key}>
+                    {field.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="w-full md:w-auto min-w-[160px]">
+              <label className="mb-1 block font-body text-[11px] font-semibold uppercase tracking-wide text-slate-500">Nilai Field</label>
+              <input
+                type="text"
+                value={fieldValue}
+                onChange={(event) => setFieldValue(event.target.value)}
+                placeholder={
+                  activeField
+                    ? `Cari di ${activeField.label}`
+                    : "Pilih field dulu"
+                }
+                className={inputClassName()}
+                disabled={!fieldKey}
+              />
+            </div>
+
+            <div className="flex w-full gap-2 md:w-auto">
               <button
                 type="submit"
-                className="rounded-lg bg-slate-900 px-4 py-2 font-body text-sm font-semibold text-white"
+                className="flex-1 rounded-lg bg-slate-900 px-5 py-2.5 font-body text-sm font-semibold text-white transition-colors hover:bg-slate-800 md:flex-none"
               >
                 Terapkan
               </button>
@@ -226,40 +443,14 @@ export default function KruDatabasePage() {
                   setFieldValue(resetFilters.fieldValue);
                   void loadProfiles(resetFilters);
                 }}
-                className="rounded-lg border border-slate-300 bg-white px-4 py-2 font-body text-sm font-semibold text-slate-700"
+                className="flex-1 rounded-lg border border-slate-300 bg-white px-5 py-2.5 font-body text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 md:flex-none"
               >
                 Reset
               </button>
             </div>
 
-            <select
-              value={fieldKey}
-              onChange={(event) => setFieldKey(event.target.value)}
-              className={`${inputClassName()} md:col-span-2`}
-            >
-              <option value="">Filter berdasarkan field (opsional)</option>
-              {fields.map((field) => (
-                <option key={field.key} value={field.key}>
-                  {field.label} ({field.key})
-                </option>
-              ))}
-            </select>
-
-            <input
-              type="text"
-              value={fieldValue}
-              onChange={(event) => setFieldValue(event.target.value)}
-              placeholder={
-                activeField
-                  ? `Nilai untuk ${activeField.label}`
-                  : "Nilai field (opsional)"
-              }
-              className={`${inputClassName()} md:col-span-2`}
-              disabled={!fieldKey}
-            />
-
-            <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 md:col-span-1">
-              <div>
+            <div className="ml-auto flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 md:w-auto mt-2 md:mt-0">
+              <div className="mr-6">
                 <p className="font-body text-[11px] uppercase tracking-wide text-slate-500">
                   Ditampilkan
                 </p>
@@ -269,9 +460,14 @@ export default function KruDatabasePage() {
               </div>
               <a
                 href={exportHref}
-                className="rounded-lg bg-[#f97316] px-3 py-1.5 font-body text-xs font-semibold text-white"
+                className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-[#f97316] px-4 py-2 font-body text-sm font-semibold text-white transition-colors hover:bg-[#ea6c0a]"
               >
-                Export XLSX
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Export
               </a>
             </div>
           </form>
@@ -288,7 +484,7 @@ export default function KruDatabasePage() {
 
       <section className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
         {loading ? (
-          <div className="p-6 font-body text-slate-600">Loading profiles...</div>
+          <KruDatabaseTableSkeleton />
         ) : items.length === 0 ? (
           <div className="p-6 font-body text-slate-600">Tidak ada data.</div>
         ) : (
@@ -317,13 +513,16 @@ export default function KruDatabasePage() {
                       {field.label}
                     </th>
                   ))}
+                  <th className="sticky right-0 z-10 bg-slate-50 whitespace-nowrap px-4 py-3 text-center font-body text-xs font-semibold uppercase tracking-wide text-slate-600 shadow-[-1px_0_0_rgba(226,232,240,1)]">
+                    Aksi
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {items.map((item) => {
                   const biodata = normalizeBiodata(item.biodata);
                   return (
-                    <tr key={item.id} className="align-top hover:bg-slate-50/70">
+                    <tr key={item.id} className="group align-top hover:bg-slate-50/70">
                       <td className="whitespace-nowrap px-4 py-3 font-body text-slate-800">
                         {renderCell(biodata.fullName || item.displayName || item.user?.name)}
                       </td>
@@ -379,6 +578,27 @@ export default function KruDatabasePage() {
                           </td>
                         );
                       })}
+                      <td className="sticky right-0 z-10 bg-white whitespace-nowrap px-4 py-3 text-center shadow-[-1px_0_0_rgba(226,232,240,1)] group-hover:bg-slate-50/70 transition-colors">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => startEditProfile(item)}
+                            className="p-1.5 text-slate-400 hover:text-[#f97316] hover:bg-orange-50 rounded-md transition-colors"
+                            title="Edit"
+                          >
+                            <IconEdit />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteProfile(item.id, biodata.fullName || item.displayName || item.user?.name)}
+                            disabled={deletingId === item.id}
+                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+                            title="Hapus"
+                          >
+                            <IconTrash />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}
@@ -388,5 +608,147 @@ export default function KruDatabasePage() {
         )}
       </section>
     </div>
+      {/* Edit Profile Modal */}
+      {editingProfile ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+              <h3 className="font-heading text-lg font-semibold text-slate-900">
+                Edit Profil Kru
+              </h3>
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              >
+                <IconX />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              {editError && (
+                <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600 border border-red-200">
+                  {editError}
+                </div>
+              )}
+              
+              <form id="edit-profile-form" onSubmit={handleSaveEdit} className="space-y-4">
+                <div>
+                  <label className="mb-1 block font-body text-xs font-semibold text-slate-600">
+                    Display Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                    className={inputClassName()}
+                  />
+                </div>
+                
+                {fields.map((field) => {
+                  const typeByField = {
+                    number: "number",
+                    date: "date",
+                    email: "email",
+                    phone: "tel",
+                    url: "url",
+                  };
+                  const inputType = typeByField[field.fieldType] || "text";
+                  const value = editingBiodata[field.key] ?? "";
+                  
+                  return (
+                    <div key={field.key}>
+                      <label className="mb-1 flex items-center gap-1 font-body text-xs font-semibold text-slate-600">
+                        {field.label}
+                        {field.isRequired && <span className="text-red-500">*</span>}
+                      </label>
+                      
+                      {field.fieldType === "textarea" ? (
+                        <textarea
+                          value={value}
+                          onChange={(e) => setEditingBiodata((p) => ({ ...p, [field.key]: e.target.value }))}
+                          className={`${inputClassName()} min-h-[80px]`}
+                        />
+                      ) : field.fieldType === "select" ? (
+                        <select
+                          value={value}
+                          onChange={(e) => setEditingBiodata((p) => ({ ...p, [field.key]: e.target.value }))}
+                          className={inputClassName()}
+                        >
+                          <option value="">(Kosong)</option>
+                          {(field.options || []).map((opt) => (
+                            <option key={opt} value={opt}>{opt}</option>
+                          ))}
+                        </select>
+                      ) : field.fieldType === "file" ? (
+                        <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">
+                          {value ? (
+                            <div className="flex items-center justify-between">
+                              <span className="truncate">Ada file terupload</span>
+                              <button
+                                type="button"
+                                onClick={() => setEditingBiodata((p) => {
+                                  const next = { ...p };
+                                  delete next[field.key];
+                                  return next;
+                                })}
+                                className="text-xs text-red-500 hover:underline"
+                              >
+                                Hapus File
+                              </button>
+                            </div>
+                          ) : (
+                            <input
+                              type="file"
+                              className="font-body text-sm text-slate-600"
+                              onChange={async (event) => {
+                                const file = event.target.files?.[0];
+                                if (!file) return;
+                                setEditError("");
+                                try {
+                                  const key = await uploadFile(field.key, file, editingProfile.user?.id || editingProfile.id);
+                                  setEditingBiodata((prev) => ({ ...prev, [field.key]: key }));
+                                } catch (uploadError) {
+                                  setEditError(uploadError.message || "Failed to upload file");
+                                }
+                              }}
+                            />
+                          )}
+                        </div>
+                      ) : (
+                        <input
+                          type={inputType}
+                          value={value}
+                          onChange={(e) => setEditingBiodata((p) => ({ ...p, [field.key]: e.target.value }))}
+                          className={inputClassName()}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </form>
+            </div>
+            
+            <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4 rounded-b-2xl">
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="rounded-lg px-4 py-2 font-body text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-200"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                form="edit-profile-form"
+                disabled={savingEdit}
+                className="rounded-lg bg-[#f97316] px-5 py-2 font-body text-sm font-semibold text-white transition-colors hover:bg-[#ea6c0a] disabled:opacity-50"
+              >
+                {savingEdit ? "Menyimpan..." : "Simpan Perubahan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }

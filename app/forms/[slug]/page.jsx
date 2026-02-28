@@ -96,6 +96,65 @@ function extractDownloadEntries(value) {
   return Array.from(unique.values());
 }
 
+function PublicFormSkeleton() {
+  const cardClass =
+    "overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)]";
+
+  return (
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] font-body">
+      <main className="px-4 py-8 sm:px-6">
+        <div className="mx-auto max-w-3xl space-y-4 pb-8">
+          <section className={`${cardClass} animate-pulse`}>
+            <div className="h-1.5 bg-[#f97316]" />
+            <div className="space-y-5 p-6 sm:p-8">
+              <div className="h-8 w-36 rounded bg-slate-200" />
+              <div className="space-y-2">
+                <div className="h-10 w-56 rounded bg-slate-200" />
+                <div className="h-4 w-3/4 rounded bg-slate-100" />
+              </div>
+              <div className="h-4 w-64 rounded bg-slate-100" />
+              <div className="h-11 w-full rounded-lg bg-slate-100" />
+            </div>
+          </section>
+
+          <section className={`${cardClass} animate-pulse`}>
+            <div className="h-1.5 bg-[#f97316]" />
+            <div className="space-y-4 p-6">
+              <div className="h-3 w-24 rounded bg-slate-200" />
+              <div className="flex items-start gap-3">
+                <div className="h-9 w-9 rounded-full bg-slate-200" />
+                <div className="w-full space-y-2">
+                  <div className="h-4 w-52 rounded bg-slate-200" />
+                  <div className="h-3 w-60 rounded bg-slate-100" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className={`${cardClass} animate-pulse`}>
+            <div className="h-1.5 bg-[#f97316]" />
+            <div className="space-y-5 p-6 sm:p-8">
+              <div className="space-y-2">
+                <div className="h-3 w-24 rounded bg-slate-200" />
+                <div className="h-9 w-44 rounded bg-slate-200" />
+              </div>
+              {[1, 2, 3].map((item) => (
+                <div key={item} className="space-y-2">
+                  <div className="h-4 w-52 rounded bg-slate-200" />
+                  <div className="h-11 w-full rounded-lg bg-slate-100" />
+                </div>
+              ))}
+              <div className="flex justify-end">
+                <div className="h-10 w-24 rounded-lg bg-slate-200" />
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  );
+}
+
 export default function PublicFormPage() {
   const params = useParams();
   const eventSlug = params.slug;
@@ -532,100 +591,175 @@ export default function PublicFormPage() {
     "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-[#f97316] focus:outline-none focus:ring-2 focus:ring-orange-100";
 
   if (loading || status === "loading") {
-    return (
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] px-4 py-10 sm:px-6">
-        <div className="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white p-6 font-body text-slate-600 shadow-sm">
-          Loading form...
-        </div>
-      </main>
-    );
+    return <PublicFormSkeleton />;
   }
 
   if (successPayload) {
     return (
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] px-4 py-10 sm:px-6">
-        <div className="mx-auto max-w-3xl space-y-4 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h1 className="font-heading text-3xl font-bold text-slate-900">
-            {successPayload?.confirmation?.title || "Respons terkirim"}
-          </h1>
-          <p className="font-body text-slate-700">
-            {successPayload?.confirmation?.message || "Terima kasih sudah mengisi form."}
-          </p>
-          <Link href="/" className="font-body text-sm font-semibold text-[#ea580c] hover:underline">
-            Kembali ke beranda
-          </Link>
-        </div>
-      </main>
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body">
+        {/* Body */}
+        <main className="flex-1 px-4 py-12 sm:px-6">
+          <div className="mx-auto max-w-lg w-full">
+            {/* Card */}
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+              <div className="h-1.5 bg-[#f97316]" />
+              <div className="p-8 space-y-4">
+                <h1 className="font-heading text-3xl font-bold text-slate-900">
+                  {successPayload?.confirmation?.title || "Respons terkirim"}
+                </h1>
+                <p className="font-body text-slate-700">
+                  {successPayload?.confirmation?.message || "Terima kasih sudah mengisi form."}
+                </p>
+                <Link href="/" className="font-body text-sm font-semibold text-[#ea580c] hover:underline">
+                  Kembali ke beranda
+                </Link>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <footer className="text-xs text-slate-500 font-body text-center py-4">
+          © {new Date().getFullYear()} Technic 8EH Radio ITB. All rights reserved.
+        </footer>
+      </div>
     );
   }
 
   if (formData?.blockedReason === "login_required") {
     return (
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] px-4 py-10 sm:px-6">
-        <div className="mx-auto max-w-3xl space-y-3 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h1 className="font-heading text-2xl font-bold text-slate-900">Login Required</h1>
-          <p className="font-body text-slate-700">{formData.message}</p>
-          <button
-            onClick={() => signIn("google", { callbackUrl: `/forms/${eventSlug}` })}
-            className="inline-flex items-center rounded-lg bg-slate-900 px-4 py-2 font-body text-sm font-semibold text-white"
-          >
-            Login dengan Google
-          </button>
-        </div>
-      </main>
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body">
+
+        {/* Body */}
+        <main className="flex-1 px-4 py-12 sm:px-6">
+          <div className="mx-auto max-w-lg w-full">
+            {/* Card */}
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+              <div className="h-1.5 bg-[#f97316]" />
+              <div className="p-8 space-y-4">
+                <h1 className="font-heading text-2xl font-bold text-slate-900">Login Required</h1>
+                <p className="font-body text-slate-700">{formData.message}</p>
+                <button
+                  onClick={() => signIn("google", { callbackUrl: `/forms/${eventSlug}` })}
+                  className="inline-flex items-center rounded-lg bg-[#f97316] hover:bg-[#ea6c0a] px-4 py-2 font-body text-sm font-semibold text-white transition-colors"
+                >
+                  Login dengan Google
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <footer className="text-xs text-slate-500 font-body text-center py-4">
+          © {new Date().getFullYear()} Technic 8EH Radio ITB. All rights reserved.
+        </footer>
+      </div>
     );
   }
 
   if (formData?.blockedReason === "profile_required") {
     return (
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] px-4 py-10 sm:px-6">
-        <div className="mx-auto max-w-3xl space-y-3 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h1 className="font-heading text-2xl font-bold text-slate-900">Profile Required</h1>
-          <p className="font-body text-slate-700">{formData.message}</p>
-          <Link
-            href={formData.setupUrl || "/profile/setup"}
-            className="inline-flex rounded-lg bg-slate-900 px-4 py-2 font-body text-sm font-semibold text-white"
-          >
-            Lengkapi Master Profile
-          </Link>
-        </div>
-      </main>
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body">
+
+        {/* Body */}
+        <main className="flex-1 px-4 py-12 sm:px-6">
+          <div className="mx-auto max-w-lg w-full">
+            {/* Card */}
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+              <div className="h-1.5 bg-[#f97316]" />
+              <div className="p-8 space-y-4">
+                <h1 className="font-heading text-2xl font-bold text-slate-900">Profile Required</h1>
+                <p className="font-body text-slate-700">{formData.message}</p>
+                <Link
+                  href={formData.setupUrl || "/profile/setup"}
+                  className="inline-flex rounded-lg bg-[#f97316] hover:bg-[#ea6c0a] px-4 py-2 font-body text-sm font-semibold text-white transition-colors"
+                >
+                  Lengkapi Master Profile
+                </Link>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <footer className="text-xs text-slate-500 font-body text-center py-4">
+          © {new Date().getFullYear()} Technic 8EH Radio ITB. All rights reserved.
+        </footer>
+      </div>
     );
   }
 
   if (formData?.blockedReason === "not_kru") {
     return (
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] px-4 py-10 sm:px-6">
-        <div className="mx-auto max-w-3xl space-y-3 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h1 className="font-heading text-2xl font-bold text-slate-900">Akses Terbatas</h1>
-          <p className="font-body text-slate-700">{formData.message}</p>
-        </div>
-      </main>
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body">
+
+        {/* Body */}
+        <main className="flex-1 px-4 py-12 sm:px-6">
+          <div className="mx-auto max-w-lg w-full">
+            {/* Card */}
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+              <div className="h-1.5 bg-[#f97316]" />
+              <div className="p-8 space-y-4">
+                <h1 className="font-heading text-2xl font-bold text-slate-900">Akses Terbatas</h1>
+                <p className="font-body text-slate-700">{formData.message}</p>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <footer className="text-xs text-slate-500 font-body text-center py-4">
+          © {new Date().getFullYear()} Technic 8EH Radio ITB. All rights reserved.
+        </footer>
+      </div>
     );
   }
 
   if (!formData) {
     return (
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] px-4 py-10 sm:px-6">
-        <div className="mx-auto max-w-3xl rounded-2xl border border-red-200 bg-white p-8 font-body text-red-600 shadow-sm">
-          Form tidak ditemukan.
-        </div>
-      </main>
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body">
+
+        <main className="flex-1 px-4 py-12 sm:px-6">
+          <div className="mx-auto max-w-lg w-full">
+            {/* Card */}
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+              <div className="h-1.5 bg-[#f97316]" />
+              <div className="p-8 space-y-4">
+                <div className="font-body text-red-600">
+                  Form tidak ditemukan.
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <footer className="text-xs text-slate-500 font-body text-center py-4">
+          © {new Date().getFullYear()} Technic 8EH Radio ITB. All rights reserved.
+        </footer>
+      </div>
     );
   }
 
   if (formData.isClosed) {
     return (
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] px-4 py-10 sm:px-6">
-        <div className="mx-auto max-w-3xl space-y-3 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h1 className="font-heading text-2xl font-bold text-slate-900">
-            {formData.closedMessage?.title || "Form closed"}
-          </h1>
-          <p className="font-body text-slate-700">
-            {formData.closedMessage?.description || "Form ini sudah ditutup."}
-          </p>
-        </div>
-      </main>
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fbf7ed_0%,#f3efe5_55%,#eee8dc_100%)] flex flex-col font-body">
+        <main className="flex-1 px-4 py-12 sm:px-6">
+          <div className="mx-auto max-w-lg w-full">
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+              <div className="h-1.5 bg-[#f97316]" />
+              <div className="p-8 space-y-4">
+                <h1 className="font-heading text-2xl font-bold text-slate-900">
+                  {formData.closedMessage?.title || "Form closed"}
+                </h1>
+                <p className="font-body text-slate-700">
+                  {formData.closedMessage?.description || "Form ini sudah ditutup."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <footer className="text-xs text-slate-500 font-body text-center py-4">
+          © {new Date().getFullYear()} Technic 8EH Radio ITB. All rights reserved.
+        </footer>
+      </div>
     );
   }
 
