@@ -93,6 +93,12 @@ export default function DashboardHome() {
       href: "/dashboard/links",
       roles: ["MUSIC", "DEVELOPER", "TECHNIC", "REPORTER", "KRU"],
     },
+    {
+      icon: <FiPlus className="text-orange-500" />,
+      label: "Create Form",
+      href: "/dashboard/forms",
+      roles: ["MUSIC", "DEVELOPER", "TECHNIC", "REPORTER", "KRU", "DATA"],
+    },
   ];
 
   const visibleActions = actions.filter((action) =>

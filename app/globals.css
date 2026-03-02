@@ -20,12 +20,15 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #ffffff;
+    --foreground: #171717;
   }
 }
 
 body {
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
   background: var(--background);
   color: var(--foreground);
 }
@@ -79,6 +82,50 @@ body {
 
   .animate-slide-in {
     animation: slide-in 0.3s ease-out forwards;
+  }
+
+  /*
+   * Safari iOS long viewport-safe height.
+   * Keep this utility for full-page wrappers instead of plain min-h-screen.
+   */
+  .min-h-safe-screen {
+    min-height: 100vh;
+    min-height: 100svh;
+    min-height: 100dvh;
+  }
+
+  @supports (min-height: 100lvh) {
+    .min-h-safe-screen {
+      min-height: 100lvh;
+    }
+  }
+
+  .pb-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@layer components {
+  .form-builder-surface input:not([type="checkbox"]):not([type="radio"]),
+  .form-builder-surface select,
+  .form-builder-surface textarea {
+    background-color: #ffffff;
+    border-color: #cbd5e1;
+    color: #0f172a;
+  }
+
+  .form-builder-surface input:not([type="checkbox"]):not([type="radio"])::placeholder,
+  .form-builder-surface textarea::placeholder {
+    color: #64748b;
+    opacity: 1;
+  }
+
+  .form-builder-surface input:not([type="checkbox"]):not([type="radio"]):focus,
+  .form-builder-surface select:focus,
+  .form-builder-surface textarea:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.14);
+    outline: none;
   }
 }
 
