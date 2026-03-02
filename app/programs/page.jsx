@@ -25,6 +25,30 @@ const programs = [
     description: "Kali ini 8EH Radio ITB kembali dengan podcast yang super seru, GWS! Bukan get well soon, tapi Gather With Us.",
     link: "/programs",
   },
+  {  
+    logo: "/logo-kiskaskus.webp", 
+    title: "KISKASKUS: Kisah Kasih Kampus",
+    description: "Kampus Mania pengen ngerasain kisah cinta di kampus? Eits... sebelum ngerasain, mending dengerin KisKasKus buat tahu realita cinta di kampus yang sesungguhnya!",
+    link: "/programs",
+  },
+  {
+    logo: "/logo-wave.webp", 
+    title: "WAVE: What's Around Vibes n Everything",
+    description: "Kampus Mania lagi rame ngomongin tren apa, sih? Tenang, WAVE hadir buat merangkum semuanya. Dari yang lagi hype sampai yang cuma lewat di timeline, kita kupas bareng-bareng!",
+    link: "/programs",
+  },
+  {
+    logo: "/logo-kelam.webp", 
+    title: "KELAM: Kelana Malam",
+    description: "Siap bikin bulu kuduk berdiri, KELAM mengajak Kampus Mania berkelana menelusuri jejak budaya bernuansa horor Indonesia.",
+    link: "/programs",
+  },
+  {
+    logo: "/logo-onair.webp", 
+    title: "ONAIR: Obrolan Nada & Irama",
+    description: "Kampus Mania ingin tahu apa aja sih yang terjadi di dunia musik global sekarang? Kita akan kupas tuntas di ONAIR karena tiap nada punya momennya sendiri!",
+    link: "/programs",
+  },
 ];
 
 
