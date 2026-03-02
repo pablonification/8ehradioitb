@@ -21,6 +21,7 @@ export const authOptions = {
           prompt: "consent",
         },
       },
+      allowDangerousEmailAccountLinking: true,
     }),
   ],
   debug: process.env.NODE_ENV !== "production",
