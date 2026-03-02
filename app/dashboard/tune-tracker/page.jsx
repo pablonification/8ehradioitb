@@ -125,7 +125,7 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
+  const [pendingAudioDeletion, setPendingAudioDeletion] = useState(false);
   // iTunes Search State
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -180,30 +180,18 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
     }
   };
 
-  const handleSelectResult = async (item) => {
+  const handleSelectResult = (item) => {
     setError("");
     setSuccess("");
 
+    // Track whether we need to delete the existing R2 audio on save
     const shouldRemovePersistedAudio =
       Boolean(entry?.id) &&
       typeof entry?.audioUrl === "string" &&
       entry.audioUrl.trim().length > 0;
 
     if (shouldRemovePersistedAudio) {
-      try {
-        const res = await fetch("/api/tune-tracker", {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: entry.id, field: "audioUrl" }),
-        });
-        if (!res.ok) {
-          const payload = await res.json().catch(() => ({}));
-          throw new Error(payload?.error || "Failed to remove previous audio file.");
-        }
-      } catch (err) {
-        setError(err.message || "Failed to remove previous audio file.");
-        return;
-      }
+      setPendingAudioDeletion(true);
     }
 
     setEntry((prev) => ({
@@ -214,7 +202,7 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
       itunesPreviewUrl: item.previewUrl,
       itunesTrackId: item.trackId,
       sourceType: "ITUNES",
-      audioUrl: null, // Clear manual audio if any
+      audioUrl: null,
     }));
     setShowDropdown(false);
     setSearchQuery("");
@@ -222,6 +210,8 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
   };
 
   const handleClearItunes = () => {
+    setPendingAudioDeletion(false);
+    setSuccess("");
     setEntry((prev) => ({
       ...prev,
       itunesPreviewUrl: null,
@@ -324,6 +314,19 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
     let finalPayload = { ...entry };
 
     try {
+      // Delete old R2 audio only at save time (deferred from iTunes selection)
+      if (pendingAudioDeletion && entry.id) {
+        const delRes = await fetch("/api/tune-tracker", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: entry.id, field: "audioUrl" }),
+        });
+        if (!delRes.ok) {
+          const payload = await delRes.json().catch(() => ({}));
+          throw new Error(payload?.error || "Failed to remove previous audio file.");
+        }
+      }
+
       if (entry.coverImage instanceof File) {
         const coverUrl = await uploadFile(entry.coverImage, "cover");
         finalPayload.coverImage = coverUrl;
@@ -340,6 +343,7 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
       });
 
       if (!res.ok) throw new Error("Failed to save entry.");
+      setPendingAudioDeletion(false);
       setSuccess("Entry saved successfully!");
       if (onSaveSuccess) onSaveSuccess();
     } catch (err) {

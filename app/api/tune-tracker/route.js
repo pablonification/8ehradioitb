@@ -162,7 +162,20 @@ export async function PATCH(req) {
     const { id, ...rawData } = await req.json();
     if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
-    const data = { ...rawData };
+    // Whitelist patchable fields — reject anything outside this set
+    const PATCHABLE_FIELDS = new Set([
+      "title", "artist", "coverImage", "audioUrl",
+      "itunesPreviewUrl", "itunesTrackId", "sourceType",
+    ]);
+    const data = {};
+    for (const key of Object.keys(rawData)) {
+      if (PATCHABLE_FIELDS.has(key)) {
+        data[key] = rawData[key];
+      }
+    }
+    if (Object.keys(data).length === 0) {
+      return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
+    }
     const touchesSourceState =
       hasOwn(data, "sourceType") ||
       hasOwn(data, "audioUrl") ||
