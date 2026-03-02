@@ -158,7 +158,7 @@ export async function PATCH(req) {
       }
 
       if (staleFileKeys.length > 0) {
-        void (async () => {
+        try {
           const cleanup = await deleteR2ObjectKeys(staleFileKeys);
           if (cleanup.failed.length > 0) {
             await reportCriticalError({
@@ -170,7 +170,17 @@ export async function PATCH(req) {
               },
             });
           }
-        })();
+        } catch (cleanupError) {
+          await reportCriticalError({
+            source: "api/profile/me:cleanup",
+            message: "Unexpected error while deleting stale profile files",
+            error: cleanupError,
+            context: {
+              userId: session.user.id,
+              staleFileKeys,
+            },
+          });
+        }
       }
     }
 
