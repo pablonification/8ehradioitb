@@ -21,6 +21,7 @@ export const authOptions = {
           prompt: "consent",
         },
       },
+      allowDangerousEmailAccountLinking: true,
     }),
   ],
   debug: process.env.NODE_ENV !== "production",
@@ -46,7 +47,12 @@ export const authOptions = {
 
       // Keep Account tokens fresh on every sign-in so server-side API calls
       // (e.g. Drive export) always have a valid access_token + refresh_token.
-      if (account?.provider === "google" && user?.id) {
+      // Only update tokens if user.id is a valid MongoDB ObjectId.
+      // On first login for script-seeded users, user.id is the Google sub ID
+      // (a 21-digit number), not an ObjectId — updateMany would throw a
+      // Malformed ObjectID error in that case.
+      const isValidObjectId = /^[0-9a-f]{24}$/i.test(user?.id ?? "");
+      if (account?.provider === "google" && isValidObjectId) {
         await prisma.account.updateMany({
           where: { userId: user.id, provider: "google" },
           data: {
@@ -82,6 +88,7 @@ export const authOptions = {
   },
   pages: {
     signIn: "/login",
+    error: "/login",
   },
 };
 
