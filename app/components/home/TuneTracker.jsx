@@ -6,6 +6,7 @@ import Image from "next/image";
 export default function TuneTracker({ tunes = [], meta = null }) {
   const [nowPlaying, setNowPlaying] = useState(null);
   const audioRef = useRef(null);
+  const playGenRef = useRef(0);
 
   // Fill array to ensure 10 items
   const filledTunes = Array.from({ length: 10 }, (_, i) => {
@@ -50,12 +51,17 @@ export default function TuneTracker({ tunes = [], meta = null }) {
       }
     })();
 
+    // Increment generation so stale listeners become no-ops
+    const gen = ++playGenRef.current;
+
     const playWhenReady = () =>
       audio
         .play()
-        .then(() => setNowPlaying(idx))
+        .then(() => {
+          if (playGenRef.current === gen) setNowPlaying(idx);
+        })
         .catch(() => {
-          setNowPlaying(null);
+          if (playGenRef.current === gen) setNowPlaying(null);
           throw new Error("PLAYBACK_FAILED");
         });
 
@@ -71,6 +77,7 @@ export default function TuneTracker({ tunes = [], meta = null }) {
       if (!sourceChanged) return;
 
       const retryOnCanPlay = () => {
+        if (playGenRef.current !== gen) return;
         playWhenReady().catch(() => {});
       };
 
@@ -80,9 +87,13 @@ export default function TuneTracker({ tunes = [], meta = null }) {
       }
 
       audio.addEventListener("canplay", retryOnCanPlay, { once: true });
-      audio.addEventListener("error", () => setNowPlaying(null), {
-        once: true,
-      });
+      audio.addEventListener(
+        "error",
+        () => {
+          if (playGenRef.current === gen) setNowPlaying(null);
+        },
+        { once: true },
+      );
       audio.load();
     });
   };

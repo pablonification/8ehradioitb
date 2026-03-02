@@ -44,19 +44,21 @@ export async function POST(req) {
       );
     }
 
-    const items = results.map((track) => ({
-      trackId: String(track.trackId),
-      title: track.trackName,
-      artist: track.artistName,
-      album: track.collectionName,
-      // Scale artwork to 600x600 for better quality
-      artworkUrl: track.artworkUrl100
-        ? track.artworkUrl100.replace("100x100bb", "600x600bb")
-        : null,
-      previewUrl: track.previewUrl || null,
-      genre: track.primaryGenreName,
-      durationMs: track.trackTimeMillis,
-    }));
+    const items = results
+      .filter((t) => t.trackId != null && t.trackName && t.artistName)
+      .map((track) => ({
+        trackId: String(track.trackId),
+        title: track.trackName,
+        artist: track.artistName,
+        album: track.collectionName,
+        // Scale artwork to 600x600 for better quality
+        artworkUrl: track.artworkUrl100
+          ? track.artworkUrl100.replace("100x100bb", "600x600bb")
+          : null,
+        previewUrl: track.previewUrl || null,
+        genre: track.primaryGenreName,
+        durationMs: track.trackTimeMillis,
+      }));
 
     return NextResponse.json({ items });
   } catch (error) {

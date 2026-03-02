@@ -52,12 +52,23 @@ export async function POST(req) {
         data,
       });
     } else {
-      meta = await prisma.tuneTrackerMeta.create({
-        data: {
-          curatedBy: curatedBy || "",
-          editionDate: editionDate ? new Date(editionDate) : new Date(),
-        },
-      });
+      try {
+        meta = await prisma.tuneTrackerMeta.create({
+          data: {
+            curatedBy: curatedBy || "",
+            editionDate: editionDate ? new Date(editionDate) : new Date(),
+          },
+        });
+      } catch {
+        // Race: another request created the record first — retry as update
+        meta = await prisma.tuneTrackerMeta.findFirst();
+        if (meta) {
+          meta = await prisma.tuneTrackerMeta.update({
+            where: { id: meta.id },
+            data,
+          });
+        }
+      }
     }
 
     return NextResponse.json(meta);

@@ -213,6 +213,14 @@ export async function PATCH(req) {
       }
 
       data.sourceType = sourceTypeValidation.value;
+
+      // Cascade-clear itunesTrackId when itunesPreviewUrl is being nulled
+      if (
+        hasOwn(data, "itunesPreviewUrl") &&
+        !toNonEmptyString(data.itunesPreviewUrl)
+      ) {
+        data.itunesTrackId = null;
+      }
     }
 
     const entry = await prisma.tuneTrackerEntry.update({ where: { id }, data });
