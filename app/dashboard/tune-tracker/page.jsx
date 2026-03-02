@@ -218,10 +218,7 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
     }));
     setShowDropdown(false);
     setSearchQuery("");
-    setSuccess("iTunes track selected.");
-    if (shouldRemovePersistedAudio && onSaveSuccess) {
-      onSaveSuccess();
-    }
+    setSuccess("iTunes track selected. Click Save to persist the changes.");
   };
 
   const handleClearItunes = () => {
@@ -385,7 +382,7 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
               placeholder="Search for a song..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              onKeyDown={(e) => e.key === "Enter" && !isSearching && handleSearch()}
             />
             <button
               type="button"
