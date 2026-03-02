@@ -5,11 +5,25 @@ import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import ButtonPrimary from "../components/ButtonPrimary";
 
 export default function LoginPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const errorCode = searchParams.get("error");
+  const errorMessages = {
+    AccessDenied: "Email kamu tidak ada dalam daftar yang diizinkan. Hubungi admin 8EH.",
+    OAuthAccountNotLinked: "Email ini sudah terdaftar dengan metode login lain.",
+    Signin: "Terjadi kesalahan saat login. Silakan coba lagi.",
+    OAuthSignin: "Terjadi kesalahan saat login. Silakan coba lagi.",
+    OAuthCallback: "Terjadi kesalahan saat login. Silakan coba lagi.",
+  };
+  const errorMessage = errorCode
+    ? (errorMessages[errorCode] ?? "Terjadi kesalahan. Silakan coba lagi atau hubungi admin.")
+    : null;
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -63,6 +77,11 @@ export default function LoginPage() {
               Login to your account
             </p>
 
+            {errorMessage && (
+              <div className="mb-4 rounded-md bg-red-100 border border-red-300 px-4 py-3 text-sm text-red-700 text-left">
+                {errorMessage}
+              </div>
+            )}
             <ButtonPrimary
               onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
               className="w-full flex items-center justify-center py-3 text-base"
