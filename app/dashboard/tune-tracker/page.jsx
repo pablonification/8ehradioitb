@@ -180,7 +180,32 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
     }
   };
 
-  const handleSelectResult = (item) => {
+  const handleSelectResult = async (item) => {
+    setError("");
+    setSuccess("");
+
+    const shouldRemovePersistedAudio =
+      Boolean(entry?.id) &&
+      typeof entry?.audioUrl === "string" &&
+      entry.audioUrl.trim().length > 0;
+
+    if (shouldRemovePersistedAudio) {
+      try {
+        const res = await fetch("/api/tune-tracker", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: entry.id, field: "audioUrl" }),
+        });
+        if (!res.ok) {
+          const payload = await res.json().catch(() => ({}));
+          throw new Error(payload?.error || "Failed to remove previous audio file.");
+        }
+      } catch (err) {
+        setError(err.message || "Failed to remove previous audio file.");
+        return;
+      }
+    }
+
     setEntry((prev) => ({
       ...prev,
       title: item.title,
@@ -193,8 +218,10 @@ function TuneEntryForm({ initialEntry, onSaveSuccess }) {
     }));
     setShowDropdown(false);
     setSearchQuery("");
-    setSuccess("");
-    setError("");
+    setSuccess("iTunes track selected.");
+    if (shouldRemovePersistedAudio && onSaveSuccess) {
+      onSaveSuccess();
+    }
   };
 
   const handleClearItunes = () => {

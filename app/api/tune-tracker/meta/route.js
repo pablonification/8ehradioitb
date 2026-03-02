@@ -9,57 +9,63 @@ function isMusic(roleString) {
 }
 
 export async function GET() {
-  let meta = await prisma.tuneTrackerMeta.findFirst();
-
-  if (!meta) {
-    meta = await prisma.tuneTrackerMeta.create({
-      data: {
-        curatedBy: "",
-        editionDate: new Date(),
-      },
-    });
+  try {
+    const meta = await prisma.tuneTrackerMeta.findFirst();
+    return NextResponse.json(meta);
+  } catch (error) {
+    console.error("Failed to fetch tune tracker meta:", error);
+    return NextResponse.json(
+      { error: "internal_server_error" },
+      { status: 500 },
+    );
   }
-
-  return NextResponse.json(meta);
 }
 
 export async function POST(req) {
-  const session = await getServerSession(authOptions);
-  if (!session || !isMusic(session.user.role)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { curatedBy, editionDate } = await req.json();
-
-  if (editionDate !== undefined) {
-    const parsedDate = new Date(editionDate);
-    if (isNaN(parsedDate.getTime())) {
-      return NextResponse.json(
-        { error: "Invalid editionDate format" },
-        { status: 400 },
-      );
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !isMusic(session.user.role)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const { curatedBy, editionDate } = await req.json();
+
+    if (editionDate !== undefined) {
+      const parsedDate = new Date(editionDate);
+      if (isNaN(parsedDate.getTime())) {
+        return NextResponse.json(
+          { error: "Invalid editionDate format" },
+          { status: 400 },
+        );
+      }
+    }
+
+    let meta = await prisma.tuneTrackerMeta.findFirst();
+
+    const data = {};
+    if (curatedBy !== undefined) data.curatedBy = curatedBy;
+    if (editionDate !== undefined) data.editionDate = new Date(editionDate);
+
+    if (meta) {
+      meta = await prisma.tuneTrackerMeta.update({
+        where: { id: meta.id },
+        data,
+      });
+    } else {
+      meta = await prisma.tuneTrackerMeta.create({
+        data: {
+          curatedBy: curatedBy || "",
+          editionDate: editionDate ? new Date(editionDate) : new Date(),
+        },
+      });
+    }
+
+    return NextResponse.json(meta);
+  } catch (error) {
+    console.error("Failed to upsert tune tracker meta:", error);
+    return NextResponse.json(
+      { error: "internal_server_error" },
+      { status: 500 },
+    );
   }
-
-  let meta = await prisma.tuneTrackerMeta.findFirst();
-
-  const data = {};
-  if (curatedBy !== undefined) data.curatedBy = curatedBy;
-  if (editionDate !== undefined) data.editionDate = new Date(editionDate);
-
-  if (meta) {
-    meta = await prisma.tuneTrackerMeta.update({
-      where: { id: meta.id },
-      data,
-    });
-  } else {
-    meta = await prisma.tuneTrackerMeta.create({
-      data: {
-        curatedBy: curatedBy || "",
-        editionDate: editionDate ? new Date(editionDate) : new Date(),
-      },
-    });
-  }
-
-  return NextResponse.json(meta);
 }
