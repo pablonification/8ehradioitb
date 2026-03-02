@@ -460,7 +460,7 @@ export async function POST(req, { params }) {
     }
 
     if (staleFileKeys.length > 0) {
-      void (async () => {
+      try {
         const cleanup = await deleteR2ObjectKeys(staleFileKeys);
         if (cleanup.failed.length > 0) {
           await reportCriticalError({
@@ -472,7 +472,17 @@ export async function POST(req, { params }) {
             },
           });
         }
-      })();
+      } catch (cleanupError) {
+        await reportCriticalError({
+          source: "api/events/submissions:cleanup",
+          message: "Unexpected error while deleting stale submission files",
+          error: cleanupError,
+          context: {
+            eventSlug,
+            staleFileKeys,
+          },
+        });
+      }
     }
 
     return NextResponse.json(

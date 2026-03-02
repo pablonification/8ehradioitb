@@ -14,6 +14,7 @@ import { reportCriticalError } from "@/lib/observability/critical";
 const MAX_ATTEMPTS = 3;
 const COOLDOWN_MINUTES = 15;
 const CLAIM_ACTIONS = new Set(["lookup", "claim", "request_review"]);
+const PROFILE_ALREADY_CLAIMED_ERROR = "profile_already_claimed";
 
 function normalizeEmail(value) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
@@ -315,44 +316,70 @@ export async function POST(req) {
       );
     }
 
-    await prisma.$transaction(async (tx) => {
-      if (targetProfile.userId !== requesterUserId) {
-        await tx.participantProfile.update({
-          where: {
-            id: targetProfile.id,
-          },
+    try {
+      await prisma.$transaction(async (tx) => {
+        const currentProfile = await tx.participantProfile.findUnique({
+          where: { id: targetProfile.id },
+          select: { userId: true },
+        });
+
+        if (!currentProfile) {
+          throw new Error("profile_not_found");
+        }
+
+        if (currentProfile.userId && currentProfile.userId !== requesterUserId) {
+          throw new Error(PROFILE_ALREADY_CLAIMED_ERROR);
+        }
+
+        if (currentProfile.userId !== requesterUserId) {
+          await tx.participantProfile.update({
+            where: {
+              id: targetProfile.id,
+            },
+            data: {
+              userId: requesterUserId,
+            },
+          });
+        }
+
+        if (requesterEmail) {
+          await tx.whitelistedEmail.upsert({
+            where: {
+              email: requesterEmail,
+            },
+            update: {},
+            create: {
+              email: requesterEmail,
+            },
+          });
+        }
+
+        await tx.profileClaimRequest.create({
           data: {
-            userId: requesterUserId,
+            requesterUserId,
+            requesterEmail,
+            targetProfileId: targetProfile.id,
+            nimInput: nim,
+            emergencyLast4Input: emergencyLast6,
+            status: "AUTO_APPROVED",
+            reason: "nim_and_emergency_last6_verified",
+            reviewedById: requesterUserId,
+            reviewedAt: new Date(),
           },
         });
-      }
-
-      if (requesterEmail) {
-        await tx.whitelistedEmail.upsert({
-          where: {
-            email: requesterEmail,
-          },
-          update: {},
-          create: {
-            email: requesterEmail,
-          },
-        });
-      }
-
-      await tx.profileClaimRequest.create({
-        data: {
-          requesterUserId,
-          requesterEmail,
-          targetProfileId: targetProfile.id,
-          nimInput: nim,
-          emergencyLast4Input: emergencyLast6,
-          status: "AUTO_APPROVED",
-          reason: "nim_and_emergency_last6_verified",
-          reviewedById: requesterUserId,
-          reviewedAt: new Date(),
-        },
       });
-    });
+    } catch (transactionError) {
+      if (transactionError?.message === PROFILE_ALREADY_CLAIMED_ERROR) {
+        return NextResponse.json(
+          { error: PROFILE_ALREADY_CLAIMED_ERROR },
+          { status: 409 },
+        );
+      }
+      if (transactionError?.message === "profile_not_found") {
+        return NextResponse.json({ error: "nim_not_found" }, { status: 404 });
+      }
+      throw transactionError;
+    }
 
     return NextResponse.json({
       ok: true,
