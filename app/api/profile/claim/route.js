@@ -6,7 +6,7 @@ import {
   buildCooldownMessage,
   getEmergencyPhoneCandidates,
   getMaskedEmergencyHintFromProfile,
-  normalizeLast4Input,
+  normalizeLast6Input,
   normalizeNim,
 } from "@/lib/profile/claim";
 import { reportCriticalError } from "@/lib/observability/critical";
@@ -20,37 +20,28 @@ function normalizeEmail(value) {
 }
 
 async function findProfileByNim(nimInput) {
+  const rawNim = typeof nimInput === "string" ? nimInput.trim() : "";
   const normalizedNim = normalizeNim(nimInput);
   if (!normalizedNim) return null;
 
-  try {
-    const exact = await prisma.participantProfile.findFirst({
-      where: {
-        biodata: {
-          path: ["nim"],
-          equals: normalizedNim,
-        },
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
-    if (exact) return exact;
-  } catch {
-    // Fallback to in-memory scan for Mongo JSON filter compatibility edge cases.
-  }
+  const nimCandidates = Array.from(
+    new Set(
+      [rawNim, rawNim.replace(/\s+/g, ""), normalizedNim, normalizedNim.toLowerCase()].filter(
+        Boolean,
+      ),
+    ),
+  );
 
   const profiles = await prisma.participantProfile.findMany({
-    select: {
-      id: true,
-      userId: true,
-      biodata: true,
+    where: {
+      OR: nimCandidates.map((candidate) => ({
+        biodata: {
+          path: ["nim"],
+          equals: candidate,
+        },
+      })),
+    },
+    include: {
       user: {
         select: {
           id: true,
@@ -62,10 +53,7 @@ async function findProfileByNim(nimInput) {
   });
 
   return (
-    profiles.find((profile) => {
-      const nim = normalizeNim(profile?.biodata?.nim);
-      return nim === normalizedNim;
-    }) || null
+    profiles.find((profile) => normalizeNim(profile?.biodata?.nim) === normalizedNim) || null
   );
 }
 
@@ -172,6 +160,20 @@ export async function POST(req) {
       return NextResponse.json({ error: "nim_required" }, { status: 400 });
     }
 
+    if (action === "claim") {
+      const activeLock = await getActiveLock(requesterUserId);
+      if (activeLock) {
+        return NextResponse.json(
+          {
+            error: "cooldown_active",
+            cooldownUntil: activeLock.cooldownUntil,
+            message: buildCooldownMessage(activeLock.cooldownUntil),
+          },
+          { status: 429 },
+        );
+      }
+    }
+
     const existingMine = await prisma.participantProfile.findUnique({
       where: { userId: requesterUserId },
       select: { id: true },
@@ -184,7 +186,9 @@ export async function POST(req) {
           requesterUserId,
           requesterEmail,
           nimInput: nim,
-          emergencyLast4Input: normalizeLast4Input(body?.emergencyLast4),
+          emergencyLast4Input: normalizeLast6Input(
+            body?.emergencyLast6 ?? body?.emergencyLast4,
+          ),
           targetProfileId: null,
           reason: "nim_not_found",
         });
@@ -268,22 +272,10 @@ export async function POST(req) {
       });
     }
 
-    const activeLock = await getActiveLock(requesterUserId);
-    if (activeLock) {
-      return NextResponse.json(
-        {
-          error: "cooldown_active",
-          cooldownUntil: activeLock.cooldownUntil,
-          message: buildCooldownMessage(activeLock.cooldownUntil),
-        },
-        { status: 429 },
-      );
-    }
-
-    const emergencyLast4 = normalizeLast4Input(
+    const emergencyLast6 = normalizeLast6Input(
       body?.emergencyLast6 ?? body?.emergencyLast4,
     );
-    if (emergencyLast4.length !== 6) {
+    if (emergencyLast6.length !== 6) {
       return NextResponse.json(
         { error: "emergency_last6_required" },
         { status: 400 },
@@ -292,7 +284,7 @@ export async function POST(req) {
 
     const emergencyCandidates = getEmergencyPhoneCandidates(targetProfile.biodata);
     const verified = emergencyCandidates.some((phone) =>
-      phone.endsWith(emergencyLast4),
+      phone.endsWith(emergencyLast6),
     );
 
     if (!verified) {
@@ -300,7 +292,7 @@ export async function POST(req) {
         requesterUserId,
         requesterEmail,
         nimInput: nim,
-        emergencyLast4Input: emergencyLast4,
+        emergencyLast4Input: emergencyLast6,
         targetProfileId: targetProfile.id,
         reason: "emergency_last6_mismatch",
       });
@@ -353,7 +345,7 @@ export async function POST(req) {
           requesterEmail,
           targetProfileId: targetProfile.id,
           nimInput: nim,
-          emergencyLast4Input: emergencyLast4,
+          emergencyLast4Input: emergencyLast6,
           status: "AUTO_APPROVED",
           reason: "nim_and_emergency_last6_verified",
           reviewedById: requesterUserId,

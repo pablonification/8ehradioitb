@@ -203,12 +203,14 @@ export async function DELETE(req, { params }) {
       return authResponse;
     }
 
-    // MongoDB has no cascade deletes — manually delete related records in order.
-    await prisma.eventExportLog.deleteMany({ where: { eventId: event.id } });
-    await prisma.eventSubmission.deleteMany({ where: { eventId: event.id } });
-    await prisma.eventFormVersion.deleteMany({ where: { eventId: event.id } });
-    await prisma.eventOrganizer.deleteMany({ where: { eventId: event.id } });
-    await prisma.event.delete({ where: { id: event.id } });
+    // MongoDB has no cascade deletes — delete related records atomically.
+    await prisma.$transaction([
+      prisma.eventExportLog.deleteMany({ where: { eventId: event.id } }),
+      prisma.eventSubmission.deleteMany({ where: { eventId: event.id } }),
+      prisma.eventFormVersion.deleteMany({ where: { eventId: event.id } }),
+      prisma.eventOrganizer.deleteMany({ where: { eventId: event.id } }),
+      prisma.event.delete({ where: { id: event.id } }),
+    ]);
 
     return NextResponse.json({ ok: true });
   } catch (error) {

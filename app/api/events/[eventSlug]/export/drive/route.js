@@ -48,17 +48,24 @@ async function getGoogleAccessToken(userId) {
   if (!res.ok) return { error: "token_refresh_failed" };
 
   const tokens = await res.json();
+  const refreshedAccessToken =
+    typeof tokens?.access_token === "string" ? tokens.access_token.trim() : "";
+  const expiresInSeconds = Number(tokens?.expires_in);
+
+  if (!refreshedAccessToken || !Number.isFinite(expiresInSeconds) || expiresInSeconds <= 0) {
+    return { error: "token_refresh_failed" };
+  }
 
   await prisma.account.updateMany({
     where: { userId, provider: "google" },
     data: {
-      access_token: tokens.access_token,
-      expires_at: Math.floor(Date.now() / 1000) + tokens.expires_in,
+      access_token: refreshedAccessToken,
+      expires_at: Math.floor(Date.now() / 1000) + Math.floor(expiresInSeconds),
       ...(tokens.refresh_token && { refresh_token: tokens.refresh_token }),
     },
   });
 
-  return { accessToken: tokens.access_token };
+  return { accessToken: refreshedAccessToken };
 }
 
 export async function POST(req, { params }) {
