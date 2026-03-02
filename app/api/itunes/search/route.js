@@ -7,6 +7,44 @@ function isMusic(roleString) {
   return hasAnyRole(roleString, ["MUSIC", "DEVELOPER"]);
 }
 
+function toNonEmptyString(value) {
+  if (typeof value !== "string") return "";
+  const trimmed = value.trim();
+  return trimmed;
+}
+
+function normalizeTrackItem(track) {
+  const trackId =
+    typeof track?.trackId === "string" || typeof track?.trackId === "number"
+      ? String(track.trackId).trim()
+      : "";
+  const title = toNonEmptyString(track?.trackName);
+  const artist = toNonEmptyString(track?.artistName);
+
+  // Skip partial rows so dashboard only offers entries that can be saved.
+  if (!trackId || !title || !artist) return null;
+
+  const album = toNonEmptyString(track?.collectionName);
+  const artworkUrl100 = toNonEmptyString(track?.artworkUrl100);
+  const previewUrl = toNonEmptyString(track?.previewUrl);
+  const genre = toNonEmptyString(track?.primaryGenreName);
+  const durationMs = Number.isFinite(track?.trackTimeMillis)
+    ? track.trackTimeMillis
+    : null;
+
+  return {
+    trackId,
+    title,
+    artist,
+    album: album || null,
+    // Scale artwork to 600x600 for better quality
+    artworkUrl: artworkUrl100 ? artworkUrl100.replace("100x100bb", "600x600bb") : null,
+    previewUrl: previewUrl || null,
+    genre: genre || null,
+    durationMs,
+  };
+}
+
 export async function POST(req) {
   const session = await getServerSession(authOptions);
   if (!session || !isMusic(session.user.role)) {
@@ -44,19 +82,9 @@ export async function POST(req) {
       );
     }
 
-    const items = results.map((track) => ({
-      trackId: String(track.trackId),
-      title: track.trackName,
-      artist: track.artistName,
-      album: track.collectionName,
-      // Scale artwork to 600x600 for better quality
-      artworkUrl: track.artworkUrl100
-        ? track.artworkUrl100.replace("100x100bb", "600x600bb")
-        : null,
-      previewUrl: track.previewUrl || null,
-      genre: track.primaryGenreName,
-      durationMs: track.trackTimeMillis,
-    }));
+    const items = results
+      .map((track) => normalizeTrackItem(track))
+      .filter((item) => item !== null);
 
     return NextResponse.json({ items });
   } catch (error) {
