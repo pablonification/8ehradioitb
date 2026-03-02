@@ -121,7 +121,7 @@ export default function ProgramsSlider({ title, subtitle, programs }) {
           {programs.map((program, index) => (
             <SwiperSlide key={index}>
               {/* <Link href={program.link}> */}
-              <div className="bg-gradient-to-br backdrop-blur-xs from-orange-600/80 via-yellow-500/50 to-yellow-100/30 rounded-3xl px-8 lg:px-20 pt-8 md:pt-8 pb-8 shadow-xl h-84 md:h-96 flex flex-col justify-between overflow-hidden transition-all duration-300 border hover:border-gray-400 border-gray-200/80">
+              <div className="bg-gradient-to-br backdrop-blur-xs from-orange-600/80 via-yellow-500/50 to-yellow-100/30 rounded-3xl px-8 lg:px-8 pt-8 md:pt-8 pb-8 shadow-xl h-84 md:h-96 flex flex-col justify-between overflow-hidden transition-all duration-300 border hover:border-gray-400 border-gray-200/80">
                 <div className="flex flex-wrap items-center justify-center">
                   <div className="flex mb-4 w-full lg:h-40 justify-center">
                     <Image
@@ -133,7 +133,7 @@ export default function ProgramsSlider({ title, subtitle, programs }) {
                     />
                   </div>
                   <div>
-                    <h3 className="text-xl lg:text-3xl font-heading font-bold text-gray-800 text-center">
+                    <h3 className="text-xl lg:text-2xl font-heading font-bold text-gray-800 text-center">
                       {program.title}
                     </h3>
                     <p className="text-gray-600 font-body text-sm lg:text-base mt-2 text-center max-w-md mx-auto">

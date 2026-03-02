@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "bun@1.3.4",
   "scripts": {
-    "dev": "bun --bun next dev --turbopack",
+    "dev": "bun --bun next dev",
     "build": "bun --bun next build",
     "start": "bun --bun next start",
     "lint": "bun --bun next lint",
@@ -39,7 +39,8 @@
     "styled-components": "^6.1.19",
     "swiper": "^11.0.0",
     "swr": "^2.3.8",
-    "wavesurfer.js": "^7.10.1"
+    "wavesurfer.js": "^7.10.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",
