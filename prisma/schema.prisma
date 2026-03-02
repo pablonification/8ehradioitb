@@ -15,19 +15,173 @@ enum Role {
   MUSIC
 }
 
+enum PublishStatus {
+  draft
+  published
+}
+
+model ParticipantProfile {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  displayName String?
+  biodata     Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  submissions EventSubmission[]
+  claimRequests ProfileClaimRequest[]
+
+  @@unique([userId])
+}
+
+model ProfileClaimRequest {
+  id                  String              @id @default(auto()) @map("_id") @db.ObjectId
+  requesterUserId     String              @db.ObjectId
+  requesterUser       User                @relation("ProfileClaimRequester", fields: [requesterUserId], references: [id])
+  requesterEmail      String
+  targetProfileId     String?             @db.ObjectId
+  targetProfile       ParticipantProfile? @relation(fields: [targetProfileId], references: [id])
+  nimInput            String
+  emergencyLast4Input String?
+  status              String              @default("PENDING")
+  reason              String?
+  cooldownUntil       DateTime?
+  reviewedById        String?             @db.ObjectId
+  reviewedBy          User?               @relation("ProfileClaimReviewer", fields: [reviewedById], references: [id])
+  reviewedAt          DateTime?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@index([requesterUserId, createdAt])
+  @@index([status, createdAt])
+}
+
+model ProfileFieldCatalog {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  key         String   @unique
+  label       String
+  description String?
+  fieldType   String
+  isRequired  Boolean  @default(false)
+  options     Json?
+  metadata    Json?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Event {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  slug        String        @unique
+  title       String
+  description String?
+  startsAt    DateTime?
+  endsAt      DateTime?
+  status      PublishStatus @default(draft)
+  createdById String        @db.ObjectId
+  createdBy   User          @relation(fields: [createdById], references: [id])
+  metadata    Json?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  organizers   EventOrganizer[]
+  formVersions EventFormVersion[]
+  submissions  EventSubmission[]
+  exportLogs   EventExportLog[]
+}
+
+model EventOrganizer {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  eventId   String   @db.ObjectId
+  event     Event    @relation(fields: [eventId], references: [id])
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  role      String?
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, userId])
+}
+
+model EventFormVersion {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  eventId        String        @db.ObjectId
+  event          Event         @relation(fields: [eventId], references: [id])
+  version        Int
+  status         PublishStatus @default(draft)
+  title          String?
+  formSchema     Json
+  consentText    String
+  consentVersion String
+  publishedAt    DateTime?
+  createdById    String?       @db.ObjectId
+  createdBy      User?         @relation(fields: [createdById], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  submissions EventSubmission[]
+
+  @@unique([eventId, version])
+}
+
+model EventSubmission {
+  id                       String              @id @default(auto()) @map("_id") @db.ObjectId
+  eventId                  String              @db.ObjectId
+  event                    Event               @relation(fields: [eventId], references: [id])
+  formVersionId            String              @db.ObjectId
+  formVersion              EventFormVersion    @relation(fields: [formVersionId], references: [id])
+  participantProfileId     String?             @db.ObjectId
+  participantProfile       ParticipantProfile? @relation(fields: [participantProfileId], references: [id])
+  submitterUserId          String?             @db.ObjectId
+  submitterUser            User?               @relation(fields: [submitterUserId], references: [id])
+  respondentEmail          String?
+  status                   String?
+  answers                  Json
+  formSchemaSnapshot       Json
+  consentedProfileSnapshot Json
+  consentTextSnapshot      String
+  consentVersion           String
+  submittedAt              DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+
+  @@index([eventId, submittedAt])
+  @@index([eventId, respondentEmail, submittedAt])
+}
+
+model EventExportLog {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  eventId       String   @db.ObjectId
+  event         Event    @relation(fields: [eventId], references: [id])
+  requestedById String   @db.ObjectId
+  requestedBy   User     @relation(fields: [requestedById], references: [id])
+  exportType    String
+  filters       Json?
+  rowCount      Int?
+  fileUrl       String?
+  createdAt     DateTime @default(now())
+}
+
 model User {
-  id        String         @id @default(auto()) @map("_id") @db.ObjectId
-  name      String?
-  email     String?        @unique
-  emailVerified DateTime?
-  image     String?
-  role      String         @default("KRU")
-  createdAt DateTime       @default(now())
-  authored  AuthorOnPost[]
-  accounts  Account[]
-  sessions  Session[]
-  shortLinks ShortLink[]
-  podcasts  Podcast[]
+  id                 String              @id @default(auto()) @map("_id") @db.ObjectId
+  name               String?
+  email              String?             @unique
+  emailVerified      DateTime?
+  image              String?
+  role               String              @default("KRU")
+  createdAt          DateTime            @default(now())
+  authored           AuthorOnPost[]
+  accounts           Account[]
+  sessions           Session[]
+  shortLinks         ShortLink[]
+  podcasts           Podcast[]
+  participantProfile ParticipantProfile?
+  profileClaimRequests ProfileClaimRequest[] @relation("ProfileClaimRequester")
+  reviewedProfileClaimRequests ProfileClaimRequest[] @relation("ProfileClaimReviewer")
+  events             Event[]
+  eventOrganizers    EventOrganizer[]
+  eventFormVersions  EventFormVersion[]
+  eventSubmissions   EventSubmission[]
+  eventExportLogs    EventExportLog[]
 }
 
 model BlogPost {
@@ -55,30 +209,30 @@ model AuthorOnPost {
 }
 
 model ShortLink {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String           @id @default(auto()) @map("_id") @db.ObjectId
   destination String
-  slug        String   @unique
+  slug        String           @unique
   title       String?
-  domain      String   @default("8eh.link")
+  domain      String           @default("8eh.link")
   password    String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  userId      String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  userId      String           @db.ObjectId
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   clicks      ShortLinkClick[]
 }
 
 model ShortLinkClick {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  shortLinkId String   @db.ObjectId
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  shortLinkId String    @db.ObjectId
   shortLink   ShortLink @relation(fields: [shortLinkId], references: [id], onDelete: Cascade)
   ipAddress   String?
   userAgent   String?
   referer     String?
   country     String?
   city        String?
-  clickedAt   DateTime @default(now())
+  clickedAt   DateTime  @default(now())
 }
 
 model Account {
@@ -119,8 +273,8 @@ model VerificationToken {
 }
 
 model WhitelistedEmail {
-  id    String @id @default(auto()) @map("_id") @db.ObjectId
-  email String @unique
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
   createdAt DateTime @default(now())
 }
 
@@ -141,39 +295,49 @@ model Podcast {
 }
 
 model PlayerConfig {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  subtitle  String?
-  coverImage String?
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  subtitle    String?
+  coverImage  String?
   coverImages String[] // semua cover image yang pernah diupload
-  updatedAt DateTime @updatedAt
+  updatedAt   DateTime @updatedAt
 }
 
 model StreamConfig {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  baseUrls   String[]
-  defaultUrl String
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  baseUrls    String[]
+  defaultUrl  String
   fallbackUrl String
-  onAir      Boolean  @default(true)
-  updatedAt  DateTime @updatedAt
+  onAir       Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
 }
 
 model TuneTrackerEntry {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  order      Int      // 1-10, chart position
-  title      String
-  artist     String
-  coverImage String?  // R2 URL
-  audioUrl   String?  // R2 URL
-  updatedAt  DateTime @updatedAt
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  order            Int      @unique // 1-10, chart position
+  title            String
+  artist           String
+  coverImage       String? // R2 key or external URL (iTunes artwork)
+  audioUrl         String? // R2 key for manually uploaded audio
+  itunesPreviewUrl String? // iTunes 30s preview URL
+  itunesTrackId    String? // iTunes track ID for reference
+  sourceType       String? // "ITUNES" | "AUDIO_URL" | "MANUAL"
+  updatedAt        DateTime @updatedAt
+}
+
+model TuneTrackerMeta {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  curatedBy   String?
+  editionDate DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model ProgramVideo {
-  id          String   @id @default(cuid()) @map("_id")
-  title       String
-  link        String
-  thumbnail   String
+  id           String   @id @default(cuid()) @map("_id")
+  title        String
+  link         String
+  thumbnail    String
   thumbnailKey String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

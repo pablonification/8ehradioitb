@@ -37,6 +37,12 @@ const instrumentSerif = Instrument_Serif({
   weight: ["400"],
 });
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export const metadata = {
   title: "8EH Radio ITB",
   description:
@@ -153,7 +159,7 @@ export default async function RootLayout({ children }) {
         <div>
           <GlobalAudioPlayer />
         </div>
-        <ChatWidgetWrapper />
+        {/* <ChatWidgetWrapper /> */}
       </body>
     </html>
   );

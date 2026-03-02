@@ -12,7 +12,7 @@ export default function UserDropdown() {
     if (!session?.user) return null;
 
     return (
-        <div className="relative">
+        <div className="relative z-[60]">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center space-x-2"
@@ -28,7 +28,7 @@ export default function UserDropdown() {
                 <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-[80] border border-gray-200">
                     <button
                         onClick={() => signOut({ callbackUrl: '/login' })}
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-body"

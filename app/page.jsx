@@ -36,7 +36,7 @@ function AnnouncersSection() {
 }
 
 export default async function Home() {
-  const [podcasts, newsItems, tunes] = await Promise.all([
+  const [podcasts, newsItems, tunes, tuneTrackerMeta] = await Promise.all([
     prisma.podcast.findMany({
       take: 2,
       orderBy: { createdAt: "desc" },
@@ -51,6 +51,7 @@ export default async function Home() {
       take: 10,
       orderBy: { order: "asc" },
     }),
+    prisma.tuneTrackerMeta.findFirst(),
   ]);
 
   // Serialize dates to avoid Next.js serialization warning/error
@@ -90,6 +91,14 @@ export default async function Home() {
     updatedAt: t.updatedAt.toISOString(),
   }));
 
+  const serializedMeta = tuneTrackerMeta
+    ? {
+        ...tuneTrackerMeta,
+        editionDate: tuneTrackerMeta.editionDate.toISOString(),
+        updatedAt: tuneTrackerMeta.updatedAt.toISOString(),
+      }
+    : null;
+
   return (
     <main className="flex flex-col min-h-screen bg-white font-sans">
       <Navbar />
@@ -97,7 +106,7 @@ export default async function Home() {
       <PodcastList podcasts={serializedPodcasts} />
       <NewsList newsItems={serializedNews} />
       {/* <ProgramsSection /> */}
-      <TuneTracker tunes={serializedTunes} />
+      <TuneTracker tunes={serializedTunes} meta={serializedMeta} />
       <AnnouncersSection />
       <FooterSection />
     </main>
