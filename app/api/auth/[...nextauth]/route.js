@@ -53,6 +53,18 @@ export const authOptions = {
       // Malformed ObjectID error in that case.
       const isValidObjectId = /^[0-9a-f]{24}$/i.test(user?.id ?? "");
       if (account?.provider === "google" && isValidObjectId) {
+        // Sync Google profile picture and name into User on every sign-in so
+        // the avatar stays current if the user updates their Google account.
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            image: profile.picture ?? user.image,
+            name: profile.name ?? user.name,
+          },
+        });
+
+        // Keep Account tokens fresh so server-side API calls always have a
+        // valid access_token + refresh_token.
         await prisma.account.updateMany({
           where: { userId: user.id, provider: "google" },
           data: {
@@ -69,12 +81,14 @@ export const authOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
+        token.image = user.image;
       } else if (token?.sub) {
         const latestUser = await prisma.user.findUnique({
           where: { id: token.sub },
-          select: { role: true },
+          select: { role: true, image: true },
         });
         token.role = latestUser?.role || token.role;
+        token.image = latestUser?.image ?? token.image;
       }
       return token;
     },
@@ -82,6 +96,7 @@ export const authOptions = {
       if (session?.user) {
         session.user.id = token.sub;
         session.user.role = token.role;
+        session.user.image = token.image;
       }
       return session;
     },
