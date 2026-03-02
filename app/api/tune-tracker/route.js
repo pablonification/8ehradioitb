@@ -63,161 +63,193 @@ function normalizeSourceTypeInput(sourceType, fallbackContext) {
   };
 }
 
+function internalServerError(message, error) {
+  console.error(message, error);
+  return NextResponse.json(
+    { error: "Internal server error" },
+    { status: 500 },
+  );
+}
+
 // GET: List all 10 entries, sorted by order
 export async function GET() {
-  const entries = await prisma.tuneTrackerEntry.findMany({
-    orderBy: { order: "asc" },
-  });
-  return NextResponse.json(entries);
+  try {
+    const entries = await prisma.tuneTrackerEntry.findMany({
+      orderBy: { order: "asc" },
+    });
+    return NextResponse.json(entries);
+  } catch (error) {
+    return internalServerError("Failed to fetch tune tracker entries:", error);
+  }
 }
 
 // POST: Create or update one entry (by order)
 export async function POST(req) {
-  const session = await getServerSession(authOptions);
-  if (!session || !isMusic(session.user.role)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const {
-    order,
-    title,
-    artist,
-    coverImage,
-    audioUrl,
-    itunesPreviewUrl,
-    itunesTrackId,
-    sourceType,
-  } = await req.json();
-  if (!order || !title || !artist) {
-    return NextResponse.json(
-      { error: "Missing required fields" },
-      { status: 400 },
-    );
-  }
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !isMusic(session.user.role)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const {
+      order,
+      title,
+      artist,
+      coverImage,
+      audioUrl,
+      itunesPreviewUrl,
+      itunesTrackId,
+      sourceType,
+    } = await req.json();
+    if (!order || !title || !artist) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 },
+      );
+    }
 
-  const sourceTypeValidation = normalizeSourceTypeInput(sourceType, {
-    audioUrl,
-    itunesPreviewUrl,
-  });
-  if (!sourceTypeValidation.valid) {
-    return NextResponse.json({ error: sourceTypeValidation.error }, { status: 400 });
-  }
+    const sourceTypeValidation = normalizeSourceTypeInput(sourceType, {
+      audioUrl,
+      itunesPreviewUrl,
+    });
+    if (!sourceTypeValidation.valid) {
+      return NextResponse.json(
+        { error: sourceTypeValidation.error },
+        { status: 400 },
+      );
+    }
 
-  let entry = await prisma.tuneTrackerEntry.findFirst({ where: { order } });
-  if (entry) {
-    entry = await prisma.tuneTrackerEntry.update({
-      where: { id: entry.id },
-      data: {
-        title,
-        artist,
-        coverImage,
-        audioUrl,
-        itunesPreviewUrl,
-        itunesTrackId,
-        sourceType: sourceTypeValidation.value,
-      },
-    });
-  } else {
-    entry = await prisma.tuneTrackerEntry.create({
-      data: {
-        order,
-        title,
-        artist,
-        coverImage,
-        audioUrl,
-        itunesPreviewUrl,
-        itunesTrackId,
-        sourceType: sourceTypeValidation.value,
-      },
-    });
+    let entry = await prisma.tuneTrackerEntry.findFirst({ where: { order } });
+    if (entry) {
+      entry = await prisma.tuneTrackerEntry.update({
+        where: { id: entry.id },
+        data: {
+          title,
+          artist,
+          coverImage,
+          audioUrl,
+          itunesPreviewUrl,
+          itunesTrackId,
+          sourceType: sourceTypeValidation.value,
+        },
+      });
+    } else {
+      entry = await prisma.tuneTrackerEntry.create({
+        data: {
+          order,
+          title,
+          artist,
+          coverImage,
+          audioUrl,
+          itunesPreviewUrl,
+          itunesTrackId,
+          sourceType: sourceTypeValidation.value,
+        },
+      });
+    }
+    return NextResponse.json(entry);
+  } catch (error) {
+    return internalServerError("Failed to upsert tune tracker entry:", error);
   }
-  return NextResponse.json(entry);
 }
 
 // PATCH: Partial update (by id)
 export async function PATCH(req) {
-  const session = await getServerSession(authOptions);
-  if (!session || !isMusic(session.user.role)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !isMusic(session.user.role)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const { id, ...rawData } = await req.json();
+    if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+
+    const data = { ...rawData };
+    const touchesSourceState =
+      hasOwn(data, "sourceType") ||
+      hasOwn(data, "audioUrl") ||
+      hasOwn(data, "itunesPreviewUrl");
+
+    if (touchesSourceState) {
+      const existing = await prisma.tuneTrackerEntry.findUnique({
+        where: { id },
+        select: {
+          audioUrl: true,
+          itunesPreviewUrl: true,
+        },
+      });
+
+      if (!existing) {
+        return NextResponse.json({ error: "Entry not found" }, { status: 404 });
+      }
+
+      const mergedAudioUrl = hasOwn(data, "audioUrl")
+        ? data.audioUrl
+        : existing.audioUrl;
+      const mergedItunesPreviewUrl = hasOwn(data, "itunesPreviewUrl")
+        ? data.itunesPreviewUrl
+        : existing.itunesPreviewUrl;
+
+      const sourceTypeValidation = normalizeSourceTypeInput(data.sourceType, {
+        audioUrl: mergedAudioUrl,
+        itunesPreviewUrl: mergedItunesPreviewUrl,
+      });
+      if (!sourceTypeValidation.valid) {
+        return NextResponse.json(
+          { error: sourceTypeValidation.error },
+          { status: 400 },
+        );
+      }
+
+      data.sourceType = sourceTypeValidation.value;
+    }
+
+    const entry = await prisma.tuneTrackerEntry.update({ where: { id }, data });
+    return NextResponse.json(entry);
+  } catch (error) {
+    return internalServerError("Failed to update tune tracker entry:", error);
   }
-  const { id, ...rawData } = await req.json();
-  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+}
 
-  const data = { ...rawData };
-  const touchesSourceState =
-    hasOwn(data, "sourceType") ||
-    hasOwn(data, "audioUrl") ||
-    hasOwn(data, "itunesPreviewUrl");
+// DELETE: Remove cover or audio from entry (by id, field)
+export async function DELETE(req) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !isMusic(session.user.role)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const { id, field } = await req.json();
+    if (!id || !["coverImage", "audioUrl", "itunesPreviewUrl"].includes(field)) {
+      return NextResponse.json(
+        { error: "Missing id or invalid field" },
+        { status: 400 },
+      );
+    }
 
-  if (touchesSourceState) {
     const existing = await prisma.tuneTrackerEntry.findUnique({
       where: { id },
-      select: {
-        audioUrl: true,
-        itunesPreviewUrl: true,
-      },
+      select: { audioUrl: true, itunesPreviewUrl: true },
     });
 
     if (!existing) {
       return NextResponse.json({ error: "Entry not found" }, { status: 404 });
     }
 
-    const mergedAudioUrl = hasOwn(data, "audioUrl") ? data.audioUrl : existing.audioUrl;
-    const mergedItunesPreviewUrl = hasOwn(data, "itunesPreviewUrl")
-      ? data.itunesPreviewUrl
-      : existing.itunesPreviewUrl;
+    const data = { [field]: null };
 
-    const sourceTypeValidation = normalizeSourceTypeInput(data.sourceType, {
-      audioUrl: mergedAudioUrl,
-      itunesPreviewUrl: mergedItunesPreviewUrl,
-    });
-    if (!sourceTypeValidation.valid) {
-      return NextResponse.json({ error: sourceTypeValidation.error }, { status: 400 });
+    if (field === "itunesPreviewUrl") {
+      data.itunesTrackId = null;
+      data.sourceType = existing.audioUrl ? "AUDIO_URL" : "MANUAL";
     }
 
-    data.sourceType = sourceTypeValidation.value;
+    if (field === "audioUrl") {
+      data.sourceType = existing.itunesPreviewUrl ? "ITUNES" : "MANUAL";
+    }
+
+    const entry = await prisma.tuneTrackerEntry.update({
+      where: { id },
+      data,
+    });
+    return NextResponse.json(entry);
+  } catch (error) {
+    return internalServerError("Failed to delete tune tracker entry field:", error);
   }
-
-  const entry = await prisma.tuneTrackerEntry.update({ where: { id }, data });
-  return NextResponse.json(entry);
-}
-
-// DELETE: Remove cover or audio from entry (by id, field)
-export async function DELETE(req) {
-  const session = await getServerSession(authOptions);
-  if (!session || !isMusic(session.user.role)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const { id, field } = await req.json();
-  if (!id || !["coverImage", "audioUrl", "itunesPreviewUrl"].includes(field)) {
-    return NextResponse.json(
-      { error: "Missing id or invalid field" },
-      { status: 400 },
-    );
-  }
-
-  const existing = await prisma.tuneTrackerEntry.findUnique({
-    where: { id },
-    select: { audioUrl: true, itunesPreviewUrl: true },
-  });
-
-  if (!existing) {
-    return NextResponse.json({ error: "Entry not found" }, { status: 404 });
-  }
-
-  const data = { [field]: null };
-
-  if (field === "itunesPreviewUrl") {
-    data.itunesTrackId = null;
-    data.sourceType = existing.audioUrl ? "AUDIO_URL" : "MANUAL";
-  }
-
-  if (field === "audioUrl") {
-    data.sourceType = existing.itunesPreviewUrl ? "ITUNES" : "MANUAL";
-  }
-
-  const entry = await prisma.tuneTrackerEntry.update({
-    where: { id },
-    data,
-  });
-  return NextResponse.json(entry);
 }

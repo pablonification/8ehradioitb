@@ -160,7 +160,7 @@ model StreamConfig {
 
 model TuneTrackerEntry {
   id               String   @id @default(auto()) @map("_id") @db.ObjectId
-  order            Int // 1-10, chart position
+  order            Int      @unique // 1-10, chart position
   title            String
   artist           String
   coverImage       String? // R2 key or external URL (iTunes artwork)
