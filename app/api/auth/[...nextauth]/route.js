@@ -79,16 +79,16 @@ export const authOptions = {
       return true; // Allow access
     },
     async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role;
-        token.image = user.image;
-      } else if (token?.sub) {
+      // Always fetch fresh user data from DB — on sign-in, user.role/image are
+      // stale (pre-signIn callback). On subsequent requests, token.sub is used.
+      const id = user?.id ?? token?.sub;
+      if (id) {
         const latestUser = await prisma.user.findUnique({
-          where: { id: token.sub },
+          where: { id },
           select: { role: true, image: true },
         });
-        token.role = latestUser?.role || token.role;
-        token.image = latestUser?.image ?? token.image;
+        token.role = latestUser?.role ?? user?.role ?? token.role;
+        token.image = latestUser?.image ?? user?.image ?? token.image;
       }
       return token;
     },
