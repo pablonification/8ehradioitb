@@ -14,10 +14,10 @@ export async function GET() {
 }
 
 export async function POST(req) {
-  //const session = await getServerSession(authOptions);
-  //if (!session || !isAdmin(session.user.role)) {
-  //  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  //}
+  const session = await getServerSession(authOptions);
+  if (!session || !isAdmin(session.user.role)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const { title, coverImage, addCoverImage } = await req.json();
   let config = await prisma.playerConfig.findFirst();
   if (addCoverImage) {
