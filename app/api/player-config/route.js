@@ -21,16 +21,16 @@ export async function POST(req) {
   const { title, coverImage, addCoverImage } = await req.json();
   let config = await prisma.playerConfig.findFirst();
   if (addCoverImage) {
+    const updateData = { ...(title !== undefined && { title }), ...(coverImage !== undefined && { coverImage }) };
     if (config) {
       const exists = config.coverImages?.includes(addCoverImage);
-      const updateData = { ...(title !== undefined && { title }), ...(coverImage !== undefined && { coverImage }) };
-    if (!exists) updateData.coverImages = { push: addCoverImage };
-    config = await prisma.playerConfig.update({ 
-      where: { id: config.id },
-      data: updateData 
-    });
-  } else if (Object.keys(updateData).length > 0) {
-      config = await prisma.playerConfig.create({
+      if (!exists) updateData.coverImages = { push: addCoverImage };
+      config = await prisma.playerConfig.update({ 
+        where: { id: config.id },
+        data: updateData 
+      });
+    } else {
+        config = await prisma.playerConfig.create({
         data: {
           title: title || "",
           coverImage: addCoverImage,
