@@ -23,13 +23,13 @@ export async function POST(req) {
   if (addCoverImage) {
     if (config) {
       const exists = config.coverImages?.includes(addCoverImage);
-      if (!exists) {
-        config = await prisma.playerConfig.update({
-          where: { id: config.id },
-          data: { coverImages: { push: addCoverImage } },
-        });
-      }
-    } else {
+      const updateData = { ...(title !== undefined && { title }), ...(coverImage !== undefined && { coverImage }) };
+    if (!exists) updateData.coverImages = { push: addCoverImage };
+    config = await prisma.playerConfig.update({ 
+      where: { id: config.id },
+      data: updateData 
+    });
+  } else if (Object.keys(updateData).length > 0) {
       config = await prisma.playerConfig.create({
         data: {
           title: title || "",
@@ -60,7 +60,7 @@ export async function POST(req) {
     });
   }
 
-  return NextResponse.json(config);
+  return NextResponse.json(config || {});
 }
 
 export async function DELETE(req) {
