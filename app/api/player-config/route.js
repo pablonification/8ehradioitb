@@ -50,6 +50,14 @@ export async function POST(req) {
         data: updateData,
       });
     }
+  } else if (title !== undefined || coverImage !== undefined) {
+    config = await prisma.playerConfig.create({
+      data: {
+        title: title || "",
+        coverImage: coverImage || "",
+        coverImages: coverImage ? [coverImage] : [],
+      },
+    });
   }
 
   return NextResponse.json(config);
