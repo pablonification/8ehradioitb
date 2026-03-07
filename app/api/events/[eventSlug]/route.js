@@ -6,6 +6,10 @@ import {
   requireSession,
 } from "@/lib/events/auth";
 import { validationError } from "@/lib/events/contracts";
+import {
+  normalizeSlugSegment,
+  RESERVED_EVENT_SLUGS,
+} from "@/lib/forms/slug";
 import { reportCriticalError } from "@/lib/observability/critical";
 
 function toEventResponse(event) {
@@ -29,12 +33,44 @@ function handleRouteError(error, context) {
     );
   }
 
+  if (error?.code === "P2002" && error?.meta?.target?.includes("slug")) {
+    return NextResponse.json(
+      { error: "Event slug must be unique" },
+      { status: 409 },
+    );
+  }
+
   void reportCriticalError({
     source: "api/events/[eventSlug]",
     message: context,
     error,
   });
   return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+}
+
+function rewriteFormDestinationSlug(destination, oldSlug, newSlug) {
+  if (
+    typeof destination !== "string" ||
+    !destination ||
+    !oldSlug ||
+    !newSlug ||
+    oldSlug === newSlug
+  ) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(destination);
+    const parts = parsed.pathname.split("/").filter(Boolean);
+    if (parts.length !== 2 || parts[0] !== "forms" || parts[1] !== oldSlug) {
+      return null;
+    }
+
+    parsed.pathname = `/forms/${newSlug}`;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
 }
 
 export async function GET(req, { params }) {
@@ -77,6 +113,7 @@ export async function PATCH(req, { params }) {
       },
       select: {
         id: true,
+        slug: true,
       },
     });
 
@@ -155,10 +192,52 @@ export async function PATCH(req, { params }) {
         typeof body.description === "string" ? body.description.trim() : null;
     }
 
+    if (Object.prototype.hasOwnProperty.call(body, "slug")) {
+      if (typeof body.slug !== "string" || !body.slug.trim()) {
+        return validationError(
+          "Invalid payload",
+          ["slug must be a non-empty string when provided"],
+          400,
+        );
+      }
+
+      const normalizedSlug = normalizeSlugSegment(body.slug);
+      if (!normalizedSlug) {
+        return validationError(
+          "Invalid payload",
+          ["slug contains invalid characters"],
+          400,
+        );
+      }
+
+      if (RESERVED_EVENT_SLUGS.has(normalizedSlug)) {
+        return NextResponse.json(
+          { error: "slug_is_reserved" },
+          { status: 400 },
+        );
+      }
+
+      if (normalizedSlug !== event.slug) {
+        const existing = await prisma.event.findUnique({
+          where: { slug: normalizedSlug },
+          select: { id: true },
+        });
+
+        if (existing && existing.id !== event.id) {
+          return NextResponse.json(
+            { error: "slug_already_exists" },
+            { status: 409 },
+          );
+        }
+      }
+
+      updates.slug = normalizedSlug;
+    }
+
     if (Object.keys(updates).length === 0) {
       return validationError(
         "Invalid payload",
-        ["At least one of title or description is required"],
+        ["At least one of title, description, or slug is required"],
         400,
       );
     }
@@ -169,6 +248,42 @@ export async function PATCH(req, { params }) {
       },
       data: updates,
     });
+
+    if (updated.slug !== event.slug) {
+      const candidateShortLinks = await prisma.shortLink.findMany({
+        where: {
+          destination: {
+            contains: `/forms/${event.slug}`,
+          },
+        },
+        select: {
+          id: true,
+          destination: true,
+        },
+      });
+
+      const updatesToRun = candidateShortLinks
+        .map((item) => ({
+          id: item.id,
+          destination: rewriteFormDestinationSlug(
+            item.destination,
+            event.slug,
+            updated.slug,
+          ),
+        }))
+        .filter((item) => typeof item.destination === "string");
+
+      if (updatesToRun.length > 0) {
+        await prisma.$transaction(
+          updatesToRun.map((item) =>
+            prisma.shortLink.update({
+              where: { id: item.id },
+              data: { destination: item.destination },
+            }),
+          ),
+        );
+      }
+    }
 
     return NextResponse.json(toEventResponse(updated));
   } catch (error) {
