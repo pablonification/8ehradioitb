@@ -21,28 +21,15 @@ function normalizeEmail(value) {
 }
 
 async function findProfileByNim(nimInput) {
-  const rawNim = typeof nimInput === "string" ? nimInput.trim() : "";
   const normalizedNim = normalizeNim(nimInput);
   if (!normalizedNim) return null;
 
-  const nimCandidates = Array.from(
-    new Set(
-      [rawNim, rawNim.replace(/\s+/g, ""), normalizedNim, normalizedNim.toLowerCase()].filter(
-        Boolean,
-      ),
-    ),
-  );
-
   const profiles = await prisma.participantProfile.findMany({
-    where: {
-      OR: nimCandidates.map((candidate) => ({
-        biodata: {
-          path: ["nim"],
-          equals: candidate,
-        },
-      })),
-    },
-    include: {
+    select: {
+      id: true,
+      userId: true,
+      displayName: true,
+      biodata: true,
       user: {
         select: {
           id: true,
@@ -53,9 +40,9 @@ async function findProfileByNim(nimInput) {
     },
   });
 
-  return (
-    profiles.find((profile) => normalizeNim(profile?.biodata?.nim) === normalizedNim) || null
-  );
+  // Prisma's Mongo JSON filters do not support `path` on this client version,
+  // so match NIM in memory after fetching the profile catalog.
+  return profiles.find((profile) => normalizeNim(profile?.biodata?.nim) === normalizedNim) || null;
 }
 
 async function getActiveLock(requesterUserId) {
