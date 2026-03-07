@@ -161,6 +161,7 @@ export async function POST(req, { params }) {
       submissions,
       requestedFields,
       questions: schema.questions,
+      sections: schema.sections,
       buildFileUrl: (key) => resolveR2DownloadUrl(key, { forceDownload: true }),
     });
 
