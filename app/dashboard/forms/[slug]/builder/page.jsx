@@ -62,9 +62,21 @@ const FILE_MIME_PRESETS = [
   { value: "image/png", label: "PNG", icon: FiImage },
   { value: "text/csv", label: "CSV", icon: FiFile },
 ];
+const MAX_EVENT_SLUG_LENGTH = 64;
 
 function uid(prefix) {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function normalizeEditableEventSlug(value) {
+  if (typeof value !== "string") return "";
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, MAX_EVENT_SLUG_LENGTH);
 }
 
 function makeSection(index) {
@@ -658,6 +670,7 @@ export default function FormBuilderPage() {
   const [activeElementId, setActiveElementId] = useState(null);
 
   const [eventMeta, setEventMeta] = useState({
+    slug: "",
     title: "",
     description: "",
   });
@@ -841,6 +854,7 @@ export default function FormBuilderPage() {
       const catalogData = await catalogRes.json();
 
       setEventMeta({
+        slug: eventData.slug || eventSlug || "",
         title: eventData.title || "",
         description: eventData.description || "",
       });
@@ -885,6 +899,7 @@ export default function FormBuilderPage() {
       await loadCollaborators();
       const initialFingerprint = buildSaveFingerprint({
         eventMetaInput: {
+          slug: eventData.slug || eventSlug || "",
           title: eventData.title || "",
           description: eventData.description || "",
         },
@@ -937,6 +952,10 @@ export default function FormBuilderPage() {
     return {
       consentText,
       payloadSchema,
+      slug:
+        normalizeEditableEventSlug(eventMetaInput.slug || "") ||
+        eventSlug ||
+        "",
       title: (eventMetaInput.title || "Formulir Tanpa Judul").trim(),
       description:
         typeof eventMetaInput.description === "string" &&
@@ -1021,6 +1040,7 @@ export default function FormBuilderPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          slug: payload.slug,
           title: payload.title,
           description: payload.description,
           expectedUpdatedAt: eventUpdatedAtRef.current || undefined,
@@ -1039,7 +1059,21 @@ export default function FormBuilderPage() {
           staleError.code = "stale_conflict";
           throw staleError;
         }
-        throw new Error("Draft saved, but failed to save form metadata");
+        if (patchPayload?.error === "slug_already_exists") {
+          throw new Error("Slug sudah dipakai form lain.");
+        }
+        if (patchPayload?.error === "slug_is_reserved") {
+          throw new Error("Slug ini tidak bisa dipakai.");
+        }
+        const patchDetails = Array.isArray(patchPayload?.details)
+          ? patchPayload.details.filter((item) => typeof item === "string")
+          : [];
+        if (patchDetails.length > 0) {
+          throw new Error(patchDetails[0]);
+        }
+        throw new Error(
+          patchPayload?.error || "Draft saved, but failed to save form metadata",
+        );
       }
       const updatedEvent = await patchMetaResponse.json().catch(() => null);
 
@@ -1053,6 +1087,22 @@ export default function FormBuilderPage() {
 
       if (updatedEvent?.updatedAt) {
         eventUpdatedAtRef.current = updatedEvent.updatedAt;
+      }
+
+      if (typeof updatedEvent?.slug === "string" && updatedEvent.slug) {
+        setEventMeta((prev) => ({
+          ...prev,
+          slug: updatedEvent.slug,
+        }));
+
+        if (updatedEvent.slug !== eventSlug) {
+          const nextParams = new URLSearchParams(searchParams.toString());
+          const query = nextParams.toString();
+          const nextHref = query
+            ? `/dashboard/forms/${updatedEvent.slug}/builder?${query}`
+            : `/dashboard/forms/${updatedEvent.slug}/builder`;
+          router.replace(nextHref, { scroll: false });
+        }
       }
 
       lastSavedFingerprintRef.current = buildSaveFingerprint();
@@ -2367,8 +2417,7 @@ export default function FormBuilderPage() {
             </select>
           </div>
 
-          <input
-            type="text"
+          <textarea
             value={question.description}
             onChange={(event) => {
               const nextDescription = event.target.value;
@@ -2377,8 +2426,9 @@ export default function FormBuilderPage() {
                 description: nextDescription,
               }));
             }}
-            className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none focus:border-[#f97316] focus:bg-white"
+            className="min-h-20 w-full resize-y rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none focus:border-[#f97316] focus:bg-white"
             placeholder="Deskripsi pertanyaan (opsional)"
+            rows={2}
           />
 
           <div className="grid gap-3 md:grid-cols-2">
@@ -2587,6 +2637,34 @@ export default function FormBuilderPage() {
               className="min-h-24 w-full resize-y rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none focus:border-[#f97316] focus:bg-white"
               placeholder="Deskripsi formulir"
             />
+
+            <label className="block">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Slug URL
+              </span>
+              <div className="mt-1 flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+                <span className="text-xs text-slate-500">/forms/</span>
+                <input
+                  type="text"
+                  value={eventMeta.slug}
+                  onChange={(event) => {
+                    const nextSlug = normalizeEditableEventSlug(event.target.value);
+                    setEventMeta((prev) => ({
+                      ...prev,
+                      slug: nextSlug,
+                    }));
+                  }}
+                  className="w-full border-0 bg-transparent p-0 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:ring-0"
+                  placeholder="slug-form"
+                  spellCheck={false}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                />
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Gunakan huruf kecil, angka, dan tanda "-". Link aktif setelah tersimpan.
+              </p>
+            </label>
 
             <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
               <span>

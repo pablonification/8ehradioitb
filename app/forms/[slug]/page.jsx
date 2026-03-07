@@ -708,7 +708,7 @@ export default function PublicFormPage() {
                 <h1 className="font-heading text-3xl font-bold text-slate-900">
                   {successPayload?.confirmation?.title || "Respons terkirim"}
                 </h1>
-                <p className="font-body text-slate-700">
+                <p className="whitespace-pre-wrap font-body text-slate-700">
                   {successPayload?.confirmation?.message || "Terima kasih sudah mengisi form."}
                 </p>
                 {successPayload?.editUrl ? (
@@ -861,7 +861,7 @@ export default function PublicFormPage() {
                 <h1 className="font-heading text-2xl font-bold text-slate-900">
                   {formData.closedMessage?.title || "Form closed"}
                 </h1>
-                <p className="font-body text-slate-700">
+                <p className="whitespace-pre-wrap font-body text-slate-700">
                   {formData.closedMessage?.description || "Form ini sudah ditutup."}
                 </p>
               </div>
@@ -1052,7 +1052,7 @@ export default function PublicFormPage() {
                     {activeSection.title}
                   </h2>
                   {activeSection.description ? (
-                    <p className="mt-2 font-body text-sm text-slate-700">
+                    <p className="mt-2 whitespace-pre-wrap font-body text-sm text-slate-700">
                       {activeSection.description}
                     </p>
                   ) : null}
@@ -1070,7 +1070,9 @@ export default function PublicFormPage() {
                         </label>
 
                         {question.description ? (
-                          <p className="font-body text-xs text-slate-500">{question.description}</p>
+                          <p className="whitespace-pre-wrap font-body text-xs text-slate-500">
+                            {question.description}
+                          </p>
                         ) : null}
 
                         {question.fieldType === "short_text" && (
