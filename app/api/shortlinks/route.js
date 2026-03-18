@@ -18,7 +18,7 @@ function toSlugValidationMessage(errorCode) {
     case SHORTLINK_SLUG_ERROR_CODES.TOO_LONG:
       return "Custom back-half must be at most 64 characters";
     case SHORTLINK_SLUG_ERROR_CODES.INVALID_FORMAT:
-      return "Custom back-half can only contain lowercase letters, numbers, '-' and '_'";
+      return "Custom back-half can only contain letters, numbers, '-' and '_'";
     case SHORTLINK_SLUG_ERROR_CODES.RESERVED:
       return "Custom back-half is reserved";
     default:

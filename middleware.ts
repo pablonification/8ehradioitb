@@ -1,28 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-
-const RESERVED = [
-  "",
-  "api",
-  "dashboard",
-  "login",
-  "not-found",
-  "password",
-  "blog",
-  "about-us",
-  "agency",
-  "media-partner",
-  "podcast",
-  "programs",
-  "faq",
-  "proxy-audio",
-  "_next",
-  "favicon.ico",
-  "contributors",
-  "events",
-  "forms",
-  "profile",
-];
+import { isReservedShortLinkSlug } from "@/lib/shortlinks/slug";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -53,7 +31,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Logika rewrite untuk shortlink
-  if (pathname !== "/" && slug && !RESERVED.includes(slug)) {
+  if (pathname !== "/" && slug && !isReservedShortLinkSlug(slug)) {
     return NextResponse.rewrite(
       new URL(`/api/redirect${pathname}`, request.url),
     );

@@ -99,10 +99,9 @@ export default function LoginPage() {
         </div>
       </div>
       <footer className="text-xs text-gray-500 font-body text-center py-4 mb-4">
-        © 2025 Technic 8EH Radio ITB. All rights reserved.
+        © {new Date().getFullYear()} Technic 8EH Radio ITB. All rights reserved.
       </footer>
     </div>
   );
 
 }
-

@@ -37,7 +37,7 @@ function getShortLinkValidationMessage(errorCode) {
     case SHORTLINK_SLUG_ERROR_CODES.TOO_LONG:
       return "Slug maksimal 64 karakter.";
     case SHORTLINK_SLUG_ERROR_CODES.INVALID_FORMAT:
-      return "Slug hanya boleh huruf kecil, angka, '-' dan '_'.";
+      return "Slug hanya boleh huruf, angka, '-' dan '_'.";
     case SHORTLINK_SLUG_ERROR_CODES.RESERVED:
       return "Slug ini reserved, pakai slug lain.";
     default:
