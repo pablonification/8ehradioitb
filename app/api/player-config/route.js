@@ -20,34 +20,47 @@ export async function POST(req) {
   }
   const { title, coverImage, addCoverImage } = await req.json();
   let config = await prisma.playerConfig.findFirst();
-  // If addCoverImage is set, add to coverImages array (if not exists)
   if (addCoverImage) {
+    const updateData = { ...(title !== undefined && { title }), ...(coverImage !== undefined && { coverImage }) };
     if (config) {
       const exists = config.coverImages?.includes(addCoverImage);
-      if (!exists) {
-        config = await prisma.playerConfig.update({
-          where: { id: config.id },
-          data: { coverImages: { push: addCoverImage } },
-        });
-      }
+      if (!exists) updateData.coverImages = { push: addCoverImage };
+      config = await prisma.playerConfig.update({ 
+        where: { id: config.id },
+        data: updateData 
+      });
     } else {
-      config = await prisma.playerConfig.create({
-        data: { title: title || "", coverImage: addCoverImage, coverImages: [addCoverImage] },
+        config = await prisma.playerConfig.create({
+        data: {
+          title: title || "",
+          coverImage: addCoverImage,
+          coverImages: [addCoverImage],
+        },
       });
     }
   }
-  // Always allow updating title and coverImage (active)
+
   if (config) {
-    config = await prisma.playerConfig.update({
-      where: { id: config.id },
-      data: { title, coverImage },
-    });
-  } else {
+    const updateData = {};
+    if (title !== undefined) updateData.title = title;
+    if (coverImage !== undefined) updateData.coverImage = coverImage;
+    if (Object.keys(updateData).length > 0) {
+      config = await prisma.playerConfig.update({
+        where: { id: config.id },
+        data: updateData,
+      });
+    }
+  } else if (title !== undefined || coverImage !== undefined) {
     config = await prisma.playerConfig.create({
-      data: { title, coverImage, coverImages: coverImage ? [coverImage] : [] },
+      data: {
+        title: title || "",
+        coverImage: coverImage || "",
+        coverImages: coverImage ? [coverImage] : [],
+      },
     });
   }
-  return NextResponse.json(config);
+
+  return NextResponse.json(config || {});
 }
 
 export async function DELETE(req) {
