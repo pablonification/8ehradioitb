@@ -1,42 +1,138 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 8EH Radio ITB
 
-## Getting Started
+[Live site](https://8ehradioitb.com)
 
-First, install dependencies with Bun and run the development server:
+8EH Radio ITB is a deployed web platform for a campus radio organization. It combines live audio, podcasts, articles, programs, announcer profiles, event forms, media-partner services, and an authenticated editorial dashboard.
+
+The project also includes AI-assisted workflows for public questions and newsroom content production.
+
+## What this project demonstrates
+
+- Full-stack product development with the Next.js App Router.
+- Streaming AI responses for a public radio chatbot.
+- Dynamic context assembly from recent articles and podcasts.
+- Role-protected content tools for drafting, editing, translation, summaries, and tags.
+- Prisma data modeling with MongoDB.
+- Authentication, media workflows, event forms, exports, short links, and analytics.
+
+## My contribution
+
+As Technology and Media Manager at 8EH Radio ITB, I designed and deployed the AI chatbot and content-processing pipeline.
+
+- Integrated the Vercel AI SDK with Groq and Google models.
+- Built streaming public Q&A with radio-specific knowledge and recent database content.
+- Built inference endpoints for article drafts, outlines, title ideas, editing, translation, summarization, and tags.
+- Added rate limiting to public AI endpoints and role checks for editorial tools.
+
+## AI pipeline
+
+```text
+Visitor question
+       |
+       v
+Next.js API route
+       |
+       +-- rate limit by client IP
+       +-- load recent articles and podcasts
+       +-- add 8EH Radio knowledge context
+       v
+Groq streaming response
+       |
+       v
+Chat widget in the public website
+```
+
+Editorial AI tools use authenticated role checks and Google Gemini for actions such as:
+
+- article title generation;
+- article outlines and first drafts;
+- editing and translation;
+- SEO-style summaries; and
+- tag suggestions.
+
+## Main routes
+
+| Method | Route | Purpose |
+| --- | --- | --- |
+| POST | `/api/ai/chat` | Public streaming Q&A with dynamic content context |
+| POST | `/api/ai/tldr` | Public article TL;DR generation |
+| POST | `/api/ai/blog` | Authenticated title, outline, draft, edit, and translation tools |
+| POST | `/api/ai/summarize` | Authenticated article description generation |
+| POST | `/api/ai/tags` | Authenticated article tag suggestions |
+| GET, POST | `/api/blog` | Read and create blog content with role checks |
+| GET, POST | `/api/events` | Manage events and form workflows |
+
+## Architecture
+
+```text
+Next.js 15 and React 19
+  public radio site, dashboard, chat widget, forms, media pages
+          |
+          +-- Vercel AI SDK
+          |     +-- Groq
+          |     +-- Google Gemini
+          |
+          +-- NextAuth Google OAuth
+          |
+          +-- Prisma ORM
+                |
+                +-- MongoDB
+```
+
+## Technology
+
+- **Frontend:** Next.js 15, React 19, JavaScript, TypeScript, Tailwind CSS, SWR
+- **AI:** Vercel AI SDK, Groq, Google Gemini, streamed responses
+- **Backend:** Next.js route handlers, NextAuth, Prisma
+- **Data and storage:** MongoDB, Cloudflare R2 support, audio and image assets
+- **Deployment:** Vercel-compatible build with `bun run build`
+
+## Run locally
+
+Requirements:
+
+- Bun 1.3 or newer
+- MongoDB
+- Google OAuth credentials for authenticated dashboard features
+
+Install dependencies and start the development server:
 
 ```bash
 bun install
+bun dev
 ```
 
-Then start the app:
+Open `http://localhost:3000`.
+
+Create local environment variables for the features you use:
+
+```env
+MONGODB_URL=mongodb://localhost:27017/8eh-radio
+NEXTAUTH_SECRET=replace-with-a-local-secret
+GOOGLE_CLIENT_ID=replace-with-google-client-id
+GOOGLE_CLIENT_SECRET=replace-with-google-client-secret
+GROQ_API_KEY=replace-with-groq-key
+GOOGLE_GENERATIVE_AI_API_KEY=replace-with-google-ai-key
+```
+
+Media uploads, radio streaming, and production deployment require additional storage and stream configuration. Never commit secrets to the repository.
+
+## Useful commands
 
 ```bash
 bun dev
-# or
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+bun run build
+bun run lint
+bun run format
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Current limitations
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+- Public AI rate limits are stored in memory, so production deployments should use a shared limiter such as Redis.
+- AI-generated content should be reviewed by an editor before publication.
+- Media uploads and stream configuration require deployment-specific credentials.
+- Authentication, storage, and content data should be configured with production privacy and retention policies.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## License
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is released under the [MIT License](./LICENSE).
