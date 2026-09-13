@@ -15,14 +15,16 @@ The project also includes AI-assisted workflows for public questions and newsroo
 - Prisma data modeling with MongoDB.
 - Authentication, media workflows, event forms, exports, short links, and analytics.
 
-## My contribution
+## Engineering focus
 
-As Technology and Media Manager at 8EH Radio ITB, I designed and deployed the AI chatbot and content-processing pipeline.
+The AI chatbot and content-processing pipeline were designed and deployed as part of 8EH Radio ITB's technology and media platform.
 
-- Integrated the Vercel AI SDK with Groq and Google models.
-- Built streaming public Q&A with radio-specific knowledge and recent database content.
-- Built inference endpoints for article drafts, outlines, title ideas, editing, translation, summarization, and tags.
-- Added rate limiting to public AI endpoints and role checks for editorial tools.
+The implementation includes:
+
+- Vercel AI SDK integration with Groq and Google models;
+- streaming public Q&A with radio-specific knowledge and recent database content;
+- inference endpoints for article drafts, outlines, title ideas, editing, translation, summarization, and tags; and
+- rate limiting for public AI endpoints and role checks for editorial tools.
 
 ## AI pipeline
 
