@@ -15,11 +15,9 @@ The project also includes AI-assisted workflows for public questions and newsroo
 - Prisma data modeling with MongoDB.
 - Authentication, media workflows, event forms, exports, short links, and analytics.
 
-## Engineering focus
+## AI and content pipeline
 
-The AI chatbot and content-processing pipeline were designed and deployed as part of 8EH Radio ITB's technology and media platform.
-
-The implementation includes:
+The platform includes an AI chatbot for public questions and role-protected editorial tools for newsroom content production.
 
 - Vercel AI SDK integration with Groq and Google models;
 - streaming public Q&A with radio-specific knowledge and recent database content;
